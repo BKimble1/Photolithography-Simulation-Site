@@ -25,18 +25,23 @@ source. "Model" says how the simulation reflects it.
   Czochralski-grown single-crystal ingots and polished by specialist wafer makers.
   [SVMI SV027](https://svmi.com/wp-content/uploads/2020/09/SV027.pdf) ·
   [SUMCO process](https://www.sumcosi.com/english/products/process/)
-* Wafers travel in sealed front-opening pods (FOUPs, up to 25 wafers) between tools; a load
-  port opens the pod and a robot in a clean enclosure (EFEM) moves wafers into the tool.
+* Wafers travel in sealed front-opening pods (FOUPs, up to 25 wafers) between tools,
+  carried by overhead vehicles; a load port opens the pod and a robot in a small clean
+  enclosure (a minienvironment) moves wafers into the tool. The app says wafers are moved
+  by robot and kept sealed, not that nobody ever touches them.
   [Entegris FOUPs](https://www.entegris.com/shop/en/USD/Products/Wafer-Handling/Wafer-Processing/300-mm-Front-Opening-Unified-Pods-(FOUPs)/c/300mmfrontopeningunifiedpodsfoups) ·
   [SEMI E15.1 load port](https://store-us.semi.org/products/e01501-semi-e15-1-specification-for-300-mm-tool-load-port) ·
-  [Muratec OHT](https://www.muratec-usa.com/products/779/)
+  [Muratec OHT](https://www.muratec-usa.com/products/779/) ·
+  [Aerosol Sci. Technol., FOUP/load-port minienvironment](https://www.tandfonline.com/doi/full/10.1080/027868290920115)
 * Particles can kill dies; the critical particle size is set at about half of the half-pitch,
   so particles much smaller than a feature matter.
   [IRDS Yield Enhancement 2022](https://irds.ieee.org/images/files/pdf/2022/2022IRDS_YE.pdf)
   *Model:* particles on the wafer are drawn far larger than real; a particle kills a die
   only if it lands in the circuit area and is above a size threshold.
-* Cleanrooms are classified by ISO 14644-1 by airborne particle counts (0.1–5 µm).
-  [ISO 14644-1:2015](https://www.iso.org/standard/53394.html)
+* Cleanrooms are classified by ISO 14644-1 by airborne particle counts (0.1–5 µm). A human
+  hair is roughly 80–100 µm wide.
+  [ISO 14644-1:2015](https://www.iso.org/standard/53394.html) ·
+  [nano.gov, "Just how small is nano?"](https://www.nano.gov/about-nanotechnology/just-how-small-is-nano/)
 * The RCA clean uses alkaline and acidic hydrogen-peroxide baths (SC-1 for organics and
   particles, SC-2 for metal ions), often with a dilute HF dip.
   [Kern 1990, J. Electrochem. Soc.](https://iopscience.iop.org/article/10.1149/1.2086825) ·
@@ -50,9 +55,13 @@ source. "Model" says how the simulation reflects it.
   [Georgia Tech ECE 6450](https://alan.ece.gatech.edu/ECE6450/Lectures/ECE6450L4-Oxidation%20Chap%204.pdf)
   *Model:* `oxidize` lowers the silicon surface by 0.44 × the oxide grown.
 * Shallow trench isolation: pad oxide, nitride, trench lithography and etch, oxide fill,
-  CMP stopping on the nitride, nitride strip.
-  [MIT Boning group, STI planarization](https://boning.mit.edu/wp-content/uploads/2022/11/Planarization-and-Integration-of-Shallow-Trench-Isolation.pdf)
-* Twin-well CMOS: PMOS in an n-well (phosphorus), NMOS in a p-well (boron).
+  CMP stopping on the nitride, nitride strip. CMP leaves the fill level with the nitride
+  top, so after the strip the oxide stands slightly above the silicon.
+  [MIT Boning group, STI planarization](https://boning.mit.edu/wp-content/uploads/2022/11/Planarization-and-Integration-of-Shallow-Trench-Isolation.pdf) ·
+  [US 7,491,964](https://image-ppubs.uspto.gov/dirsearch-public/print/downloadPdf/7491964)
+* Twin-well CMOS: PMOS in an n-well (phosphorus), NMOS in a p-well (boron). Phosphorus and
+  arsenic make silicon n-type; boron makes it p-type.
+  [UC Berkeley CMOS baseline](https://nanolab.berkeley.edu/public/process/baseline/reports/baselinerptII.pdf) ·
   [Harvey Mudd E158](https://pages.hmc.edu/harris/class/e158/lect0-intro.pdf) ·
   [Samsung, Part 6](https://semiconductor.samsung.com/support/tools-resources/fabrication-process/eight-essential-semiconductor-fabrication-processes-part-6-deposition-and-ion-implantation-for-the-electrical-properties/)
 * Source and drain implants are self-aligned: the polysilicon gate blocks the dopant from
@@ -71,6 +80,7 @@ source. "Model" says how the simulation reflects it.
 * Before coating, a dehydration bake and HMDS prime make the surface water-repellent so the
   resist adheres; a soft bake drives out most (not all) of the solvent.
   [MicroChemicals, adhesion](https://www.microchemicals.com/dokumente/application_notes/substrate_cleaning_adhesion_photoresist.pdf) ·
+  [UT Dallas, HMDS process](https://cleanroom.utdallas.edu/manuals/hmds-process/) ·
   [MicroChemicals, softbake](https://www.microchemicals.com/dokumente/application_notes/softbake_photoresist.pdf)
 * Spin-coated film thickness falls roughly with the inverse square root of spin speed; an
   edge bead forms and is removed by edge-bead removal.
@@ -90,26 +100,34 @@ source. "Model" says how the simulation reflects it.
   ultrapure water between lens and wafer (NA up to 1.35; dry ArF up to about 0.93).
   [ASML, light and lasers](https://www.asml.com/en/technology/lithography-principles/light-and-lasers) ·
   [ASML NXT:1470](https://www.asml.com/en/products/duv-lithography-systems/twinscan-nxt1470) ·
+  [ASML, immersion (2008)](https://www.asml.com/en/news/press-releases/2008/asml-extends-immersion-to-the-limit-of-single-patterning-lithography) ·
   [Nikon immersion](https://www.nikon.com/business/semi/technology/story04.html)
 * The reticle pattern is four times larger than on the wafer (4x reduction); a full field
-  is 26 mm × 33 mm; the scanner steps field by field while mask and wafer scan in sync.
+  is 26 mm × 33 mm; a slit of light sweeps each field while, in DUV scanners, reticle and
+  wafer scan in sync in opposite directions; then the wafer steps to the next field.
   [ASML technology](https://www.asml.com/en/technology) ·
   [ASML NXT:1980Di](https://www.asml.com/en/products/duv-lithography-systems/twinscan-nxt1980di) ·
-  [SPIE, Controlling CD](https://spie.org/news/controlling-cd)
+  [SemiAnalysis, reticle size](https://newsletter.semianalysis.com/p/die-size-and-reticle-conundrum-cost) ·
+  [SPIE, Controlling CD](https://spie.org/news/controlling-cd) ·
+  [US 6,252,370](https://image-ppubs.uspto.gov/dirsearch-public/print/downloadPdf/6252370)
   *Model:* the wafer map uses 13 × 16.5 mm dies, four to a 26 × 33 mm field.
 * Resolution follows CD = k1·λ/NA, with k1 ≥ 0.25 as the physical limit.
   [ASML, Rayleigh criterion](https://www.asml.com/en/technology/lithography-principles/rayleigh-criterion)
 * EUV uses 13.5 nm light, which nearly all materials absorb, so EUV optics and masks are
   reflective (Mo/Si multilayer mirrors) and the beam path is kept at very low pressure
-  (with hydrogen present), not in air. DUV projection optics are lens-based; high-NA
-  immersion lenses are catadioptric (lenses plus mirrors).
+  (with hydrogen present), not in air. DUV reticles are chrome on quartz and transmit
+  light; DUV projection optics are mostly lens-based (high-NA immersion lenses are
+  catadioptric: lenses plus mirrors), which is why the app says "lens-based", not "all lenses".
   [ASML, lenses and mirrors](https://www.asml.com/en/technology/lithography-principles/lenses-and-mirrors) ·
+  [SPIE 2012, NXE platform](https://ui.adsabs.harvard.edu/abs/2012SPIE.8322E..1GM/abstract) ·
+  [Halbleiter.org, photomasks](https://www.halbleiter.org/en/photolithography/photomasks/) ·
   [imec, lithography](https://www.imec-int.com/en/semiconductor-education-and-workforce-development/microchips/how-are-microchips-made/lithography) ·
   [Pfeiffer Vacuum, EUV](https://www.pfeiffer-vacuum.com/global/en/markets/semiconductor/lithography/euv-lithography)
 * The scanner measures alignment marks from earlier layers before exposing. Overlay (layer-to-layer
   error) is measured after development on a metrology tool, and wafers out of spec can be
   reworked (resist stripped and re-patterned) before etch, not after.
   [ASML, aligning to the nanometer](https://www.asml.com/en/news/stories/2021/fellow-simon-mathijssen-aligning-lithography-nanometer) ·
+  [ASML YieldStar](https://www.asml.com/en/products/metrology-and-inspection-systems/yieldstar-375f) ·
   [Semiconductor Engineering, overlay](https://semiengineering.com/how-overlay-keeps-pace-with-euv-patterning/)
   *Model:* alignment and overlay metrology are separate steps; rework is offered only
   between develop and etch.
@@ -133,7 +151,9 @@ source. "Model" says how the simulation reflects it.
   Copper wiring is made by damascene: etch trenches and vias into dielectric, fill, and
   polish back with CMP.
   [Semiconductor Engineering, BEOL/MOL](https://semiengineering.com/new-beolmol-breakthroughs/) ·
-  [imec, semi-damascene](https://www.imec-int.com/en/articles/semi-damascene-metallization-inflection-point-back-end-line-processing)
+  [Samsung, Part 7](https://semiconductor.samsung.com/support/tools-resources/fabrication-process/eight-essential-semiconductor-fabrication-processes-part-7-metal-interconnects-electrical-highways/) ·
+  [imec, semi-damascene](https://www.imec-int.com/en/articles/semi-damascene-metallization-inflection-point-back-end-line-processing) ·
+  [ScienceDirect Topics, dual damascene](https://www.sciencedirect.com/topics/engineering/dual-damascene)
 * Layout rules leave margin around contacts; a contact misaligned onto a gate shorts the
   gate to the source or drain.
   [MOSIS SCMOS rules](https://www.ece.rice.edu/Courses/422/manual/mosis_scmos7_2.pdf) ·
@@ -148,9 +168,11 @@ source. "Model" says how the simulation reflects it.
   dice before grinding.)
   [Samsung, Part 8](https://semiconductor.samsung.com/support/tools-resources/fabrication-process/eight-essential-semiconductor-fabrication-processes-part-8-eds-electrical-die-sorting-for-the-perfect-chips/) ·
   [Samsung, Part 9](https://semiconductor.samsung.com/support/tools-resources/fabrication-process/eight-essential-semiconductor-fabrication-processes-part-9-packaging-to-protect-the-chips-from-external-elements/) ·
-  [DISCO, DBG](https://www.disco.co.jp/eg/solution/library/dbg/dbg_process.html)
+  [DISCO, DBG](https://www.disco.co.jp/eg/solution/library/dbg/dbg_process.html) ·
+  [Amkor services](https://amkor.com/services/) ·
+  [Amkor test services](https://amkor.com/test-services/)
 * A CMOS inverter: input low turns on the PMOS pull-up (output high); input high turns on
-  the NMOS pull-down (output low).
+  the NMOS pull-down (output low); almost no current flows while the input is steady.
   [MIT 6.012, lecture 13](https://web.mit.edu/6.012/www/SP07-L13.pdf)
 
 ---
@@ -227,3 +249,24 @@ Things that could not be confirmed and are therefore avoided or qualified in the
   moved by automation.
 * SEMI M1, SEMI E47.1 and ISO 14644-1 full texts are paywalled; the app uses supplier
   datasheets and the public abstracts.
+
+A content audit (September 2026) checked every learner-facing sentence against these notes,
+qualified the overclaims, and pointed each step's "Look closer" source at a page that
+supports it. What remains unsourced, and should be read as the author's general knowledge:
+
+* **Real-world durations** ("About a minute per wafer", "Hours in a furnace", "Days" for the
+  second metal level, and so on) are rough orders of magnitude, not sourced figures.
+* **Equipment and process details** mentioned in passing: the pre-aligner and wafer notch,
+  filtered downflow in the tool front end, laser-scatter particle inspection, single-wafer
+  spin cleaning, the pad oxide cushioning the nitride, how CMP polishes, pellicles, the
+  chill plate after baking, CD-SEM measurement, SEM defect review, why contact holes are
+  drawn larger, copper being hard to plasma-etch, cap and passivation layers, gold wire
+  bonds (copper wire is also common), and short late anneals keeping junctions shallow.
+* **Items the notes support only through an unclear search excerpt**: hot phosphoric acid for
+  the nitride strip, SC-1/SC-2 recipe details, chrome-on-quartz DUV reticles, nitride as
+  the STI CMP stop, oxygen-plasma ashing, flip-chip as an alternative to wire bonds.
+* **Simulation specs** such as "CD within ±10% of target" and the overlay spec of ±2
+  units belong to this model, not to any real process.
+* **Idealisations**: "isolation oxide keeps current from leaking" (real isolation leaks a
+  little), and the recap's "dozens of masks and hundreds of process steps" for a real chip
+  (leading-edge flows can have more).
