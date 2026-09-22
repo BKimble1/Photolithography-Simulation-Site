@@ -37,7 +37,7 @@ export function CleanControl() {
       <p className="control__hint">
         {clean
           ? 'The wafer leaves this step with a clean surface.'
-          : 'The particles stay on the wafer. Each one that lands inside a die’s circuitry will cost that die at test.'}
+          : 'The particles stay on the wafer. Each one that lands inside a die’s circuitry can cost that die at test.'}
       </p>
     </div>
   );
@@ -87,7 +87,7 @@ export function SpinControl() {
         </div>
       </div>
       <p className="control__hint">
-        Qualitative model: thickness ∝ 1/√speed, and slow spins thicken toward the rim. Not a calibrated coater recipe.
+        Simple model: thickness ∝ 1/√speed (an empirical rule), and slow spins thicken toward the rim. Not a calibrated coater recipe.
         {Math.abs(spin - DEFAULT_CHOICES.spin) > 0.01 && (
           <>
             {' '}
@@ -103,27 +103,31 @@ export function SpinControl() {
 
 // ───────────────────────────── dose ─────────────────────────────
 
-/** Absorbed dose at the resist surface across the NMOS gate, with the clearing level. */
-function AerialChart({ level }: { level: number }) {
+/**
+ * Absorbed dose at the resist surface across the NMOS gate, with the level needed to clear
+ * the film the learner actually coated (a thicker film needs more light to clear).
+ */
+function AerialChart({ level, tRel }: { level: number; tRel: number }) {
   const data = useMemo(() => {
     const img = aerialImage('poly');
     const prof = profileAt(img, CUT_Y);
     const tNom = RESIST_RECIPES.fine.t;
+    const t = tNom * tRel * 0.96; // after the soft-bake shrink
     const d2s = doseToSize(tNom);
     const dose = d2s * doseRel(level);
-    // the surface dose at which a full nominal film just clears
+    // the surface dose at which this film just clears to the bottom
     let lo = 0.2;
     let hi = 20;
     for (let i = 0; i < 40; i++) {
       const mid = (lo + hi) / 2;
-      if (clearedDepthExact(mid, tNom * 0.96, tNom) >= tNom * 0.96 - 1e-3) hi = mid;
+      if (clearedDepthExact(mid, t, tNom) >= t - 1e-3) hi = mid;
       else lo = mid;
     }
     const clearAt = hi;
     // x from 10 to 40 gu (NMOS source, gate, drain)
     const pts = prof.map((v, i) => ({ x: (i + 0.5) * 0.5, e: v * dose })).filter((p) => p.x >= 10 && p.x <= 40);
     return { pts, clearAt, max: d2s * 2.7 };
-  }, [level]);
+  }, [level, tRel]);
   const W = 300;
   const H = 96;
   const sx = (x: number) => ((x - 10) / 30) * W;
@@ -165,6 +169,7 @@ function AerialChart({ level }: { level: number }) {
 
 export function DoseControl() {
   const dose = useApp((s) => s.choices.dose);
+  const tRel = spinModel(useApp((s) => s.choices.spin)).tRel;
   const setChoice = useApp((s) => s.setChoice);
   const lightPath = useApp((s) => s.lightPath);
   const toggle = useApp((s) => s.toggle);
@@ -222,7 +227,14 @@ export function DoseControl() {
           </div>
         </div>
       </div>
-      <AerialChart level={dose} />
+      <AerialChart level={dose} tRel={tRel} />
+      {Math.abs(tRel - 1) > 0.1 && (
+        <p className="control__hint">
+          {tRel > 1
+            ? 'Your resist came out thicker than target, so the clearing line sits higher: it needs more light to clear.'
+            : 'Your resist came out thinner than target, so it clears with less light, and lines print a little narrow.'}
+        </p>
+      )}
       <div className="xsec-caption">
         <span>Light reaching the resist across one gate (schematic)</span>
       </div>

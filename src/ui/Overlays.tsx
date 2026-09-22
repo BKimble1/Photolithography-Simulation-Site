@@ -321,7 +321,7 @@ export function Legend() {
             </li>
           </ul>
           <p className="note" style={{ marginTop: 16 }}>
-            Device views are schematic and greatly magnified: film thicknesses and widths keep their order and relationships but are not to scale. Wafer and tool views
+            Device views are schematic and greatly magnified: layers keep their order, but thicknesses and widths are not to scale. Wafer and tool views
             are illustrative equipment, not any manufacturer’s design. Particles on wafer maps are drawn enormously enlarged.
           </p>
         </div>
@@ -351,19 +351,22 @@ export function EuvExplainer() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 18 }}>
             <div>
               <p className="card__title">This journey · deep UV (193 nm)</p>
-              <svg viewBox="0 0 260 200" className="aerial" role="img" aria-label="DUV: light passes through a transparent reticle and a column of lenses">
+              <svg viewBox="0 0 260 200" className="aerial" role="img" aria-label="DUV: light passes through a transparent reticle and lens-based optics">
                 <rect width="260" height="200" fill="#fbfbfa" />
                 <rect x="95" y="14" width="70" height="8" fill="#dfe6ee" stroke="#9aa6b2" />
                 <rect x="112" y="14" width="10" height="8" fill="#333" />
                 <rect x="138" y="14" width="10" height="8" fill="#333" />
-                <text x="172" y="21" fontSize="9" fill="#555">
-                  reticle (light passes through)
+                <text x="172" y="16" fontSize="9" fill="#555">
+                  reticle
+                </text>
+                <text x="172" y="27" fontSize="9" fill="#555">
+                  (light passes through)
                 </text>
                 {[48, 70, 92, 114, 136].map((y, i) => (
                   <ellipse key={y} cx="130" cy={y} rx={36 - i * 3} ry="5" fill="#e6eef6" stroke="#9aa6b2" />
                 ))}
                 <text x="172" y="96" fontSize="9" fill="#555">
-                  refractive lenses
+                  lens-based optics
                 </text>
                 <path d="M110 22 L118 160 L142 160 L150 22 Z" fill="url(#hatch1)" opacity="0.55" />
                 <rect x="70" y="162" width="120" height="6" fill="#7566f2" />
@@ -378,7 +381,7 @@ export function EuvExplainer() {
                 </defs>
               </svg>
               <p className="note">
-                Argon-fluoride excimer laser light passes through a chrome-on-quartz reticle and a column of lenses that shrink the image 4×. Immersion scanners add a
+                Argon-fluoride excimer laser light passes through a chrome-on-quartz reticle and mostly lens-based optics that shrink the image 4×. Immersion scanners add a
                 thin film of ultrapure water under the last lens.
               </p>
             </div>
@@ -413,7 +416,7 @@ export function EuvExplainer() {
             </div>
           </div>
           <p className="note" style={{ marginTop: 12 }}>
-            Smallest printable feature ≈ k₁·λ/NA: a shorter wavelength λ, a larger numerical aperture NA, or cleverer processing (smaller k₁) all shrink it.
+            Smallest printable feature ≈ k₁·λ/NA: a shorter wavelength λ, a larger numerical aperture NA, or cleverer processing (smaller k₁, never below 0.25) all shrink it.
           </p>
           <a className="source" href={SOURCES.asmlLenses.url} target="_blank" rel="noreferrer" style={{ marginTop: 10 }}>
             {SOURCES.asmlLenses.title}
@@ -500,7 +503,7 @@ export function Recap() {
                 </li>
                 <li>Reworks: gate {choices.gateReworks}, contact {choices.contactReworks}</li>
                 <li>
-                  Knowledge checks: {correct} of {answered} answered correctly
+                  Knowledge checks: {answered ? `${correct} of ${answered} answered correctly` : 'none answered yet'}
                 </li>
               </ul>
             </div>

@@ -728,6 +728,13 @@ a {
   display: block;
   touch-action: none;
 }
+/* Dialogs take focus programmatically on open; their controls show the focus ring. */
+.modal:focus,
+.drawer:focus,
+.stages:focus {
+  outline: none;
+}
+
 /* 2D fallback when WebGL is unavailable. */
 .vp-flat {
   position: absolute;
