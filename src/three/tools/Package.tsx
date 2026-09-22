@@ -22,8 +22,7 @@ import { filmsColor, toSrgb8 } from '../../sim/filmColor';
 import { mulberry32 } from '../../sim/rng';
 import type { WaferSummary } from '../../sim/types';
 import { useSimState } from '../../state/sim';
-import { lerp, seg, smooth, useProgressBucket, useProgressFrame } from '../anim';
-import { Labels, type Label3D } from '../labels';
+import { lerp, seg, smooth, useProgressFrame } from '../anim';
 import { MAT } from '../materials';
 import type { ToolProps } from './index';
 
@@ -66,13 +65,6 @@ const moldMat = new THREE.MeshStandardMaterial({ color: '#17181b', metalness: 0.
 const holderMat = new THREE.MeshStandardMaterial({ color: '#9fa5ad', metalness: 0.9, roughness: 0.42 });
 const dimpleMat = new THREE.MeshStandardMaterial({ color: '#232428', metalness: 0.0, roughness: 0.35 });
 
-/** Pin names by lead position (left to right as seen from the front). */
-const LEAD_LABELS: Label3D[] = ['VDD', 'IN', 'OUT', 'GND'].map((t, i) => ({
-  key: t,
-  pos: [LEAD_X[i] * 0.001, 1.0 + 0.0006, (LEAD_END_Z + 2.5) * 0.001] as [number, number, number],
-  text: t,
-  tone: 'dark' as const,
-}));
 
 // ───────────────────────────── die texture ─────────────────────────────
 
@@ -209,18 +201,22 @@ const TUBE_SEG = 60;
 const TUBE_RAD = 8;
 
 /**
- * Mould chase (upper half) in cut-away: the top plate, the back wall (leads pass under it)
- * and the left end wall; the front and right side are cut away so the filling shows.
+ * Mould chase (upper half) drawn in section: only the half behind the dies' centre line
+ * (top plate, back wall where the leads pass under, left end wall), so the compound can be
+ * seen filling the front half of each cavity.
  */
 function useChaseGeometry() {
   return useMemo(() => {
     const len = PITCH * 3.2;
-    const zc = (BODY.z0 + BODY.z1) / 2;
-    const d = BODY.z1 - BODY.z0 + 6;
+    const zBack = BODY.z0 - 3;
+    const zCut = 0;
+    const d = zCut - zBack;
+    const zc = (zBack + zCut) / 2;
+    const wallH = BODY.top - LF_T;
     const parts = [
       boxAt(len, 6, d, 0, BODY.top + 3, zc),
-      boxAt(len, BODY.top - LF_T, 3, 0, (BODY.top + LF_T) / 2 + LF_T / 2, BODY.z0 - 1.5),
-      boxAt(3, BODY.top - LF_T, d, -len / 2 + 1.5, (BODY.top + LF_T) / 2 + LF_T / 2, zc),
+      boxAt(len, wallH, 3, 0, LF_T + wallH / 2, zBack + 1.5),
+      boxAt(3, wallH, d, -len / 2 + 1.5, LF_T + wallH / 2, zc),
     ];
     return mergeGeometries(parts);
   }, []);
@@ -338,7 +334,7 @@ export default function Package({ variant }: ToolProps) {
   const chase = useRef<THREE.Group>(null);
   const fills = useRef<(THREE.Mesh | null)[]>([]);
   const dimples = useRef<THREE.Group>(null);
-  const labels = useProgressBucket(50) >= 0.46 && v === 'bond';
+
   const wireMeshes = useRef<(THREE.Mesh | null)[]>([]);
   const balls = useRef<(THREE.Mesh | null)[]>([]);
   const stitches = useRef<(THREE.Mesh | null)[]>([]);
@@ -617,7 +613,7 @@ export default function Package({ variant }: ToolProps) {
             <group ref={chase} visible={false}>
               <mesh geometry={chaseGeo} material={MAT.steelSatin} castShadow receiveShadow />
             </group>
-            {labels && <Labels items={LEAD_LABELS} />}
+
           </>
         )}
       </group>

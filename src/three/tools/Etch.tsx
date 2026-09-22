@@ -994,7 +994,7 @@ const GLOWS: Record<Top, GlowSpec[]> = {
   icp: [{ mode: 0, r: 0.236, y0: 1.006, h: 0.19, gain: 4.2 }],
   ccp: [{ mode: 1, r: 0.226, y0: 1.004, h: 0.114, gain: 7 }],
   ash: [
-    { mode: 2, r: 0.108, y0: 1.242, h: 0.23, gain: 3.4 },
+    { mode: 2, r: 0.108, y0: 1.242, h: 0.23, gain: 6.5 },
     { mode: 3, r: 0.235, y0: 1.005, h: 0.106, gain: 4.5 },
   ],
 };
