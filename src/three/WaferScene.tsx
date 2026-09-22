@@ -36,6 +36,7 @@ export function WaferScene() {
     mapReveal: probing ? Math.min(1, b / 0.8) : 1,
     exposedFields: exposing ? Math.floor(Math.min(1, b / 0.8) * FIELDS.length) : state.wafer.resist?.phase === 'exposed' || state.wafer.resist?.phase === 'peb' ? FIELDS.length : 0,
     fields: FIELDS,
+    planGrid: id === 'diemap',
   };
   const line = useRef<THREE.Mesh>(null);
   useProgressFrame((p) => {
@@ -46,9 +47,9 @@ export function WaferScene() {
   });
   return (
     <group>
-      <Cyl r={0.17} h={0.02} position={[0, -0.011, 0]} m="ceramicGray" seg={96} />
-      <Cyl r={0.12} h={0.12} position={[0, -0.08, 0]} m="steelDark" seg={64} />
-      <Wafer look={look} />
+      <Cyl r={0.145} h={0.02} position={[0, -0.011, 0]} m="black" seg={96} />
+      <Cyl r={0.11} h={0.12} position={[0, -0.08, 0]} m="steelDark" seg={64} />
+      <Wafer look={look} metalness={0.82} roughness={0.12} />
       <mesh ref={line} position={[0, 0.003, 0]} visible={false}>
         <boxGeometry args={[0.31, 0.0015, 0.0025]} />
         <meshBasicMaterial color="#ffffff" transparent opacity={0.9} />

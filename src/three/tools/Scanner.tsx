@@ -147,6 +147,26 @@ function Stage({ children, position }: { children?: React.ReactNode; position?: 
   );
 }
 
+/** A rectangular frustum between two horizontal slits (for the light-path overlay). */
+function SlitFrustum({ x, y0, y1, w0, w1, d }: { x: number; y0: number; y1: number; w0: number; w1: number; d: number }) {
+  const geo = useMemo(() => {
+    const g = new THREE.BufferGeometry();
+    const a = w0 / 2;
+    const b = w1 / 2;
+    const h = d / 2;
+    // top rectangle at y0 (half-width a), bottom at y1 (half-width b)
+    const v = [
+      [-a, y0, -h], [a, y0, -h], [a, y0, h], [-a, y0, h],
+      [-b, y1, -h], [b, y1, -h], [b, y1, h], [-b, y1, h],
+    ].flat();
+    g.setAttribute('position', new THREE.Float32BufferAttribute(v, 3));
+    g.setIndex([0, 1, 5, 0, 5, 4, 1, 2, 6, 1, 6, 5, 2, 3, 7, 2, 7, 6, 3, 0, 4, 3, 4, 7]);
+    g.computeVertexNormals();
+    return g;
+  }, [y0, y1, w0, w1, d]);
+  return <mesh geometry={geo} position={[x, 0, 0]} material={MAT.beam} />;
+}
+
 /** Field positions (m) relative to the wafer centre, in exposure order. */
 const FIELD_M = FIELDS.map((f) => ({ x: f.x / 1000, y: f.y / 1000, h: f.h / 1000 }));
 
@@ -241,16 +261,15 @@ export default function Scanner({ variant }: ToolProps) {
         <planeGeometry args={[16, 16]} />
         <meshStandardMaterial color="#e2dfd6" roughness={0.55} />
       </mesh>
-      {/* vibration isolators and granite metrology base */}
+      {/* vibration isolators and granite base */}
       {[-0.55, 0.55].flatMap((x) => [-0.38, 0.38].map((z) => <Cyl key={`${x},${z}`} r={0.06} h={0.28} position={[x, 0.14, z]} m="panelDark" />))}
       <Box size={[1.5, 0.36, 1.0]} position={[0, GRANITE_TOP - 0.18 - 0.02, 0]} m="granite" radius={0.02} />
-      {/* frame: posts and bridge carrying lens and reticle stage */}
-      {[-0.66, 0.66].map((x) =>
-        [-0.42, 0.42].map((z) => <Box key={`${x},${z}`} size={[0.07, 1.62, 0.07]} position={[x + 0.02, GRANITE_TOP + 0.8, z]} m="panel" radius={0.012} />),
-      )}
-      <Box size={[1.46, 0.08, 0.94]} position={[0.02, GRANITE_TOP + 1.12, 0]} m="panel" radius={0.015} />
-      <Box size={[1.46, 0.06, 0.94]} position={[0.02, RETICLE_Y - 0.1, 0]} m="panelGray" radius={0.012} />
-      {/* hole in the bridge for the lens */}
+      {/* metrology frame: two rear columns carrying a dark frame plate the lens hangs from */}
+      {[-0.66, 0.7].map((x) => (
+        <Box key={x} size={[0.09, 1.66, 0.09]} position={[x, GRANITE_TOP + 0.82, -0.4]} m="steelSatin" radius={0.012} />
+      ))}
+      <Box size={[1.46, 0.06, 0.5]} position={[0.02, GRANITE_TOP + 1.12, -0.2]} m="panelGray" radius={0.015} />
+      <Box size={[0.7, 0.045, 0.42]} position={[LENS_X, RETICLE_Y - 0.1, -0.12]} m="panelGray" radius={0.012} />
       <LensColumn />
       {/* alignment sensor over the measure side */}
       <group position={[MEAS_X, WAFER_Y + 0.2, 0]}>
@@ -309,26 +328,25 @@ export default function Scanner({ variant }: ToolProps) {
       </group>
       <Box size={[0.9, 0.12, 0.12]} position={[1.25, RETICLE_Y + 0.32, -0.1]} m="steelSatin" radius={0.03} />
       <Box size={[0.12, 1.0, 0.12]} position={[1.72, 1.85, -0.1]} m="steelSatin" radius={0.03} />
-      {/* educational light path overlay */}
+      {/* educational light path overlay (193 nm UV is invisible in reality) */}
       <group ref={beam} visible={false}>
         <mesh position={[1.72, 1.85, -0.1]} material={MAT.beam}>
-          <boxGeometry args={[0.05, 1.0, 0.05]} />
+          <boxGeometry args={[0.024, 1.0, 0.024]} />
         </mesh>
         <mesh position={[1.25, RETICLE_Y + 0.32, -0.1]} rotation={[0, 0, Math.PI / 2]} material={MAT.beam}>
-          <boxGeometry args={[0.05, 0.9, 0.05]} />
+          <boxGeometry args={[0.024, 0.9, 0.024]} />
         </mesh>
-        {/* through the reticle: a slit, then converging 4× through the lens */}
-        <mesh position={[LENS_X, RETICLE_Y + 0.08, 0]} material={MAT.beam}>
-          <boxGeometry args={[0.1, 0.24, 0.03]} />
+        {/* shaped slit of light onto the reticle (drawn 4× the printed slit) */}
+        <mesh position={[LENS_X, RETICLE_Y + 0.12, 0]} material={MAT.beam}>
+          <boxGeometry args={[0.104, 0.2, 0.012]} />
         </mesh>
-        <mesh position={[LENS_X, (RETICLE_Y + WAFER_Y) / 2, 0]} material={MAT.beam}>
-          <cylinderGeometry args={[0.012, 0.055, RETICLE_Y - WAFER_Y - 0.02, 4, 1, true]} />
-        </mesh>
+        {/* from the reticle into the lens, and out of the lens onto the wafer: 4× smaller */}
+        <SlitFrustum x={LENS_X} y0={RETICLE_Y - 0.01} y1={WAFER_Y + 1.07} w0={0.104} w1={0.07} d={0.012} />
+        <SlitFrustum x={LENS_X} y0={WAFER_Y + 0.07} y1={WAFER_Y + 0.004} w0={0.05} w1={0.026} d={0.006} />
       </group>
       {/* enclosure: back wall and side glass (front cut away) */}
-      <Box size={[3.1, 2.6, 0.04]} position={[0.5, 1.3, -0.62]} m="panel" radius={0.01} />
-      <Box size={[0.04, 2.6, 1.2]} position={[-1.05, 1.3, 0]} m="glassClear" radius={0.005} castShadow={false} />
-      <Box size={[3.1, 0.06, 1.24]} position={[0.5, 2.62, 0]} m="panel" radius={0.01} />
+      <Box size={[3.2, 2.7, 0.04]} position={[0.5, 1.35, -0.64]} m="panel" radius={0.01} />
+      <Box size={[0.04, 2.7, 1.2]} position={[-1.05, 1.35, -0.02]} m="glassClear" radius={0.005} castShadow={false} />
     </group>
   );
 }

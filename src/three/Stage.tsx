@@ -67,6 +67,7 @@ function Lighting({ mood }: { mood: Mood }) {
         shadow-normalBias={0.02}
       />
       <directionalLight position={[-4, 3, -2]} intensity={0.5} color={warm ? '#ffe9bf' : '#dfe8ff'} />
+      {device && <directionalLight position={[-2.5, 2.2, 7]} intensity={1.1} color="#ffffff" />}
       {/* Studio environment: bright softboxes on a dark surround, so steel shows crisp
           reflections instead of a flat grey. */}
       <Environment resolution={256} frames={1}>

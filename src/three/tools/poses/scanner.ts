@@ -1,11 +1,11 @@
 import type { ToolPose } from '../../poses';
 
 export const POSE: ToolPose = {
-  pos: [2.2, 2.0, 2.8],
-  target: [0, 1.25, 0],
+  pos: [1.95, 1.78, 2.5],
+  target: [0.26, 1.42, -0.05],
   variants: {
-    reticle: { pos: [1.2, 2.35, 1.6], target: [0, 2.05, 0] },
-    align: { pos: [1.15, 1.2, 1.35], target: [0, 0.95, 0] },
-    expose: { pos: [2.1, 1.9, 2.6], target: [0, 1.35, 0] },
+    reticle: { pos: [1.35, 2.3, 1.25], target: [0.5, 2.02, -0.05] },
+    align: { pos: [0.55, 1.18, 1.2], target: [-0.3, 0.8, -0.02] },
+    expose: { pos: [1.95, 1.78, 2.5], target: [0.26, 1.42, -0.05] },
   },
 };

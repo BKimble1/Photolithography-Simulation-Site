@@ -1,25 +1,25 @@
 import { Html } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo } from 'react';
 import * as THREE from 'three';
 import { STEP_INDEX } from '../../sim/flow';
 import type { Grid } from '../../sim/grid';
-import { CUT_Y, LAYOUT, PINS } from '../../sim/layout';
+import { CUT_Y, LAYOUT } from '../../sim/layout';
 import { predictContacts } from '../../sim/metrology';
 import { engine, useSimState, useStep } from '../../state/sim';
 import { useApp } from '../../state/store';
 import { sectionLabels } from '../../ui/CrossSection';
-import { buildDeviceGeometry, buildHighlight, type Group } from './mesher';
+import { buildDeviceGeometry, type Group } from './mesher';
 
 export const DEV = { s: 0.05, zs: 1.3, zMin: -13 };
 
 const mats = {
-  semi: new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.62, metalness: 0.04 }),
-  diel: new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.3, metalness: 0.0 }),
-  dielGhost: new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.2, transparent: true, opacity: 0.13, depthWrite: false }),
-  metal: new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.26, metalness: 0.92 }),
-  resist: new THREE.MeshPhysicalMaterial({ vertexColors: true, roughness: 0.2, metalness: 0, clearcoat: 0.8, clearcoatRoughness: 0.2 }),
-  path: new THREE.MeshBasicMaterial({ color: '#48e0a0', transparent: true, opacity: 0.55, depthWrite: false }),
+  semi: new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.58, metalness: 0.02 }),
+  diel: new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.32, metalness: 0.0 }),
+  dielGhost: new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.2, transparent: true, opacity: 0.12, depthWrite: false }),
+  metal: new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.34, metalness: 0.62 }),
+  resist: new THREE.MeshPhysicalMaterial({ vertexColors: true, roughness: 0.22, metalness: 0, clearcoat: 0.8, clearcoatRoughness: 0.2 }),
+  glow: new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.4, emissive: '#1fcf85', emissiveIntensity: 0.6 }),
 };
 
 export const toWorld = (g: Grid, xg: number, yg: number, zg: number): [number, number, number] => [
@@ -28,7 +28,7 @@ export const toWorld = (g: Grid, xg: number, yg: number, zg: number): [number, n
   -(yg - (g.ny * g.dy) / 2) * DEV.s,
 ];
 
-function DeviceMesh({ grid, xray, yMin, hideDiel }: { grid: Grid; xray: boolean; yMin: number; hideDiel?: boolean }) {
+function DeviceMesh({ grid, xray, yMin, glow }: { grid: Grid; xray: boolean; yMin: number; glow?: Set<number> }) {
   const geos = useMemo(
     () =>
       buildDeviceGeometry(grid, {
@@ -37,12 +37,15 @@ function DeviceMesh({ grid, xray, yMin, hideDiel }: { grid: Grid; xray: boolean;
         s: DEV.s,
         zs: DEV.zs,
         zMin: DEV.zMin,
-        hide: hideDiel ? { diel: true } : undefined,
+        glow,
       }),
-    [grid, xray, yMin, hideDiel],
+    [grid, xray, yMin, glow],
   );
   useEffect(() => () => Object.values(geos).forEach((g) => g.dispose()), [geos]);
-  const order: Group[] = ['semi', 'metal', 'resist', 'diel'];
+  useFrame(({ clock }) => {
+    mats.glow.emissiveIntensity = 0.45 + 0.35 * (0.5 + 0.5 * Math.sin(clock.elapsedTime * 3));
+  });
+  const order: Group[] = ['semi', 'metal', 'resist', 'glow', 'diel'];
   return (
     <group>
       {order.map((k) => (
@@ -57,17 +60,6 @@ function DeviceMesh({ grid, xray, yMin, hideDiel }: { grid: Grid; xray: boolean;
       ))}
     </group>
   );
-}
-
-function PathGlow({ grid, nodes, yMin }: { grid: Grid; nodes: number[]; yMin: number }) {
-  const geo = useMemo(() => buildHighlight(grid, nodes, { yMin, xray: true, s: DEV.s, zs: DEV.zs }), [grid, nodes, yMin]);
-  const ref = useRef<THREE.Mesh>(null);
-  useFrame(({ clock }) => {
-    const m = ref.current?.material as THREE.MeshBasicMaterial | undefined;
-    if (m) m.opacity = 0.35 + 0.25 * (0.5 + 0.5 * Math.sin(clock.elapsedTime * 3));
-  });
-  useEffect(() => () => geo.dispose(), [geo]);
-  return <mesh ref={ref} geometry={geo} material={mats.path} renderOrder={3} />;
 }
 
 /** Translucent pillars showing where contact holes would land for the chosen offset. */
@@ -121,6 +113,9 @@ function Tag({ position, children, tone = 'dark' }: { position: [number, number,
   );
 }
 
+/** Where the pin tags float (gu): over the visible part of each top-metal shape. */
+const TAG_POS: Record<'IN' | 'OUT' | 'VDD', [number, number]> = { IN: [48, 46], OUT: [48, 31], VDD: [80, 59] };
+
 export function DeviceScene() {
   const state = useSimState();
   const { id, index } = useStep();
@@ -133,12 +128,12 @@ export function DeviceScene() {
   const isFinal = id === 'final';
   const wired = index >= STEP_INDEX.metal2;
   const elec = useMemo(() => (isFinal ? engine.electrical(choices) : null), [isFinal, choices]);
-  const labels = useMemo(() => sectionLabels(grid, CUT_Y).slice(0, 9), [grid]);
+  const labels = useMemo(() => sectionLabels(grid, CUT_Y).slice(0, 12), [grid]);
   const autoXray = xray || isFinal;
+  const glow = useMemo(() => (isFinal && elec ? new Set(finalInput === 0 ? elec.path.in0 : elec.path.in1) : undefined), [isFinal, elec, finalInput]);
   return (
     <group>
-      <DeviceMesh grid={grid} xray={autoXray} yMin={yMin} />
-      {isFinal && elec && <PathGlow grid={grid} nodes={finalInput === 0 ? elec.path.in0 : elec.path.in1} yMin={yMin} />}
+      <DeviceMesh grid={grid} xray={autoXray} yMin={yMin} glow={glow} />
       {id === 'contact-align' && <ContactPreview grid={grid} dx={choices.overlay} />}
       {cutaway &&
         labels.map((l, i) => (
@@ -148,11 +143,10 @@ export function DeviceScene() {
         ))}
       {wired &&
         (['IN', 'OUT', 'VDD'] as const).map((p) => {
-          const pin = PINS[p];
-          if (cutaway && pin.y < CUT_Y) return null;
+          const pos = TAG_POS[p];
           const lvl = isFinal && elec ? (p === 'IN' ? finalInput : p === 'VDD' ? 1 : finalInput === 0 ? elec.out.in0 : elec.out.in1) : null;
           return (
-            <Tag key={p} position={toWorld(grid, pin.x + (p === 'VDD' ? 30 : 0), pin.y, 29)} tone="accent">
+            <Tag key={p} position={toWorld(grid, pos[0], pos[1], 28.5)} tone="accent">
               {p}
               {lvl !== null ? ` = ${lvl === 'X' ? 'short' : lvl === 'Z' ? 'float' : lvl}` : ''}
             </Tag>

@@ -35,6 +35,8 @@ export interface WaferLook {
   fields?: readonly { x: number; y: number; w: number; h: number }[];
   developedPattern?: boolean;
   plain?: boolean;
+  /** Draw the planned die grid and exposure fields (die map preview). */
+  planGrid?: boolean;
 }
 
 const css = (c: [number, number, number]) => `rgb(${toSrgb8(c[0])},${toSrgb8(c[1])},${toSrgb8(c[2])})`;
@@ -109,7 +111,8 @@ export function drawWafer(ctx: CanvasRenderingContext2D, size: number, look: Waf
       const w = WAFER.dieW - 2 * street;
       const h = WAFER.dieH - 2 * street;
       ctx.fillStyle = css(dieTint);
-      ctx.globalAlpha = look.developedPattern && s.resist ? 0.55 : 0.8;
+      const blanket = films.length > 0 && films[films.length - 1].mat === M.POLY;
+      ctx.globalAlpha = blanket ? 0.18 : look.developedPattern && s.resist ? 0.55 : 0.62;
       ctx.fillRect(px(x0), py(y1), w * k, h * k);
       ctx.globalAlpha = 1;
       // functional blocks (die scale only)
@@ -125,6 +128,26 @@ export function drawWafer(ctx: CanvasRenderingContext2D, size: number, look: Waf
           ctx.fillRect(px(x0 + 0.6 + i * (w - 1.8) / 3), py(y1 - 0.4), 0.9 * k, 0.9 * k);
         }
       }
+    }
+  }
+
+  // planned die grid and exposure fields
+  if (look.planGrid) {
+    ctx.lineWidth = Math.max(1, size / 900);
+    for (const d of DIES) {
+      const x0 = px(d.x - WAFER.dieW / 2);
+      const y0 = py(d.y + WAFER.dieH / 2);
+      if (!d.full) {
+        ctx.fillStyle = 'rgba(40, 40, 50, 0.10)';
+        ctx.fillRect(x0, y0, WAFER.dieW * k, WAFER.dieH * k);
+      }
+      ctx.strokeStyle = d.full ? 'rgba(255,255,255,0.75)' : 'rgba(255,255,255,0.35)';
+      ctx.strokeRect(x0 + 1, y0 + 1, WAFER.dieW * k - 2, WAFER.dieH * k - 2);
+    }
+    if (look.fields) {
+      ctx.strokeStyle = 'rgba(106, 90, 249, 0.55)';
+      ctx.lineWidth = Math.max(1.5, size / 420);
+      for (const f of look.fields) ctx.strokeRect(px(f.x - f.w / 2), py(f.y + f.h / 2), f.w * k, f.h * k);
     }
   }
 
@@ -226,6 +249,7 @@ export function lookKey(l: WaferLook, size: number): string {
     l.exposedFields ?? 0,
     l.developedPattern ? 1 : 0,
     l.plain ? 1 : 0,
+    l.planGrid ? 1 : 0,
   ].join('|');
 }
 

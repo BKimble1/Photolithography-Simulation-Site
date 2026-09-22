@@ -14,7 +14,7 @@ import type { Grid } from '../../sim/grid';
 import { M } from '../../sim/materials';
 import { matColor } from '../../ui/palette';
 
-export type Group = 'semi' | 'diel' | 'metal' | 'resist';
+export type Group = 'semi' | 'diel' | 'metal' | 'resist' | 'glow';
 
 export function groupOf(mat: number): Group {
   if (mat === M.W || mat === M.CU) return 'metal';
@@ -36,7 +36,12 @@ export interface MeshOptions {
   hide?: Partial<Record<Group, boolean>>;
   /** Clip the substrate below this height (gu). */
   zMin?: number;
+  /** Segment indices (column*K + k) to draw in the glowing "current path" group. */
+  glow?: Set<number>;
 }
+
+const GLOW_COLOR = [0.16, 0.85, 0.52];
+const CHANNEL_DEPTH = 0.9; // gu of silicon drawn as the conducting inversion layer
 
 class Buf {
   pos: number[] = [];
@@ -78,7 +83,8 @@ function linearColor(mat: number, tag: number, dose: number): number[] {
 }
 
 export function buildDeviceGeometry(g: Grid, o: MeshOptions): Record<Group, THREE.BufferGeometry> {
-  const bufs: Record<Group, Buf> = { semi: new Buf(), diel: new Buf(), metal: new Buf(), resist: new Buf() };
+  const bufs: Record<Group, Buf> = { semi: new Buf(), diel: new Buf(), metal: new Buf(), resist: new Buf(), glow: new Buf() };
+  const glow = o.glow;
   const K = g.K;
   const j0 = Math.max(0, Math.floor(o.yMin / g.dy));
   const j1 = Math.min(g.ny, o.yMax !== undefined ? Math.ceil(o.yMax / g.dy) : g.ny);
@@ -156,15 +162,17 @@ export function buildDeviceGeometry(g: Grid, o: MeshOptions): Record<Group, THRE
         const nextSee = !top && see(g.mat[idx + 1]);
         const mySee = see(mat);
         if (!(top || (nextSee && !mySee) || (mySee && nextSee && g.mat[idx + 1] !== mat))) continue;
-        const color = linearColor(mat, g.tag[idx], g.dose[c]);
+        const lit = glow?.has(idx) ?? false;
+        const color = lit ? GLOW_COLOR : linearColor(mat, g.tag[idx], g.dose[c]);
         const z = g.top[idx];
-        const key = `${grp}|${color.join(',')}|${z.toFixed(3)}`;
+        const outGrp: Group = lit ? 'glow' : grp;
+        const key = `${outGrp}|${color.join(',')}|${z.toFixed(3)}`;
         present.add(key);
         const r = open.get(key);
         if (r && r.i1 === i) r.i1 = i + 1;
         else {
           if (r) flush(key);
-          open.set(key, { i0: i, i1: i + 1, j, z, color, grp });
+          open.set(key, { i0: i, i1: i + 1, j, z, color, grp: outGrp });
         }
       }
       for (const key of [...open.keys()]) if (!present.has(key)) flush(key);
@@ -192,48 +200,42 @@ export function buildDeviceGeometry(g: Grid, o: MeshOptions): Record<Group, THRE
         const mat = g.mat[idx];
         const grp = groupOf(mat);
         if (hidden(grp)) continue;
-        const color = linearColor(mat, g.tag[idx], g.dose[c]);
-        const b = bufs[grp];
-        for (const [a, bz] of visibleIntervals(c, k, nbr.px)) b.quad([x1, Y(a), za], [x1, Y(a), zb], [x1, Y(bz), zb], [x1, Y(bz), za], [1, 0, 0], color);
-        for (const [a, bz] of visibleIntervals(c, k, nbr.nx)) b.quad([x0, Y(a), zb], [x0, Y(a), za], [x0, Y(bz), za], [x0, Y(bz), zb], [-1, 0, 0], color);
-        // ny side faces toward the viewer (+z world): the cut face
-        for (const [a, bz] of visibleIntervals(c, k, nbr.ny)) b.quad([x0, Y(a), za], [x1, Y(a), za], [x1, Y(bz), za], [x0, Y(bz), za], [0, 0, 1], color);
-        for (const [a, bz] of visibleIntervals(c, k, nbr.py)) b.quad([x1, Y(a), zb], [x0, Y(a), zb], [x0, Y(bz), zb], [x1, Y(bz), zb], [0, 0, -1], color);
+        const baseColor = linearColor(mat, g.tag[idx], g.dose[c]);
+        const lit = glow?.has(idx) ?? false;
+        // A lit silicon channel/well segment glows only in a thin surface layer.
+        const segTop = g.top[idx];
+        const partial = lit && mat === M.SI && segTop - g.base(c, k) > CHANNEL_DEPTH * 1.5;
+        const split = partial ? segTop - CHANNEL_DEPTH : Infinity;
+        const emit = (dir: 'px' | 'nx' | 'py' | 'ny', d: number) => {
+          for (const [a0, b0] of visibleIntervals(c, k, d)) {
+            const pieces: [number, number, boolean][] = partial
+              ? ([
+                  [a0, Math.min(b0, split), false],
+                  [Math.max(a0, split), b0, true],
+                ] as [number, number, boolean][]).filter(([x, y]) => y - x > 1e-4)
+              : [[a0, b0, lit]];
+            for (const [a, bz, on] of pieces) {
+              const b = bufs[on ? 'glow' : grp];
+              const col = on ? GLOW_COLOR : baseColor;
+              if (dir === 'px') b.quad([x1, Y(a), za], [x1, Y(a), zb], [x1, Y(bz), zb], [x1, Y(bz), za], [1, 0, 0], col);
+              else if (dir === 'nx') b.quad([x0, Y(a), zb], [x0, Y(a), za], [x0, Y(bz), za], [x0, Y(bz), zb], [-1, 0, 0], col);
+              else if (dir === 'ny') b.quad([x0, Y(a), za], [x1, Y(a), za], [x1, Y(bz), za], [x0, Y(bz), za], [0, 0, 1], col);
+              else b.quad([x1, Y(a), zb], [x0, Y(a), zb], [x0, Y(bz), zb], [x1, Y(bz), zb], [0, 0, -1], col);
+            }
+          }
+        };
+        emit('px', nbr.px);
+        emit('nx', nbr.nx);
+        emit('ny', nbr.ny); // toward the viewer: includes the cut face
+        emit('py', nbr.py);
       }
     }
   }
-  return { semi: bufs.semi.geometry(), diel: bufs.diel.geometry(), metal: bufs.metal.geometry(), resist: bufs.resist.geometry() };
-}
-
-/** Extra boxes (world space) for highlighted segments, e.g. the conducting path. */
-export function buildHighlight(g: Grid, nodes: number[], o: MeshOptions, pad = 0.04): THREE.BufferGeometry {
-  const buf = new Buf();
-  const K = g.K;
-  const s = o.s;
-  const zs = o.zs;
-  const cx = (g.nx * g.dx) / 2;
-  const cy = (g.ny * g.dy) / 2;
-  const j0 = Math.floor(o.yMin / g.dy);
-  const col = [0.2, 0.9, 0.6];
-  for (const node of nodes) {
-    const c = Math.floor(node / K);
-    const k = node % K;
-    const j = Math.floor(c / g.nx);
-    const i = c % g.nx;
-    if (j < j0 || k >= g.n[c]) continue;
-    const mat = g.mat[c * K + k];
-    if (mat !== M.CU && mat !== M.W && mat !== M.POLY && mat !== M.SI) continue;
-    const x0 = (i * g.dx - cx) * s - pad * s;
-    const x1 = ((i + 1) * g.dx - cx) * s + pad * s;
-    const za = -(j * g.dy - cy) * s + pad * s;
-    const zb = -((j + 1) * g.dy - cy) * s - pad * s;
-    let z0 = g.base(c, k);
-    const z1 = g.top[c * K + k];
-    if (mat === M.SI) z0 = Math.max(z0, z1 - 1.2); // only the conducting surface layer
-    const y0 = z0 * zs * s;
-    const y1 = z1 * zs * s + pad * s;
-    buf.quad([x0, y1, za], [x1, y1, za], [x1, y1, zb], [x0, y1, zb], [0, 1, 0], col);
-    buf.quad([x0, y0, za], [x1, y0, za], [x1, y1, za], [x0, y1, za], [0, 0, 1], col);
-  }
-  return buf.geometry();
+  return {
+    semi: bufs.semi.geometry(),
+    diel: bufs.diel.geometry(),
+    metal: bufs.metal.geometry(),
+    resist: bufs.resist.geometry(),
+    glow: bufs.glow.geometry(),
+  };
 }

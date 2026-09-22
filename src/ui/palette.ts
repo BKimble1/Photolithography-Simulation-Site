@@ -6,11 +6,11 @@
 import { DOP, M, RES } from '../sim/materials';
 
 export const SI_COLORS: Record<number, string> = {
-  [DOP.PSUB]: '#4b4e56',
-  [DOP.PWELL]: '#5d4d41',
-  [DOP.NWELL]: '#3b5467',
-  [DOP.NPLUS]: '#3c7ad4',
-  [DOP.PPLUS]: '#de873a',
+  [DOP.PSUB]: '#6e727b',
+  [DOP.PWELL]: '#8a7461',
+  [DOP.NWELL]: '#5f7a91',
+  [DOP.NPLUS]: '#3f84e6',
+  [DOP.PPLUS]: '#ea8e3a',
 };
 
 export const RESIST = '#7566f2';
@@ -30,7 +30,7 @@ export function matColor(mat: number, tag: number, dose = 0): string {
       if (tag === RES.EXPOSED || tag === RES.PEB) return mix(RESIST, RESIST_LATENT, latentAmount(dose, tag));
       return RESIST;
     case M.W:
-      return '#8b929c';
+      return '#a3aab4';
     case M.CU:
       return '#c47f4c';
     case M.ILD:
@@ -69,7 +69,7 @@ export const LEGEND_PHYSICAL: { label: string; color: string; mat: number }[] = 
   { label: 'Nitride', color: '#b7c8b0', mat: M.NIT },
   { label: 'Polysilicon gate', color: '#bf5a6c', mat: M.POLY },
   { label: 'Photoresist', color: RESIST, mat: M.RES },
-  { label: 'Tungsten contact', color: '#8b929c', mat: M.W },
+  { label: 'Tungsten contact', color: '#a3aab4', mat: M.W },
   { label: 'Copper wiring', color: '#c47f4c', mat: M.CU },
   { label: 'Inter-metal dielectric', color: '#e8ecf0', mat: M.ILD },
   { label: 'Cap / passivation', color: '#a9b8c8', mat: M.CAP },

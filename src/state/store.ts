@@ -193,7 +193,7 @@ export const useApp = create<AppState>((set, get) => ({
       panel: null,
       returnTo: opts?.keepReturn ? s.returnTo : null,
       banner: opts?.banner ?? null,
-      lightPath: content.variant === 'expose' ? s.lightPath : false,
+      lightPath: content.variant === 'expose' || content.variant === 'reticle' ? s.lightPath : false,
     });
     const clock = useClock.getState();
     const waitForCheck = content.check === 'develop' && !get().checks.develop;

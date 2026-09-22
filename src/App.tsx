@@ -89,8 +89,14 @@ export default function App() {
     if (route === 'journey') {
       const s = useApp.getState();
       s.goTo(s.step, { view: s.view });
-      const p = new URLSearchParams(window.location.search).get('p');
+      const q = new URLSearchParams(window.location.search);
+      const p = q.get('p');
       if (p !== null && Number.isFinite(Number(p))) useClock.setState({ progress: Math.max(0, Math.min(1, Number(p))), playing: false });
+      if (q.get('lp') === '1') useApp.setState({ lightPath: true });
+      if (q.get('xray') === '1') useApp.setState({ xray: true });
+      if (q.get('in') === '1') useApp.setState({ finalInput: 1 });
+      const panel = q.get('panel');
+      if (panel === 'closer' || panel === 'compare' || panel === 'stages' || panel === 'legend' || panel === 'recap' || panel === 'euv') useApp.setState({ panel });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

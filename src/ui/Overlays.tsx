@@ -288,7 +288,7 @@ export function Legend() {
             </li>
             <li>
               <span className="sw" style={{ background: '#48e0a0' }} />
-              Current path in the final test
+              Connected to the output (final test)
             </li>
           </ul>
           <p className="note" style={{ marginTop: 16 }}>
