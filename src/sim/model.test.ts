@@ -249,3 +249,13 @@ describe('layout sanity', () => {
     expect(LAYOUT.nGate[0] - c[2]).toBe(4);
   });
 });
+
+describe('isolation module', () => {
+  it('the nitride strip leaves no nitride anywhere, even at rounded active-area corners', () => {
+    const s = engine.stepEnd(DEFAULT_CHOICES, STEP_INDEX['sti-fill']);
+    const g = s.grid;
+    let nitride = 0;
+    for (let c = 0; c < g.columns; c++) for (let k = 0; k < g.n[c]; k++) if (g.mat[c * g.K + k] === M.NIT) nitride++;
+    expect(nitride).toBe(0);
+  });
+});
