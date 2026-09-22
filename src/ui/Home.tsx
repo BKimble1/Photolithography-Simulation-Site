@@ -36,7 +36,7 @@ export function Home() {
         </h1>
         <p className="home__lead">Follow a wafer through the fab and see how each process changes it.</p>
         <div className="home__cta">
-          <button className="btn btn--primary btn--hero" onClick={() => (resumable ? start() : goTo(0))} autoFocus>
+          <button className="btn btn--primary btn--hero" onClick={() => (resumable ? start() : goTo(0))}>
             {resumable ? 'Continue the journey' : 'Start the journey'}
             <svg width="20" height="14" viewBox="0 0 20 14" aria-hidden>
               <path d="M1 7h17M12 1l6 6-6 6" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
@@ -48,13 +48,14 @@ export function Home() {
             </button>
           )}
         </div>
+        <p className="home__note">
+          An illustrative simulation of a two-transistor inverter · about 15 minutes. Equipment is stylised; process behaviour follows the cited
+          sources.
+        </p>
       </main>
       <div className="home__chapters">
         <ChapterProgress interactive={false} />
       </div>
-      <p className="home__note">
-        An illustrative simulation of a two-transistor inverter. About 15 minutes. Equipment is stylised; process behaviour follows the cited sources.
-      </p>
     </div>
   );
 }

@@ -1,4 +1,3 @@
-import { Html } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import { useEffect, useMemo } from 'react';
 import * as THREE from 'three';
@@ -9,6 +8,7 @@ import { predictContacts } from '../../sim/metrology';
 import { engine, useSimState, useStep } from '../../state/sim';
 import { useApp } from '../../state/store';
 import { sectionLabels } from '../../ui/CrossSection';
+import { Labels, type Label3D } from '../labels';
 import { buildDeviceGeometry, type Group } from './mesher';
 
 export const DEV = { s: 0.05, zs: 1.3, zMin: -13 };
@@ -89,30 +89,6 @@ function ContactPreview({ grid, dx }: { grid: Grid; dx: number }) {
   );
 }
 
-function Tag({ position, children, tone = 'dark' }: { position: [number, number, number]; children: React.ReactNode; tone?: 'dark' | 'light' | 'accent' }) {
-  const bg = tone === 'accent' ? '#6a5af9' : tone === 'light' ? 'rgba(255,255,255,0.92)' : 'rgba(14,15,18,0.82)';
-  const fg = tone === 'light' ? '#0e0f12' : '#fff';
-  return (
-    <Html position={position} center zIndexRange={[5, 0]} style={{ pointerEvents: 'none' }}>
-      <div
-        style={{
-          background: bg,
-          color: fg,
-          fontSize: 11.5,
-          padding: '3px 7px',
-          borderRadius: 6,
-          whiteSpace: 'nowrap',
-          fontFamily: 'var(--font)',
-          letterSpacing: '0.01em',
-          boxShadow: '0 1px 4px rgba(0,0,0,0.15)',
-        }}
-      >
-        {children}
-      </div>
-    </Html>
-  );
-}
-
 /** Where the pin tags float (gu): over the visible part of each top-metal shape. */
 const TAG_POS: Record<'IN' | 'OUT' | 'VDD', [number, number]> = { IN: [48, 46], OUT: [48, 31], VDD: [80, 59] };
 
@@ -131,27 +107,26 @@ export function DeviceScene() {
   const labels = useMemo(() => sectionLabels(grid, CUT_Y).slice(0, 12), [grid]);
   const autoXray = xray || isFinal;
   const glow = useMemo(() => (isFinal && elec ? new Set(finalInput === 0 ? elec.path.in0 : elec.path.in1) : undefined), [isFinal, elec, finalInput]);
+  const tags = useMemo(() => {
+    const out: Label3D[] = [];
+    if (cutaway)
+      labels.forEach((l, i) =>
+        out.push({ key: 'x' + i, pos: toWorld(grid, l.x, CUT_Y - 0.01, l.z), text: l.text, tone: l.light ? 'dark' : 'light' }),
+      );
+    if (wired)
+      (['IN', 'OUT', 'VDD'] as const).forEach((p) => {
+        const pos = TAG_POS[p];
+        const lvl = isFinal && elec ? (p === 'IN' ? finalInput : p === 'VDD' ? 1 : finalInput === 0 ? elec.out.in0 : elec.out.in1) : null;
+        const text = p + (lvl !== null ? ` = ${lvl === 'X' ? 'short' : lvl === 'Z' ? 'float' : lvl}` : '');
+        out.push({ key: p, pos: toWorld(grid, pos[0], pos[1], 28.5), text, tone: 'accent', priority: 2 });
+      });
+    return out;
+  }, [cutaway, labels, wired, isFinal, elec, finalInput, grid]);
   return (
     <group>
       <DeviceMesh grid={grid} xray={autoXray} yMin={yMin} glow={glow} />
       {id === 'contact-align' && <ContactPreview grid={grid} dx={choices.overlay} />}
-      {cutaway &&
-        labels.map((l, i) => (
-          <Tag key={i} position={toWorld(grid, l.x, CUT_Y - 0.01, l.z)} tone={l.light ? 'dark' : 'light'}>
-            {l.text}
-          </Tag>
-        ))}
-      {wired &&
-        (['IN', 'OUT', 'VDD'] as const).map((p) => {
-          const pos = TAG_POS[p];
-          const lvl = isFinal && elec ? (p === 'IN' ? finalInput : p === 'VDD' ? 1 : finalInput === 0 ? elec.out.in0 : elec.out.in1) : null;
-          return (
-            <Tag key={p} position={toWorld(grid, pos[0], pos[1], 28.5)} tone="accent">
-              {p}
-              {lvl !== null ? ` = ${lvl === 'X' ? 'short' : lvl === 'Z' ? 'float' : lvl}` : ''}
-            </Tag>
-          );
-        })}
+      <Labels items={tags} />
     </group>
   );
 }

@@ -1,4 +1,3 @@
-import { Html } from '@react-three/drei';
 import { useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { DIES, FIELDS, WAFER, YOUR_DIE } from '../sim/dies';
@@ -8,6 +7,7 @@ import { useApp } from '../state/store';
 import { useProgressBucket, useProgressFrame } from './anim';
 import { Cyl, ShadowBlob } from './kit/parts';
 import { Wafer } from './wafer/Wafer';
+import { Label } from './labels';
 
 /** The wafer on a neutral chuck: the "wafer" zoom level for every step. */
 export function WaferScene() {
@@ -82,11 +82,9 @@ function DiePicker() {
         <meshBasicMaterial transparent opacity={0} depthWrite={false} />
       </mesh>
       {d && (
-        <Html position={[d.x / 1000, 0.01, -d.y / 1000]} center style={{ pointerEvents: 'none' }}>
-          <div className="scalechip" style={{ whiteSpace: 'nowrap' }}>
-            <b>{d.id === YOUR_DIE ? 'Your die' : `Die ${d.col}, ${d.row}`}</b> · {d.full ? 'complete' : 'partial edge die (not tested)'}
-          </div>
-        </Html>
+        <Label pos={[d.x / 1000, 0.01, -d.y / 1000]} tone="chip" priority={3}>
+          <b>{d.id === YOUR_DIE ? 'Your die' : `Die ${d.col}, ${d.row}`}</b> · {d.full ? 'complete' : 'partial edge die (not tested)'}
+        </Label>
       )}
     </group>
   );

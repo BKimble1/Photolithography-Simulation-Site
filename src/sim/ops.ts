@@ -405,8 +405,12 @@ function etch(s: SimState, recipe: EtchRecipe): void {
 function wetEtch(s: SimState, mat: MatId, t: number): void {
   const g = s.grid;
   const K = g.K;
+  // Vertical pass: dissolve the exposed target from the top of each column.
+  const openLo = new Float32Array(g.columns).fill(Infinity);
+  const openHi = new Float32Array(g.columns).fill(-Infinity);
   forEachColumn(g, (c) => {
     let left = t;
+    const from = g.surface(c);
     while (left > 1e-6 && g.n[c] > 0) {
       const k = g.n[c] - 1;
       const idx = c * K + k;
@@ -420,7 +424,36 @@ function wetEtch(s: SimState, mat: MatId, t: number): void {
         left = 0;
       }
     }
+    const to = g.surface(c);
+    if (to < from - 1e-6) {
+      openLo[c] = to;
+      openHi[c] = from;
+    }
   });
+  // Lateral pass: a wet etch is isotropic, so a buried sliver of the target that touches a
+  // freshly opened neighbour is undercut and dissolved too (the thin film above settles).
+  const { nx, ny } = g;
+  for (let j = 0; j < ny; j++)
+    for (let i = 0; i < nx; i++) {
+      const c = g.col(i, j);
+      for (let k = g.n[c] - 2; k >= 0; k--) {
+        const idx = c * K + k;
+        if (g.mat[idx] !== mat || g.thickness(c, k) > t) continue;
+        const b = g.base(c, k);
+        const top = g.top[idx];
+        const touches = [
+          [i - 1, j],
+          [i + 1, j],
+          [i, j - 1],
+          [i, j + 1],
+        ].some(([a, bb]) => {
+          if (a < 0 || bb < 0 || a >= nx || bb >= ny) return false;
+          const n = g.col(a, bb);
+          return openLo[n] < top && openHi[n] > b;
+        });
+        if (touches) g.removeAt(c, k);
+      }
+    }
 }
 
 function strip(s: SimState): void {

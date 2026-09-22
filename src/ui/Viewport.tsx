@@ -5,6 +5,7 @@ import { M } from '../sim/materials';
 import { columnStack } from '../sim/metrology';
 import { useSimState, useStep } from '../state/sim';
 import { useApp, useClock } from '../state/store';
+import { LabelLayer } from '../three/labels';
 import { SCALE_TEXT } from '../three/poses';
 import { matColor } from './palette';
 
@@ -171,6 +172,7 @@ export function Viewport() {
       <Suspense fallback={<div className="vp-message">Loading the fab…</div>}>
         <Stage />
       </Suspense>
+      <LabelLayer />
       <div className="vp-top">
         <ViewSwitch />
         {view === 'device' ? <DeviceTools /> : view === 'tool' && content.scene === 'scanner' ? <LightToggle /> : <ScaleChip />}

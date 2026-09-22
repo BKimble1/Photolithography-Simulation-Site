@@ -74,8 +74,8 @@ function linearColor(mat: number, tag: number, dose: number): number[] {
   const key = `${mat}:${tag}:${dq}`;
   let c = colorCache.get(key);
   if (!c) {
+    // Color.set() already converts the sRGB hex into the linear working space.
     const col = new THREE.Color(matColor(mat, tag, dq));
-    col.convertSRGBToLinear();
     c = [col.r, col.g, col.b];
     colorCache.set(key, c);
   }

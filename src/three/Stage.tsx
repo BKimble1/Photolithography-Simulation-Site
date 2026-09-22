@@ -7,6 +7,7 @@ import { FLOW } from '../sim/flow';
 import { useStep } from '../state/sim';
 import { useApp, useClock } from '../state/store';
 import { DeviceScene } from './device/DeviceScene';
+import { LabelProjector } from './labels';
 import { poseFor, type Pose } from './poses';
 import { ToolScene } from './tools';
 import { FabScene } from './tools/Fab';
@@ -120,7 +121,10 @@ function CameraRig({ pose, instantKey, fromFar }: { pose: Pose; instantKey: stri
 }
 
 function Grounding({ mood }: { mood: Mood }) {
-  if (mood === 'device') return <ContactShadows position={[0, -0.9, 0]} opacity={0.35} scale={12} blur={2.6} far={3} resolution={512} />;
+  // The block's footprint never changes, so bake the soft ground shadow once per step
+  // instead of re-rendering it every frame.
+  const step = useApp((s) => s.step);
+  if (mood === 'device') return <ContactShadows key={step} frames={1} position={[0, -0.9, 0]} opacity={0.35} scale={12} blur={2.6} far={3} resolution={512} />;
   return null;
 }
 
@@ -177,6 +181,7 @@ export function Stage() {
         </Suspense>
         <Grounding mood={mood} />
         <CameraRig pose={pose} instantKey={sceneKey} fromFar={dir} />
+        <LabelProjector />
       </Canvas>
       <div className={'vp-fade' + (fade ? ' is-on' : '')} />
     </>

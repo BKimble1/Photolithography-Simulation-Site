@@ -82,6 +82,17 @@ export function StepPanel() {
           </div>
         )}
         {content.check === 'develop' && <DevelopCheck />}
+        {control}
+        {content.check === 'contact' && <ContactCheck />}
+        {content.inspect === 'gate-adi' && <GateAdiPanel />}
+        {content.inspect === 'contact-adi' && <ContactAdiPanel />}
+        {id === 'inspect' && <InspectPanel />}
+        {id === 'probe' && <ProbePanel />}
+        {id === 'final' && (
+          <div className="card">
+            <YourDieResult compact />
+          </div>
+        )}
         <ul className="microcopy" aria-live="polite">
           <li className={stage >= 1 && !waiting ? '' : 'is-hidden'}>
             <span className="label">What changes</span>
@@ -97,17 +108,6 @@ export function StepPanel() {
           </li>
         </ul>
         {content.lithoNote && <p className="note note--litho">{content.lithoNote}</p>}
-        {control}
-        {content.check === 'contact' && <ContactCheck />}
-        {content.inspect === 'gate-adi' && <GateAdiPanel />}
-        {content.inspect === 'contact-adi' && <ContactAdiPanel />}
-        {id === 'inspect' && <InspectPanel />}
-        {id === 'probe' && <ProbePanel />}
-        {id === 'final' && (
-          <div className="card">
-            <YourDieResult compact />
-          </div>
-        )}
         <div className="link-row">
           <button className="link-btn" onClick={() => setPanel('closer')}>
             Look closer
