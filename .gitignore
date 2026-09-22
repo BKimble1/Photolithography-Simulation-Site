@@ -5,3 +5,8 @@ dist
 test-results
 playwright-report
 .vite
+
+# ad-hoc model probes (run with: npx vitest run --config src/sim/__debug__/debug.config.ts)
+src/sim/__debug__/
+test-results/
+playwright-report/

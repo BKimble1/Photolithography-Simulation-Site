@@ -3,6 +3,7 @@ import { FLOW } from '../sim/flow';
 import { STEPS } from '../content/steps';
 import { useApp } from '../state/store';
 import { ChapterProgress, Wordmark } from './Chrome';
+import { ErrorBoundary, HAS_WEBGL } from './ErrorBoundary';
 
 const HomeCanvas = lazy(() => import('../three/HomeCanvas'));
 
@@ -16,9 +17,13 @@ export function Home() {
   return (
     <div className="home">
       <div className="home__canvas">
-        <Suspense fallback={null}>
-          <HomeCanvas />
-        </Suspense>
+        {HAS_WEBGL && (
+          <ErrorBoundary fallback={null}>
+            <Suspense fallback={null}>
+              <HomeCanvas />
+            </Suspense>
+          </ErrorBoundary>
+        )}
       </div>
       <div className="home__veil" />
       <nav className="home__nav" aria-label="Main">

@@ -121,9 +121,14 @@ export function sectionLabels(g: Grid, y: number): Label[] {
   const pg = topOf(g, 25, y, M.POLY);
   const pOpen = topOf(g, 16, y, M.POLY);
   if (pg && !pOpen) {
-    L.push({ x: 25, z: pg.z1 + 1.8, text: 'gate', small: true });
+    // With resist still on top, name the gate from the side so the two labels don't collide.
+    const gateLabel = (x: number, p: { z0: number; z1: number }) =>
+      topOf(g, x, y, M.RES)
+        ? L.push({ x: x - 3.6, z: (p.z0 + p.z1) / 2, text: 'gate', small: true, anchor: 'end' })
+        : L.push({ x, z: p.z1 + 1.8, text: 'gate', small: true });
+    gateLabel(25, pg);
     const pg2 = topOf(g, 71, y, M.POLY);
-    if (pg2) L.push({ x: 71, z: pg2.z1 + 1.8, text: 'gate', small: true });
+    if (pg2) gateLabel(71, pg2);
     const s = siTop(16);
     if (s && s.tag === DOP.NPLUS) {
       L.push({ x: 25, z: -5, text: 'NMOS', light: true, small: true });

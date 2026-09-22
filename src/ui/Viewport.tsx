@@ -7,6 +7,8 @@ import { useSimState, useStep } from '../state/sim';
 import { useApp, useClock } from '../state/store';
 import { LabelLayer } from '../three/labels';
 import { SCALE_TEXT } from '../three/poses';
+import { CrossSection } from './CrossSection';
+import { ErrorBoundary, HAS_WEBGL } from './ErrorBoundary';
 import { matColor } from './palette';
 
 const Stage = lazy(() => import('../three/Stage').then((m) => ({ default: m.Stage })));
@@ -163,15 +165,32 @@ function LightToggle() {
   );
 }
 
+/** Without WebGL, the viewport shows the same state as a 2D cross-section. */
+function FlatView() {
+  const state = useSimState();
+  const { content } = useStep();
+  return (
+    <div className="vp-flat">
+      <CrossSection grid={state.grid} title={`Cross-section of your die: ${content.title}`} />
+      <p className="vp-flat__note">
+        3D isn’t available in this browser, so you’re seeing the cross-section of your die. Every step, control and result still works.
+      </p>
+    </div>
+  );
+}
+
 export function Viewport() {
   const view = useApp((s) => s.view);
   const { content } = useStep();
+  if (!HAS_WEBGL) return <FlatViewport />;
   const describe = `${SCALE_TEXT[view][0]} view: ${content.title}`;
   return (
     <section className="viewport" aria-label={`3D view. ${describe}. Drag to rotate, scroll or pinch to zoom.`}>
-      <Suspense fallback={<div className="vp-message">Loading the fab…</div>}>
-        <Stage />
-      </Suspense>
+      <ErrorBoundary fallback={<FlatView />}>
+        <Suspense fallback={<div className="vp-message">Loading the fab…</div>}>
+          <Stage />
+        </Suspense>
+      </ErrorBoundary>
       <LabelLayer />
       <div className="vp-top">
         <ViewSwitch />
@@ -180,6 +199,18 @@ export function Viewport() {
       <div className="vp-bottom">
         <Scrubber />
         {view !== 'fab' && <LayerInset />}
+      </div>
+    </section>
+  );
+}
+
+function FlatViewport() {
+  return (
+    <section className="viewport viewport--flat" aria-label="Cross-section view of your die">
+      <FlatView />
+      <div className="vp-bottom">
+        <Scrubber />
+        <LayerInset />
       </div>
     </section>
   );
