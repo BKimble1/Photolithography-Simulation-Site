@@ -3,7 +3,8 @@ import { STEPS } from '../src/content/steps';
 import { FLOW } from '../src/sim/flow';
 import { freshStart, press, waitForCanvas, watchErrors } from './helpers';
 
-test('first run: home → every step → working inverter → recap', async ({ page, hasTouch }) => {
+test('first run: home → every step → working inverter → recap', async ({ page, hasTouch }, info) => {
+  test.skip(info.project.name === 'tablet', 'the full journey runs at desktop and phone sizes; tablet covers the shorter flows');
   // 37 steps with full rendering; software WebGL (SwiftShader) is slow, so allow plenty of time.
   test.setTimeout(20 * 60_000);
   const errors = watchErrors(page);

@@ -1,4 +1,6 @@
 import { useEffect, useRef } from 'react';
+import { FIRST_USE } from '../content/firstUse';
+import { GLOSSARY } from '../content/glossary';
 import { CHAPTERS, chapterSteps, FLOW } from '../sim/flow';
 import { useStep } from '../state/sim';
 import { useApp, useClock } from '../state/store';
@@ -108,6 +110,16 @@ export function StepPanel() {
           </li>
         </ul>
         {content.lithoNote && <p className="note note--litho">{content.lithoNote}</p>}
+        {FIRST_USE[index].length > 0 && (
+          <dl className="newterms" aria-label="New terms in this step">
+            {FIRST_USE[index].map((t) => (
+              <div key={t}>
+                <dt>{GLOSSARY[t].term}</dt>
+                <dd>{GLOSSARY[t].def}</dd>
+              </div>
+            ))}
+          </dl>
+        )}
         <div className="link-row">
           <button className="link-btn" onClick={() => setPanel('closer')}>
             Look closer

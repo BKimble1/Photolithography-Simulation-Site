@@ -694,6 +694,33 @@ a {
   text-decoration-color: var(--accent);
   color: var(--accent-ink);
 }
+.newterms {
+  margin: 14px 0 0;
+  padding: 10px 12px;
+  border-left: 2px solid var(--accent-line);
+  background: var(--accent-soft);
+  border-radius: 0 8px 8px 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--ink-2);
+}
+.newterms div + div {
+  margin-top: 6px;
+}
+.newterms dt {
+  display: inline;
+  font-weight: 600;
+  color: var(--ink);
+}
+.newterms dt::after {
+  content: ' — ';
+  font-weight: 400;
+  color: var(--ink-3);
+}
+.newterms dd {
+  display: inline;
+  margin: 0;
+}
 .term.is-new {
   text-decoration-color: var(--accent);
 }

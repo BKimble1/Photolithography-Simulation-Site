@@ -251,7 +251,9 @@ test explains the cause.
 * `src/ui/Overlays.tsx` — Stages overview, Look closer drawer (labelled section,
   explanation, one source), What changed? comparison, Legend, DUV vs EUV explainer, Recap.
 * `src/content/steps.ts`, `glossary.ts`, `sources.ts` — all learner-facing copy and sources.
-  Glossary terms are marked `[[termId|text]]` in the copy and defined at first use.
+  Glossary terms are marked `[[termId|text]]` in the copy. `content/firstUse.ts` finds the
+  step where each term first appears; that step defines it inline under "What changes" /
+  "Why it matters", and every mention also has a hover, focus or tap definition.
 * `src/three/labels.tsx` — scenes declare labels; one DOM layer draws them and a projector
   moves them each frame, avoiding overlaps and the viewport controls.
 
