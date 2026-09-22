@@ -23,7 +23,7 @@ export function DevelopCheck() {
     'The polysilicon beneath the openings',
   ];
   const feedback = [
-    'Right. Exposure made that resist soluble, so it washes away. Watch openings appear over the sources and drains.',
+    'Right. Light and the bake made that resist soluble, so it washes away. Watch openings appear over the sources and drains.',
     'That is how a negative resist behaves. This is a positive resist: the exposed areas dissolve, and the shadowed lines stay.',
     'The developer only dissolves resist. Changing the layer underneath takes an etch, which comes after inspection.',
   ];

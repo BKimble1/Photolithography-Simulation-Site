@@ -79,17 +79,17 @@ export const STEPS: Record<StepId, StepContent> = {
     closer: {
       body: [
         'Before the fab: silicon is grown into a single-crystal ingot (the Czochralski method), sliced into wafers and polished to a mirror finish by wafer makers. A 300 mm wafer is about 775 µm thick.',
-        'Inside the fab, wafers travel sealed in FOUPs carried by overhead vehicles. A pod is opened only when it docks to a tool’s load port, inside a small enclosure of filtered air.',
+        'Inside the fab, wafers travel sealed in FOUPs carried by overhead vehicles. A pod is normally opened only when docked at a tool’s load port, inside a small enclosure of filtered air.',
       ],
       source: 'sumcoProcess',
-      extra: ['entegrisFoup'],
+      extra: ['svmiWafer', 'entegrisFoup'],
     },
   },
   transfer: {
-    title: 'Move it without touching',
+    title: 'Move it by robot',
     doing: 'A robot slides a thin blade under the wafer and carries it into the tool’s clean enclosure.',
     changes: 'A pre-aligner spins the wafer to find its notch, so every tool knows which way it faces.',
-    why: 'People shed particles; sealed pods and robot handling keep the surface clean.',
+    why: 'People shed particles; sealed pods and robot handling help keep the surface clean.',
     scene: 'foup',
     variant: 'robot',
     view: 'tool',
@@ -101,12 +101,13 @@ export const STEPS: Record<StepId, StepContent> = {
         'The notch is a tiny V cut into the wafer edge. Finding it lets every later pattern land in the same orientation.',
       ],
       source: 'entegrisFoup',
+      extra: ['foupMinienv'],
     },
   },
   scan: {
     title: 'Scan for particles',
     doing: 'A laser sweeps the surface; any speck scatters light and lands on a defect map.',
-    changes: 'Nine [[particle|particles]] show up — far smaller than a hair, but large compared with the features to come.',
+    changes: 'Nine [[particle|particles]] show up — far smaller than a hair, but big enough to damage the features to come.',
     why: 'A particle a fraction of a feature’s size can short or break a circuit and ruin a [[die|die]].',
     scene: 'inspect',
     variant: 'scan',
@@ -125,8 +126,8 @@ export const STEPS: Record<StepId, StepContent> = {
   clean: {
     title: 'Clean the surface',
     doing: 'Choose whether to run a wet clean that lifts particles and residues off the surface.',
-    changes: 'With the clean, the particles are gone. Skip it and they stay — soon buried under the next films.',
-    why: 'Each particle left behind can kill the die it sits on, and you will only find out at test.',
+    changes: 'With the clean, these particles are gone. Skip it and they stay — soon buried under the next films.',
+    why: 'Each particle left behind can kill the die it sits on, and you may not find out until test.',
     scene: 'wetclean',
     view: 'tool',
     duration: 11,
@@ -136,16 +137,17 @@ export const STEPS: Record<StepId, StepContent> = {
     closer: {
       body: [
         'The classic RCA sequence uses an ammonia–peroxide bath (SC-1) for particles and organics, a hydrochloric–peroxide bath (SC-2) for metal ions, and often a dilute hydrofluoric-acid dip to strip the thin native oxide.',
-        'Many fabs clean one wafer at a time in a spinning chamber with sprays and megasonic energy. In this simulation the clean removes every particle; real cleans remove most, not all.',
+        'Many fabs clean one wafer at a time in a spinning chamber with chemical sprays. In this simulation the clean removes every particle; real cleans remove most, not all.',
       ],
-      source: 'irdsYield',
+      source: 'kernRca',
+      extra: ['irdsYield'],
     },
   },
   diemap: {
     title: 'Map the dies',
     doing: 'Lay out a grid of identical dies across the wafer; you will follow the one outlined in violet.',
     changes: 'Nothing physical yet: this is the plan every reticle will print, one exposure field at a time.',
-    why: 'Every die gets the same process, so one wafer yields hundreds of chips at once.',
+    why: 'Every die gets the same process, so one wafer can yield hundreds of chips at once.',
     scene: 'wafer',
     variant: 'diemap',
     view: 'wafer',
@@ -155,9 +157,10 @@ export const STEPS: Record<StepId, StepContent> = {
     closer: {
       body: [
         'Each die here holds a two-transistor [[inverter|inverter]] and its bond pads. A scanner prints one field of up to 26 mm × 33 mm at a time; here a field holds 2 × 2 dies.',
-        'Dies cut by the wafer edge are partial. They are processed anyway, because every field is exposed the same way, but they are never tested.',
+        'Dies cut by the wafer edge are partial. They are processed anyway, because every field is exposed the same way, but they are not tested here.',
       ],
       source: 'asmlPrinciples',
+      extra: ['semianalysisField'],
     },
   },
 
@@ -177,7 +180,7 @@ export const STEPS: Record<StepId, StepContent> = {
     closer: {
       body: [
         'Thermal oxidation converts silicon into silicon dioxide, so the surface moves: roughly 44% of the final oxide thickness lies below the original surface.',
-        'Thin transparent films change a wafer’s colour through light interference. The colours in this simulation are computed from film thicknesses, not painted on.',
+        'Thin transparent films colour a wafer through light interference; the colour depends on thickness and viewing angle. Here it is computed from film thicknesses, not painted on.',
       ],
       source: 'samsungOxidation',
       extra: ['ualbertaOx', 'byuColor'],
@@ -199,7 +202,7 @@ export const STEPS: Record<StepId, StepContent> = {
     schematic: true,
     closer: {
       body: [
-        'This is the first patterned layer, so it defines the reference every later layer must line up with.',
+        'This is the first patterned layer. Its alignment marks give later layers a reference to line up with.',
         'The etch attacks only where the developed resist has opened a window. Resist is consumed slowly too, which is why it must be thick enough to last.',
       ],
       source: 'mitSti',
@@ -208,7 +211,7 @@ export const STEPS: Record<StepId, StepContent> = {
   'sti-fill': {
     title: 'Fill and polish',
     doing: 'Fill the trenches with oxide, polish the wafer flat until the nitride shows, then strip the nitride.',
-    changes: 'Oxide now fills the trenches, flush with the silicon islands where transistors will sit.',
+    changes: 'Oxide now fills the trenches and rises slightly above the silicon islands where transistors will sit.',
     why: 'A flat surface keeps later patterns in focus and every film even.',
     scene: 'cmp',
     view: 'tool',
@@ -220,7 +223,7 @@ export const STEPS: Record<StepId, StepContent> = {
     closer: {
       body: [
         '[[cmp|CMP]] presses the wafer face-down onto a rotating pad soaked with slurry. Nitride polishes much more slowly than oxide, so polishing effectively stops when the nitride is reached.',
-        'Hot phosphoric acid then removes the nitride without attacking the oxide.',
+        'Hot phosphoric acid typically removes the nitride and barely etches the oxide.',
       ],
       source: 'mitSti',
     },
@@ -241,7 +244,7 @@ export const STEPS: Record<StepId, StepContent> = {
     closer: {
       body: [
         'An ion implanter ionises the dopant, accelerates it and scans the beam across the wafer. Wherever resist covers the wafer, the ions stop in the resist.',
-        'The blue and orange tints in the cross-section are illustrative: doped silicon looks exactly like undoped silicon.',
+        'The coloured tints in the cross-section are illustrative: doped silicon looks just like undoped silicon.',
       ],
       source: 'samsungDepo',
     },
@@ -281,9 +284,10 @@ export const STEPS: Record<StepId, StepContent> = {
     closer: {
       body: [
         'Real front-end flows vary a great deal. Modern logic uses high-k dielectrics and metal gates; older CMOS used polysilicon on silicon dioxide, as here.',
-        'The gate oxide is drawn far thicker than it really is so you can see it; in real devices it is a few nanometres or less.',
+        'The gate oxide is drawn far thicker than it really is so you can see it; real gate oxides are only nanometres thick.',
       ],
-      source: 'imecRoadmap',
+      source: 'utVlsi',
+      extra: ['imecRoadmap'],
     },
   },
 
@@ -300,7 +304,7 @@ export const STEPS: Record<StepId, StepContent> = {
     realTime: 'About a minute',
     closer: {
       body: [
-        'This is the start of one full lithography cycle for the gate layer. Every layer of the chip goes through the same loop: prime, coat, bake, align, expose, bake, develop, inspect, etch or implant, strip.',
+        'This is the start of one full lithography cycle for the gate layer. Every patterned layer goes through a similar loop: prime, coat, bake, align, expose, bake, develop, inspect, etch or implant, strip.',
         'Lithography areas are lit yellow: resists react to ultraviolet and blue light below about 500 nm.',
       ],
       source: 'mcAdhesion',
@@ -311,18 +315,18 @@ export const STEPS: Record<StepId, StepContent> = {
     title: 'Coat the wafer',
     doing: 'Spin a thin, even layer of light-sensitive [[resist|resist]] across the surface.',
     changes: 'A puddle of resist flings outward and thins as it spins; faster spinning leaves a thinner film.',
-    why: 'Too thick and the bottom will not clear; too thin and it can wear through during the etch.',
+    why: 'Too thick and the bottom may not clear; too thin and it can wear through during the etch.',
     scene: 'track',
     variant: 'coat',
     view: 'tool',
     duration: 12,
-    realTime: 'About 30–60 seconds',
+    realTime: 'About a minute',
     control: 'spin',
     at: [0.72],
     closer: {
       body: [
         'Film thickness falls roughly with one over the square root of spin speed. Slow spins leave a thicker, less even film, with a bead at the rim that a solvent jet trims off (edge-bead removal).',
-        'The colours you see are thin-film interference, computed from the film thickness: a different thickness reflects a different colour, which is why uneven coats look banded.',
+        'The colours you see are thin-film interference, computed from the film thickness: where the thickness changes, so does the colour, which is why uneven coats look banded.',
         'This slider is a qualitative model, not a calibrated coater recipe.',
       ],
       source: 'mcSpin',
@@ -332,7 +336,7 @@ export const STEPS: Record<StepId, StepContent> = {
     title: 'Soft bake',
     doing: 'Warm the wafer on a hot plate to drive most of the solvent out of the resist.',
     changes: 'The film densifies and shrinks slightly.',
-    why: 'A dry, stable film exposes and develops predictably.',
+    why: 'A drier, stable film exposes and develops predictably.',
     scene: 'track',
     variant: 'bake',
     view: 'tool',
@@ -356,10 +360,11 @@ export const STEPS: Record<StepId, StepContent> = {
     realTime: 'Minutes',
     closer: {
       body: [
-        'The projection optics shrink the reticle image 4×, so a reticle feature is four times larger than its printed copy. One reticle prints every field on every wafer for this layer.',
+        'The projection optics shrink the reticle image 4×, so a reticle feature is four times larger than its printed copy. The same reticle prints every field of this layer, wafer after wafer.',
         'A thin transparent membrane (a pellicle) holds any dust far enough from the chrome that it stays out of focus.',
       ],
       source: 'asmlPrinciples',
+      extra: ['halbleiterMasks'],
     },
   },
   align: {
@@ -377,7 +382,8 @@ export const STEPS: Record<StepId, StepContent> = {
         'Alignment happens inside the scanner before exposure. Overlay — how well the result lines up — is measured afterwards on a metrology tool.',
         'In chapter 4 you will set a contact-layer misalignment yourself and see what it does.',
       ],
-      source: 'asmlAccuracy',
+      source: 'asmlAlignStory',
+      extra: ['semieOverlay'],
     },
   },
   expose: {
@@ -389,17 +395,17 @@ export const STEPS: Record<StepId, StepContent> = {
     variant: 'expose',
     view: 'tool',
     duration: 14,
-    realTime: 'Tens of seconds per wafer',
+    realTime: 'Under a minute per wafer',
     control: 'dose',
     at: [0.8],
     closer: {
       body: [
         'Step and scan: the reticle and wafer move in sync in opposite directions while a narrow slit of light sweeps the field; then the wafer steps to the next field. The lens reduces the image 4×.',
         'Deep-UV light is invisible. The violet beam is an optional overlay you can switch on to follow the light path; there is no glowing ray in the real tool.',
-        'This baseline uses 193 nm argon-fluoride (ArF) light and refractive lens optics. EUV (13.5 nm) needs mirrors, reflective masks and vacuum instead — see “DUV vs EUV”.',
+        'This baseline uses 193 nm argon-fluoride (ArF) light and lens-based optics. EUV (13.5 nm) needs mirrors, reflective masks and vacuum instead — see “DUV vs EUV”.',
       ],
       source: 'asmlLight',
-      extra: ['asmlLenses', 'asmlRayleigh'],
+      extra: ['asmlLenses', 'asmlRayleigh', 'spieCd', 'scanPatent'],
     },
   },
   peb: {
@@ -416,9 +422,10 @@ export const STEPS: Record<StepId, StepContent> = {
     schematic: true,
     closer: {
       body: [
-        'Each photon releases one acid molecule; during the bake, that acid catalyses many reactions, which is where “chemically amplified” comes from. The acid also diffuses a little, slightly softening the image.',
+        'Exposure releases acid; during the bake, each acid molecule catalyses many reactions, which is where “chemically amplified” comes from. The acid also diffuses a little, slightly softening the image.',
       ],
       source: 'mcPeb',
+      extra: ['shiCar'],
     },
   },
   develop: {
@@ -437,11 +444,11 @@ export const STEPS: Record<StepId, StepContent> = {
     schematic: true,
     closer: {
       body: [
-        'To [[develop|develop]] a positive resist, a metal-free alkaline solution (typically 2.38% TMAH) dissolves the exposed, deprotected resist. A negative resist does the opposite.',
-        'The resist lines have sloped sides where the light fades gradually at the pattern edge.',
+        'To [[develop|develop]] a positive resist, a metal-ion-free alkaline solution (typically 2.38% TMAH) dissolves the exposed, deprotected resist. A negative resist does the opposite.',
+        'The resist lines here have sloped sides where the light fades gradually at the pattern edge.',
       ],
       source: 'samsungLitho',
-      extra: ['mcDevelop'],
+      extra: ['mcDevelop', 'mcMif'],
     },
   },
   adi: {
@@ -459,8 +466,8 @@ export const STEPS: Record<StepId, StepContent> = {
         'A CD-SEM measures the [[cd|critical dimension]] — here the width of the gate line — from above. Overlay tools measure layer-to-layer alignment on dedicated targets.',
         'After-develop inspection is the last cheap chance to fix a bad exposure. Once the pattern is etched, a mistake is permanent.',
       ],
-      source: 'asmlAccuracy',
-      extra: ['semieOverlay'],
+      source: 'semieOverlay',
+      extra: ['asmlYieldStar'],
     },
   },
   'gate-etch': {
@@ -477,16 +484,17 @@ export const STEPS: Record<StepId, StepContent> = {
     compare: true,
     closer: {
       body: [
-        'A plasma etch uses ions accelerated toward the wafer, so it cuts almost straight down. [[selectivity|Selectivity]] matters twice: the etch must remove polysilicon faster than the resist mask, and far faster than the gate oxide it should stop on.',
+        'This plasma etch uses ions accelerated toward the wafer, so it cuts almost straight down. [[selectivity|Selectivity]] matters twice: the etch must remove polysilicon faster than the resist mask, and far faster than the gate oxide it should stop on.',
       ],
       source: 'samsungEtch',
+      extra: ['mcDryEtch'],
     },
   },
   strip: {
     title: 'Strip the resist',
     doing: 'Remove the leftover resist with an oxygen plasma and a wet clean.',
     changes: 'Only the polysilicon gates remain, crossing the silicon islands.',
-    why: 'Resist is a temporary stencil. Every layer repeats this whole cycle with its own reticle.',
+    why: 'Resist is a temporary stencil. Every patterned layer repeats this cycle with its own reticle.',
     scene: 'etch',
     variant: 'ash',
     view: 'device',
@@ -496,7 +504,7 @@ export const STEPS: Record<StepId, StepContent> = {
     schematic: true,
     closer: {
       body: [
-        'To [[strip|strip]] resist, an oxygen plasma “ashes” it into carbon dioxide and water vapour; a wet clean then removes any remaining residue.',
+        'To [[strip|strip]] resist, an oxygen plasma usually “ashes” it into carbon dioxide and water vapour; a wet clean then removes any remaining residue.',
       ],
       source: 'mcRemoval',
     },
@@ -506,7 +514,7 @@ export const STEPS: Record<StepId, StepContent> = {
   sd: {
     title: 'Repeat: sources and drains',
     doing: 'Two more mask-and-implant cycles dope the [[sourcedrain|sources and drains]]: arsenic for NMOS, boron for PMOS.',
-    changes: 'The gates block the ions, so each channel stays undoped and exactly aligned to its gate.',
+    changes: 'The gates block the ions, so the channels get none and each source and drain lines up with its gate.',
     why: 'This is [[selfaligned|self-alignment]], and it is why the gates are patterned first.',
     scene: 'implant',
     view: 'device',
@@ -521,7 +529,8 @@ export const STEPS: Record<StepId, StepContent> = {
         'The n+ and p+ regions are heavily doped, so they conduct well. A short activation anneal follows.',
         'Real flows also add sidewall spacers and lightly doped extensions next to the gate. They are left out here for clarity.',
       ],
-      source: 'hmcCmos',
+      source: 'utVlsi',
+      extra: ['samsungDepo'],
     },
   },
   pmd: {
@@ -544,7 +553,7 @@ export const STEPS: Record<StepId, StepContent> = {
     title: 'Align the contacts',
     doing: 'Coat resist and set how well the contact reticle lines up with the gates below.',
     changes: 'The preview shows where each [[contact|contact]] hole would land.',
-    why: 'Designers leave a [[margin|margin]] around each contact. Drift past it and a contact touches a gate.',
+    why: 'Designers leave a [[margin|margin]] around each contact. Drift past it and a contact can touch a gate.',
     scene: 'scanner',
     variant: 'align',
     view: 'device',
@@ -556,11 +565,11 @@ export const STEPS: Record<StepId, StepContent> = {
     schematic: true,
     closer: {
       body: [
-        'Overlay error comes from stage and lens imperfections, wafer distortion and heating. It is often slightly larger toward the wafer edge, where small scaling errors add up.',
+        'Overlay error can come from stage and lens imperfections, wafer distortion and heating. In this simulation it grows slightly toward the wafer edge, as a small scaling error would.',
         'Layout rules keep a gap between each contact and the gate so that normal misalignment cannot short them.',
       ],
       source: 'semieOverlay',
-      extra: ['asmlAccuracy'],
+      extra: ['mosisRules'],
     },
   },
   'contact-print': {
@@ -577,8 +586,8 @@ export const STEPS: Record<StepId, StepContent> = {
     at: [0.35, 0.5, 0.7, 0.9],
     schematic: true,
     closer: {
-      body: ['Contact holes are among the hardest features to print: small openings receive less light, so the reticle draws them slightly larger than their target size.'],
-      source: 'asmlAccuracy',
+      body: ['Small openings let through less light, so this reticle draws the contact holes slightly larger than their target size.'],
+      source: 'semieOverlay',
     },
   },
   'contact-etch': {
@@ -613,7 +622,8 @@ export const STEPS: Record<StepId, StepContent> = {
     schematic: true,
     closer: {
       body: ['Tungsten fills narrow holes well from the gas phase. Some advanced processes now use cobalt or other metals for contacts.'],
-      source: 'imecRoadmap',
+      source: 'samsungMetal',
+      extra: ['semieMol'],
     },
   },
   metal1: {
@@ -633,14 +643,15 @@ export const STEPS: Record<StepId, StepContent> = {
       body: [
         'Copper is hard to etch, so it is inlaid instead ([[damascene|damascene]]): etch grooves into the insulator, overfill with copper by electroplating, then polish the excess away.',
       ],
-      source: 'samsungMetal',
+      source: 'imecDamascene',
+      extra: ['samsungMetal'],
     },
   },
   metal2: {
     title: 'Add vias and a second level',
     doing: 'Repeat: etch [[via|vias]] and trenches into more insulator, fill with copper, polish.',
     changes: 'Vias link metal 1 up to metal 2, which carries power, ground, input and output toward the pads.',
-    why: 'Real chips stack a dozen or more wiring levels, the [[beol|back end of line]], each its own litho–etch–fill–polish loop.',
+    why: 'Real chips stack many more wiring levels, the [[beol|back end of line]], each its own litho–etch–fill–polish loop.',
     scene: 'cmp',
     view: 'device',
     duration: 13,
@@ -651,7 +662,7 @@ export const STEPS: Record<StepId, StepContent> = {
     closer: {
       body: ['Metal 1 and metal 2 are drawn in the same copper colour; the thin cap between them is an etch stop and a barrier that keeps copper from wandering into the insulator.'],
       source: 'imecRoadmap',
-      extra: ['samsungMetal'],
+      extra: ['imecDamascene', 'samsungMetal'],
     },
   },
   passivate: {
@@ -690,7 +701,7 @@ export const STEPS: Record<StepId, StepContent> = {
   probe: {
     title: 'Probe every die',
     doing: 'A probe card touches each die’s pads and runs the inverter test: input low, input high, idle current.',
-    changes: 'Every die is marked pass or fail on the wafer map.',
+    changes: 'Each complete die is marked pass or fail on the wafer map.',
     why: 'Only known-good dies go on to packaging. The pass rate is the [[yield|yield]].',
     scene: 'prober',
     view: 'tool',
@@ -716,6 +727,7 @@ export const STEPS: Record<StepId, StepContent> = {
     closer: {
       body: ['Some flows reverse the order and cut partway before grinding the wafer thin (“dicing before grinding”).'],
       source: 'discoDbg',
+      extra: ['samsungPackaging'],
     },
   },
   attach: {
@@ -731,6 +743,7 @@ export const STEPS: Record<StepId, StepContent> = {
     closer: {
       body: ['Many modern packages use solder bumps (flip-chip) instead of wires; wire bonding is shown here because it is easy to see.'],
       source: 'samsungPackaging',
+      extra: ['amkorServices'],
     },
   },
   bond: {
@@ -742,10 +755,10 @@ export const STEPS: Record<StepId, StepContent> = {
     variant: 'bond',
     view: 'tool',
     duration: 12,
-    realTime: 'Seconds per wire',
+    realTime: 'Sub-second per wire',
     at: [0.5, 0.9],
     closer: {
-      body: ['Simplified sequence: packaged parts are tested again (final test), often at several temperatures, before they ship.'],
+      body: ['Simplified sequence: packaged parts are tested again (final test) before they ship.'],
       source: 'samsungPackaging',
       extra: ['amkorTest'],
     },
@@ -754,15 +767,15 @@ export const STEPS: Record<StepId, StepContent> = {
     title: 'Flip the input',
     doing: 'Toggle the input and watch the output — and the transistors you built — respond.',
     changes: 'Input low: the PMOS conducts and pulls the output high. Input high: the NMOS pulls it low.',
-    why: 'That is a working logic gate, the building block of every digital chip.',
+    why: 'That is a working logic gate, a basic building block of digital chips.',
     scene: 'testbench',
     view: 'device',
     duration: 6,
-    realTime: 'Billions of times a second in a real chip',
+    realTime: 'Up to billions of times a second in a real chip',
     control: 'input',
     closer: {
       body: [
-        'In a CMOS inverter only one transistor conducts at a time, so almost no current flows except while switching. That is why CMOS logic is so power-efficient.',
+        'In a CMOS inverter one transistor is always off while the input is steady, so almost no current flows except while switching. That is why CMOS logic is so power-efficient.',
       ],
       source: 'mitInverter',
       extra: ['hmcCmos'],

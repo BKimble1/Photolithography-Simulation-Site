@@ -33,7 +33,7 @@ export const SOURCES = {
   imecHow: {
     title: 'How are microchips made?',
     publisher: 'imec',
-    url: 'https://www.imec-int.com/en/what-we-offer/semiconductor-education-and-workforce-development/microchips/how-are-microchips-made',
+    url: 'https://www.imec-int.com/en/semiconductor-education-and-workforce-development/microchips/how-are-microchips-made',
   },
   imecRoadmap: {
     title: 'A view on the logic technology roadmap (FEOL, MOL, BEOL)',
@@ -56,9 +56,9 @@ export const SOURCES = {
     url: 'https://semiconductor.samsung.com/support/tools-resources/fabrication-process/eight-essential-semiconductor-fabrication-processes-part-4-photolithography-laying-the-blueprint/',
   },
   samsungEtch: {
-    title: 'Eight essential processes, part 5: etching',
-    publisher: 'Samsung Semiconductor',
-    url: 'https://semiconductor.samsung.com/support/tools-resources/fabrication-process/eight-essential-semiconductor-fabrication-processes-part-5-etching-a-circuit-pattern/',
+    title: 'Eight major steps to semiconductor fabrication, part 5: etching',
+    publisher: 'Samsung Newsroom',
+    url: 'https://news.samsung.com/global/eight-major-steps-to-semiconductor-fabrication-part-5-etching-a-circuit-pattern',
   },
   samsungDepo: {
     title: 'Eight essential processes, part 6: deposition and ion implantation',
@@ -148,7 +148,7 @@ export const SOURCES = {
   entegrisFoup: {
     title: '300 mm front-opening unified pods',
     publisher: 'Entegris',
-    url: 'https://www.entegris.com/shop/en/USD/Products/Wafer-Handling/Wafer-Processing/300-mm-Front-Opening-Unified-Pods-',
+    url: 'https://www.entegris.com/shop/en/USD/Products/Wafer-Handling/Wafer-Processing/300-mm-Front-Opening-Unified-Pods-(FOUPs)/c/300mmfrontopeningunifiedpodsfoups',
   },
   sumcoProcess: {
     title: 'Silicon wafer manufacturing process',
@@ -168,12 +168,97 @@ export const SOURCES = {
   amkorTest: {
     title: 'Test services',
     publisher: 'Amkor Technology',
-    url: 'https://amkor.com/services/',
+    url: 'https://amkor.com/test-services/',
   },
   mitInverter: {
-    title: '6.012 lecture: CMOS inverter',
-    publisher: 'MIT OpenCourseWare',
+    title: '6.012 lecture 13: CMOS circuits',
+    publisher: 'MIT (6.012 course notes)',
     url: 'https://web.mit.edu/6.012/www/SP07-L13.pdf',
+  },
+  svmiWafer: {
+    title: '300 mm wafer datasheet (SV027)',
+    publisher: 'Silicon Valley Microelectronics',
+    url: 'https://svmi.com/wp-content/uploads/2020/09/SV027.pdf',
+  },
+  foupMinienv: {
+    title: 'Particle dynamics in a FOUP/load port unit minienvironment',
+    publisher: 'Aerosol Science and Technology',
+    url: 'https://www.tandfonline.com/doi/full/10.1080/027868290920115',
+  },
+  kernRca: {
+    title: 'The evolution of silicon wafer cleaning technology',
+    publisher: 'W. Kern, Journal of the Electrochemical Society (1990)',
+    url: 'https://iopscience.iop.org/article/10.1149/1.2086825',
+  },
+  semianalysisField: {
+    title: 'Die size and reticle conundrum',
+    publisher: 'SemiAnalysis',
+    url: 'https://newsletter.semianalysis.com/p/die-size-and-reticle-conundrum-cost',
+  },
+  halbleiterMasks: {
+    title: 'Photomasks',
+    publisher: 'Halbleiter.org',
+    url: 'https://www.halbleiter.org/en/photolithography/photomasks/',
+  },
+  spieCd: {
+    title: 'Controlling CD (step-and-scan exposure)',
+    publisher: 'SPIE Newsroom',
+    url: 'https://spie.org/news/controlling-cd',
+  },
+  scanPatent: {
+    title: 'Electromagnetic alignment and scanning apparatus (US 6,252,370)',
+    publisher: 'US patent (USPTO)',
+    url: 'https://image-ppubs.uspto.gov/dirsearch-public/print/downloadPdf/6252370',
+  },
+  asmlAlignStory: {
+    title: 'Aligning lithography to the nanometer',
+    publisher: 'ASML',
+    url: 'https://www.asml.com/en/news/stories/2021/fellow-simon-mathijssen-aligning-lithography-nanometer',
+  },
+  asmlYieldStar: {
+    title: 'YieldStar 375F metrology system (overlay)',
+    publisher: 'ASML',
+    url: 'https://www.asml.com/en/products/metrology-and-inspection-systems/yieldstar-375f',
+  },
+  shiCar: {
+    title: 'Patterning the world: the rise of chemically amplified photoresists',
+    publisher: 'Science History Institute',
+    url: 'https://www.sciencehistory.org/stories/magazine/patterning-the-world-the-rise-of-chemically-amplified-photoresists/',
+  },
+  mcMif: {
+    title: 'Metal-ion-free (TMAH) developers',
+    publisher: 'MicroChemicals',
+    url: 'https://www.microchemicals.com/PRODUCTS/Photochemicals/Developer/MIF/',
+  },
+  mcDryEtch: {
+    title: 'Dry etching with photoresist masks (application note)',
+    publisher: 'MicroChemicals',
+    url: 'https://www.microchemicals.com/dokumente/application_notes/dry_etching_photoresist.pdf',
+  },
+  utVlsi: {
+    title: 'VLSI-1, lecture 2 (self-aligned polysilicon gates)',
+    publisher: 'University of Texas at Austin',
+    url: 'https://users.ece.utexas.edu/~mcdermot/vlsi1/main/lectures/lecture_2.pdf',
+  },
+  mosisRules: {
+    title: 'MOSIS scalable CMOS design rules, revision 7.2',
+    publisher: 'MOSIS (copy hosted by Rice University)',
+    url: 'https://www.ece.rice.edu/Courses/422/manual/mosis_scmos7_2.pdf',
+  },
+  semieMol: {
+    title: 'New BEOL/MOL breakthroughs?',
+    publisher: 'Semiconductor Engineering',
+    url: 'https://semiengineering.com/new-beolmol-breakthroughs/',
+  },
+  imecDamascene: {
+    title: 'Semi-damascene metallization and back-end-of-line processing',
+    publisher: 'imec',
+    url: 'https://www.imec-int.com/en/articles/semi-damascene-metallization-inflection-point-back-end-line-processing',
+  },
+  amkorServices: {
+    title: 'Packaging services (wire bond and flip chip)',
+    publisher: 'Amkor Technology',
+    url: 'https://amkor.com/services/',
   },
 } satisfies Record<string, Source>;
 

@@ -54,7 +54,7 @@ export function Home() {
           )}
         </div>
         <p className="home__note">
-          An illustrative simulation of a two-transistor inverter · about 15 minutes. Equipment is stylised; process behaviour follows the cited
+          An illustrative simulation of a two-transistor inverter · about 15 minutes. Equipment is stylised; process behaviour is simplified from the cited
           sources.
         </p>
       </main>
