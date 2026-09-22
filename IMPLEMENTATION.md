@@ -148,7 +148,7 @@ switch with the level control or keys 1–4. Ops: operation kinds in the step (c
 | # | chapter | id | title | scene / variant | view | ops | interaction |
 |---|---|---|---|---|---|---|---|
 | 1 | wafer | `arrive` | Meet the wafer | foup / dock | tool | receive (1) | — |
-| 2 | wafer | `transfer` | Move it without touching | foup / robot | tool | — (0) | — |
+| 2 | wafer | `transfer` | Move it by robot | foup / robot | tool | — (0) | — |
 | 3 | wafer | `scan` | Scan for particles | inspect / scan | wafer | scan (1) | — |
 | 4 | wafer | `clean` | Clean the surface | wetclean | tool | clean (1) | control: clean |
 | 5 | wafer | `diemap` | Map the dies | wafer / diemap | wafer | — (0) | control: dies |
