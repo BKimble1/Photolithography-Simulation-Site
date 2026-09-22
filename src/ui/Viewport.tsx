@@ -153,13 +153,21 @@ function DeviceTools() {
   );
 }
 
-function LightToggle() {
+/** Scenes whose invisible radiation (UV light, ions, electrons) can be shown as an overlay. */
+const BEAM_SCENES: Partial<Record<string, string>> = {
+  scanner: 'Light path',
+  implant: 'Beam path',
+  inspect: 'Laser path',
+  metrology: 'Beam path',
+};
+
+function LightToggle({ label }: { label: string }) {
   const on = useApp((s) => s.lightPath);
   const toggle = useApp((s) => s.toggle);
   return (
     <div className="vp-tools">
       <button className="pill" aria-pressed={on} onClick={() => toggle('lightPath')}>
-        <span className="sw" aria-hidden /> Light path
+        <span className="sw" aria-hidden /> {label}
       </button>
     </div>
   );
@@ -194,7 +202,13 @@ export function Viewport() {
       <LabelLayer />
       <div className="vp-top">
         <ViewSwitch />
-        {view === 'device' ? <DeviceTools /> : view === 'tool' && content.scene === 'scanner' ? <LightToggle /> : <ScaleChip />}
+        {view === 'device' ? (
+          <DeviceTools />
+        ) : view === 'tool' && BEAM_SCENES[content.scene] ? (
+          <LightToggle label={BEAM_SCENES[content.scene]!} />
+        ) : (
+          <ScaleChip />
+        )}
       </div>
       <div className="vp-bottom">
         <Scrubber />
