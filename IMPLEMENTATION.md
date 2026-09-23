@@ -3,7 +3,8 @@
 How the app is put together: the state model, how each journey step maps onto it, and how
 the views read from it. For what is physically right and what is simplified, see
 [`ACCURACY.md`](ACCURACY.md). The plan written before building is in
-[`docs/PLAN.md`](docs/PLAN.md).
+[`docs/PLAN.md`](docs/PLAN.md); what changed in round two, and how it was checked, is in
+[`docs/ROUND2.md`](docs/ROUND2.md).
 
 ## Architecture in one picture
 
@@ -103,8 +104,8 @@ compare every result with a fresh replay.
 
 A step's animation runs from progress 0 to 1. Each op in the step has a reveal time (evenly
 spaced by default, or the step's own `at` list in `src/content/steps.ts`). The state shown at
-progress `p` is `stateAt(plan, start + number of ops whose time ≤ p)`. Scrubbing, replaying,
-reduced motion (jump to 1) and deep links (`?step=…&p=…`) all use this same function, so
+progress `p` is `stateAt(plan, start + number of ops whose time ≤ p)`. Playing, scrubbing,
+replaying, the film's clock and deep links (`?step=…&p=…`) all use this same function, so
 every view agrees on what exists at that moment.
 
 ### Derived results (`src/sim/engine.ts`)
@@ -127,23 +128,59 @@ The `Engine` facade memoises results by the prefix hash they depend on:
   term) and particle hits. Dies in the same quantised bucket share one full process run, so
   every die verdict comes from the same model. Typical cost: 0.5–2 s in the worker.
 
+## Modes, navigation and presentations *(round two)*
+
+The app has one explicit mode (`src/state/store.ts`, `src/state/nav.ts`):
+
+| mode | URL | what it shows | writes the learning run? |
+|---|---|---|---|
+| home | `/` | the fab and the introduction | no |
+| learn | `?step=<id>` | a lesson: step panel, caption, 3D stage | yes: step, visited, choices, checks |
+| explore | `?explore[=<machine>][&demo=1]` | the bay, a machine, or its demonstration | no |
+| watch | `?watch[&t=<s>]` | the narrated film | no |
+
+The URL is the source of truth: `navigate()` writes it (push or replace), Back/Forward call
+`navigate()` with the parsed URL, and a refresh starts from it. Mode, lesson step, camera
+scale and the explorer's machine are separate pieces of state: changing scale ("Inspect
+layers") is a per-step camera override that never touches the step, choices, checks or the
+simulated state (an e2e test compares the state key before and after).
+
+Leaving a lesson for Explore or Watch stores a **snapshot** (step, progress, playing,
+overlays, scale override, free-look camera) in sessionStorage and pauses the clock;
+returning restores it exactly, flies the camera back, and offers *Resume* if it was playing.
+
+Saved progress is `fab-one:v2` in localStorage (`src/state/persist.ts`): every field is
+validated on load, and a v1 save is migrated (its steps up to the furthest one count as
+visited; checks keep their answers).
+
+**Presentations** (`src/state/presentation.tsx`) decouple the scenes from the learning run.
+A presentation says which step a scene shows, at what progress (a progress *source*), for
+which run of choices, with which overlays. Learn provides the learner's run and lesson clock;
+Watch provides the canonical run on the film clock; an Explore demonstration provides the
+canonical run on a local preview clock; an idle machine gets a *parked* presentation (no
+learner wafer). The simulation hooks (`useStep`, `useSimState`, `useProgressFrame` …) read
+the nearest presentation, so the same scene code serves all of them.
+
 ## How the views read the state
 
 | view | reads | notes |
 |---|---|---|
-| Device cutaway (`three/device`) | `useSimState().grid` | face-culled mesh, top faces merged along x; groups for semiconductors, dielectrics (x-ray ghost option), metals, resist and the glowing conduction path; labels come from the same grid |
-| 2D cross-section, layer inset (`ui/CrossSection.tsx`, `ui/Viewport.tsx`) | grid at `CUT_Y` | the inset samples the stack over the NMOS drain |
+| Device cutaway (`three/device`) | presentation's sim state | face-culled mesh, top faces merged along x; groups for semiconductors, dielectrics (x-ray ghost option), metals, resist and the glowing conduction path; labels come from the same grid |
+| 2D cross-section, layer inset (`ui/CrossSection.tsx`, `ui/Viewport.tsx`) | learning run's grid at `CUT_Y` | the inset samples the stack over the NMOS drain |
 | "What changed?" (`ui/Overlays.tsx`) | state at step start and step end | slider blends the two cross-sections |
-| Wafer (`three/WaferScene.tsx`, `three/wafer/`) | wafer summary + films | colour from a thin-film interference model (`sim/filmColor.ts`); fields, dies, particles, latent image and die map drawn into one canvas texture |
-| Tool scenes (`three/tools/*`) | step progress (`useClock`), wafer films | the wafer inside each tool uses the same colour model; light paths are overlays toggled by the learner |
+| Wafer (`three/wafer/`) | presentation's wafer summary + films | colour from a thin-film interference model (`sim/filmColor.ts`); fields, dies, particles, latent image and die map drawn into one canvas texture; from the die map on, the learner's die is outlined |
+| Tool scenes (`three/tools/*`) | presentation's step, progress, films | the wafer inside each tool uses the same colour model; light paths are overlays toggled by the learner (or by the film, labelled) |
 | Step panel (`ui/StepPanel.tsx`, `ui/panels.tsx`) | metrology, diagnosis, electrical, wafer map | every number shown is measured from the simulated state |
+| Caption (`ui/Caption.tsx`) | step + lesson progress → `content/beats.ts` | one sentence at a time, timed to the operations |
 
 Rendering never writes to the model. The only inputs to the model are the choices.
 
 ## Journey: step → scene → operations
 
-View: the default zoom level when the step opens (fab · tool · wafer · device). Learners can
-switch with the level control or keys 1–4. Ops: operation kinds in the step (count).
+View: where the step's shot track ends (tool: with the machine; wafer: on the wafer; device:
+in the magnified cross-section). Learners can move between the equipment and the
+cross-section at any time (*Inspect layers* / *Back to equipment*). Ops: operation kinds in
+the step (count).
 
 | # | chapter | id | title | scene / variant | view | ops | interaction |
 |---|---|---|---|---|---|---|---|
@@ -215,14 +252,61 @@ Fifteen lazily loaded scenes, one module each, plus the fab bay:
 Equipment is stylised and procedural (no external models or textures). Light paths are
 drawn only when the learner turns them on.
 
-### Camera and transitions (`src/three/Stage.tsx`, `src/three/poses.ts`)
+### The stage *(round two)* (`src/three/Stage.tsx`, `src/three/stage/`)
 
-Each (view, scene, variant) has a camera pose. Changing zoom level fades the canvas and
-starts the camera pulled back (zooming in) or pushed in (zooming out) so the change of
-scale reads as a move. A scale chip names the level ("Fab bay · tens of metres across",
-"Wafer · 300 mm across; particles and dies drawn larger", "One inverter cell · a few
-micrometres across · greatly magnified, schematic"). With reduced motion the camera cuts
-instead of gliding.
+One canvas serves every mode and never unmounts. Its world is the fab bay in metres
+(`tools/Fab.tsx`): floor, walls, ceiling, the overhead transport loop, and a low-detail model
+of every machine, merged and pre-lit so the whole bay costs about 50 draw calls. The
+machines the story needs are **mounted** as their detailed scenes at their stations
+(`MountedStation`: station matrix × the tool's `mount` from its pose file), with the current
+presentation; the next lesson's machine is preloaded, and the last few stay mounted (idle)
+so going back is instant. A machine only counts as ready a few frames after its model has
+mounted, and the camera waits (up to 3 s) for the destination before it travels.
+
+**Housings.** A machine's bay model is its housing. For machines whose pose file sets
+`cutaway: { z, y }` (station-local: toward the aisle and above the given height), the housing
+stays on show when the story is at that machine and the camera is near, and its upper front
+is clipped away (material clipping planes, animated from the roof down over 0.8 s; inner
+faces drawn double-sided) to reveal the detailed interior. A machine that loads while the
+camera is already there opens at once, and reduced motion skips the wipe. Machines without a
+housing hand over from the low-detail to the detailed model when the camera comes within
+16 m.
+
+The magnified **device space** is a separate scene (a portal) with its own lighting; it is
+built only for steps whose shot track visits it, or on request.
+
+### Camera and transitions *(round two)* (`src/three/stage/Director.tsx`, `tracks.ts`, `flights.ts`, `content/shots.ts`)
+
+The director owns the camera and the render loop in every mode:
+
+* **Shot tracks** (`content/shots.ts`): per step, keyframes in step progress (`{ p, cam }`).
+  Framings: `machine` (the whole machine from the aisle, sized from its housing), `shot`
+  (a named framing in the tool's pose file), `wafer` (`top`: the whole wafer where the tool
+  holds it now; `die`: close over your die), `device` (the cross-section). Because a track is
+  a function of p only, scrubbing, replaying and the film's clock all give the same shot at
+  the same moment. Steps without a hand-directed track get one from their round-one view:
+  device steps go machine → wafer → die → cross-section just before their first operation.
+* **World ↔ device**: an anchored, matched cross-fade. The world camera closes in on your die
+  while the device camera starts far out along the same direction relative to the wafer's
+  axes (the device block's axes follow the wafer's), and the two views are blended through
+  an offscreen render target (linear half-float, tone-mapped on the way to the screen, so
+  the outgoing view looks exactly as it did). Labels appear only once the new view settles.
+* **Flights** (`flights.ts`) between framings: short moves are direct; moves between
+  machines step back into the central aisle (clear of equipment, through the doorway to the
+  back-end room), travel along it looking ahead (a centripetal Catmull-Rom path, eased by
+  arc length), hold for 0.35 s on the whole new machine, then move in; out of the
+  cross-section, the flight first retraces onto the wafer it came from. Durations: 0.6–1.3 s
+  for a reframe, 1.6–3 s for travel. A new request retargets from wherever the camera is;
+  a superseded flight never completes. With reduced motion every flight is a 0.35 s
+  cross-fade between still compositions, and tracks hold each framing and cross-fade to the
+  next (`evalTrackStill`).
+* **Free look**: dragging, pinching or scrolling hands the camera to the learner (Learn and
+  Explore); *Guided view* / *Reset view* flies back. Explore keeps the camera inside the
+  building (camera-controls boundary).
+* Framings are composed for a landscape viewport; narrower viewports pull the camera back
+  along its view direction.
+* A quiet **scale label** says what the picture shows (Fab bay, Equipment view, Wafer
+  surface, Magnified cross-section · schematic); it comes from the framing, not a control.
 
 ## Experiments and failure modes
 
@@ -241,35 +325,86 @@ test explains the cause.
 
 ## UI structure
 
-* `src/ui/Home.tsx` — landing page with the fab hero.
-* `src/ui/Chrome.tsx` — header (wordmark, chapter, Stages) and footer (chapter progress).
+* `src/App.tsx` — the page frame: header, the persistent viewport (the canvas never
+  unmounts; the layout around it changes with the mode), the lesson panel, overlays, keys.
+* `src/ui/Chrome.tsx` — the header: wordmark, the lesson's place (chapter, step title, step
+  count, a journey hairline), Chapters, Explore fab, Watch.
+* `src/ui/Home.tsx` — the introduction, in normal flow below the header.
 * `src/ui/StepPanel.tsx` — one step: meta line, title, one sentence, the step's single control
   or check, then "What changes" / "Why it matters" (revealed as the animation plays),
   links to Look closer / What changed? / Legend, and Replay / Continue.
-* `src/ui/Viewport.tsx` — the canvas, zoom levels, cutaway/x-ray or light-path toggles,
-  scrubber and the layer inset.
-* `src/ui/Overlays.tsx` — Stages overview, Look closer drawer (labelled section,
+* `src/ui/Viewport.tsx` — the lesson HUD over the canvas: scale label, contextual commands
+  (Inspect layers / Back to equipment / Guided view; light path; cutaway and x-ray in the
+  cross-section), caption, resume prompt, scrubber and the layer inset.
+* `src/ui/Caption.tsx` + `src/content/beats.ts` — the timed captions and their anchored labels.
+* `src/ui/Explore.tsx` — the explorer's card (overview, machine, demonstration) and the
+  equipment list.
+* `src/ui/Watch.tsx`, `src/ui/Offline.tsx` — the film's controls, captions and states, and
+  *Save for offline*.
+* `src/ui/Overlays.tsx` — Chapters drawer, Look closer drawer (labelled section,
   explanation, one source), What changed? comparison, Legend, DUV vs EUV explainer, Recap.
 * `src/content/steps.ts`, `glossary.ts`, `sources.ts` — all learner-facing copy and sources.
   Glossary terms are marked `[[termId|text]]` in the copy. `content/firstUse.ts` finds the
   step where each term first appears; that step defines it inline under "What changes" /
   "Why it matters", and every mention also has a hover, focus or tap definition.
-* `src/three/labels.tsx` — scenes declare labels; one DOM layer draws them and a projector
-  moves them each frame, avoiding overlaps and the viewport controls.
+* `src/three/labels.tsx` — scenes declare labels (tagged with their space and station); one
+  DOM layer draws them and the director projects them each frame (`labelProjection.ts`),
+  avoiding overlaps and anything marked `data-occludes`.
+
+## Watch *(round two)* (`src/content/film.ts`, `src/content/narration.json`, `src/watch/`)
+
+* **Script**: `content/narration.json` holds the narration, one cue per sentence, one segment
+  per step (plus an opening and a closing). `content/film.ts` maps segments to steps and
+  places `sync` points: "when this cue starts, the step is at p", a little before each
+  operation, so a change happens while the sentence describing it is spoken (a unit test
+  checks develop, expose, etch, coat, strip and scan against the measured cue times).
+* **Audio**: `tools/narration` renders the script offline (Kokoro-82M v1.0, voice bm_george)
+  to one MP3 per segment and a manifest with measured durations and cue times
+  (`public/narration/<version>/`).
+* **Timeline** (`watch/timeline.ts`, pure and unit-tested): segments back to back, separated
+  by silent camera moves whose lengths depend only on where the two steps happen (a reframe
+  in the same machine, a trip along the aisle, a retrace out of the cross-section). Film time
+  → segment, step, step progress, caption, final-test input.
+* **Clock** (`watch/player.ts`): while a segment plays, its audio element's position *is*
+  the film time; the silent moves (and captions-only playback when audio fails) run on the
+  page clock. Two audio elements alternate so the next segment is loaded while the current
+  one plays; both are unlocked inside the click on *Watch*. Pause, seek, speed (pitch
+  preserved), mute, buffering and chapter jumps all act on that one time value. In a
+  background tab a timer keeps the clock and the segment hand-over going.
+* **Picture** (`watch/filmStage.ts`): the stage mounts the machines of the current, next and
+  previous segments with presentations whose progress is read from the film time, and the
+  camera is the step's own shot track at the mapped progress, or the same flight a lesson
+  would make, stretched to fill the move between segments. Seeking anywhere gives exactly
+  the frame that playing would.
+* **Offline** (`watch/offline.ts`, `public/sw.js`): *Save for offline* checks the storage
+  estimate, downloads every file of this build (listed with sha256 in `app-files.json`, made
+  at build time) and the film's audio (sha256 in the manifest) into a cache named after both
+  versions, verifies each file, and writes a completion marker last. The service worker
+  serves only from a complete cache and only when the network fails (narration audio,
+  immutable per version, is served from the cache first, with byte ranges for seeking).
 
 ## Accessibility
 
 * Every control is a native button, radio group or range input with a label; keyboard
-  shortcuts: ←/→ step, Space play/pause, R replay, S stages, L look closer, 1–4 zoom level,
-  0/1 input on the final test, Esc closes panels.
+  shortcuts in a lesson: ←/→ step, Space play/pause, R replay, I inspect layers / back to
+  equipment, G guided view, C chapters, E explore fab, L look closer, 0/1 input on the final
+  test, Esc closes panels. In the film: Space or K play/pause, ←/→ ±5 s, M mute,
+  C captions, Esc exit. In the explorer: Esc returns to the whole fab.
 * Focus moves to the step title on each step; dialogs trap focus and restore it on close.
-* `prefers-reduced-motion` (or `?motion=reduce`) removes camera glides and fades and shows
-  each step's end state; animation remains available through the scrubber.
-* The 3D view is described in text (the region label and the step panel); every value that
-  matters is also in the panel.
-* Body text is 15–17 px and no text is smaller than 11 px; colour is never the only signal
-  (labels, readouts and wording carry the same information).
-* Touch: drag to orbit, pinch to zoom; on touch screens every control is at least 44 px tall.
+* The explorer works without pointing: the equipment list names every machine and
+  describes its job, and focusing an item outlines the machine in the bay.
+* `prefers-reduced-motion` (or `?motion=reduce`): no camera travel. The camera holds still
+  compositions and cross-fades between them (0.35 s), housings open without the wipe, and the
+  home view stands still. Lessons and the film still play in time, so the process, its
+  captions and the narration keep their pacing; nothing is compressed into one frame. (Round
+  one landed each lesson on its result instead; that skipped the captions in between.)
+* The 3D view is described in text (the region label, the step panel and the caption); every
+  value that matters is also in the panel. Captions are real text.
+* Without WebGL the lesson shows the 2D cross-section, the explorer its list and cards, and
+  the film its narration and captions.
+* Body text is 15–17 px and no text is smaller than 11 px; colour is never the only signal.
+* Touch: drag to orbit, pinch to zoom, tap a machine; on touch screens every control is at
+  least 44 px tall.
 
 ## Performance
 
@@ -282,22 +417,59 @@ test explains the cause.
 
 ## Tests
 
-* `npm test` — Vitest on the process model (`src/sim/model.test.ts`): positive resist removes
+* `npm test` — Vitest. `src/sim/model.test.ts` (the process model): positive resist removes
   exposed areas; litho precedes etch (exposure alone changes no geometry; etch follows the
   developed openings); deterministic replay and seek (cached vs fresh, any order); overlay
-  failure; the inverter truth table; wafer map; diagnosis.
+  failure; the inverter truth table; wafer map; diagnosis. `src/content/beats.test.ts`: every
+  step has captions, in order from its start, each one idea of 12–24 words, and the caption
+  shown follows progress. `src/watch/timeline.test.ts`: the built narration matches the
+  script and the film definition; the film runs 10–15 minutes with every step in order;
+  time maps monotonically onto segments and step progress; each process change happens while
+  the sentence describing it is spoken; captions follow the narration and the final test's
+  switch flips on its cue.
 * `npm run e2e` — Playwright against the production build at desktop (1440 × 900), tablet
-  (1024 × 768, touch) and phone (390 × 844, touch) sizes: the full first-run journey through
-  all 37 steps to a working inverter and the recap (desktop and phone); keyboard use
-  (desktop and tablet); reduced motion; overlay failure and restore; under-exposure, rework
-  and recovery; skipped clean lowering yield. Any console error fails a test. A full run
-  takes about 9 minutes with software WebGL.
-* `npm run screenshots` — regenerates `docs/screenshots/`.
+  (1024 × 768, touch) and phone (390 × 844, touch) sizes. Any console error fails a test.
+  * `layout` — wordmark, headline and actions never collide or overflow at ten sizes (from
+    a 320 px phone to 1920 × 640, landscape phones, a laptop at 200 % zoom), at normal and
+    150 % text size, and with the web fonts blocked; the lesson header keeps brand, place
+    and actions apart.
+  * `modes` — changing scale never changes the step, choices, checks or the simulation hash;
+    Explore pauses and snapshots the lesson and Return restores it exactly (camera included)
+    with a Resume offer; chapters drawer, deep links, Back/Forward and refresh agree; rapid
+    navigation never lets a stale camera move finish; scrubbing forwards and back equals
+    playing.
+  * `explore` — every machine opens from the equipment list by keyboard, and by clicking or
+    tapping it in the bay; hover names a machine; a drag of the view is not a click. (That a
+    demonstration leaves the learning run untouched is checked in `modes`.)
+  * `watch` — the film reaches the working inverter on its own without asking a quiz or
+    changing the saved run; the picture's clock stays within 150 ms of the narration through
+    pause, seek, 1.5× speed, mute, a chapter jump and a spell in the background; slow audio
+    makes the whole picture wait (buffering); audio that cannot load gives an honest
+    captions-only film.
+  * `offline` — Save for offline downloads and verifies every file, then the film plays with
+    the network cut; an interrupted download is reported and retry completes it; too little
+    storage is reported before anything downloads.
+  * `fallbacks` — reduced motion (the step plays, captions follow it, the camera only cuts);
+    no WebGL (2D lesson, equipment list, captioned film).
+  * `journey`, `experiments` — round one's full first run through all 37 steps to a working
+    inverter and the recap, keyboard use, and the experiments (overlay, dose, skipped clean).
+* `npm run screenshots` — regenerates `docs/screenshots/round2/`.
+* `node scripts/cue-alignment.mjs` — decodes the narration in the browser and compares where
+  speech starts and ends with the cue times the film uses.
+* `node scripts/stats.mjs` — renderer statistics per view (below).
 
 ## Adding a step
 
 1. Add the step to `FLOW` in `src/sim/flow.ts` with its operations.
-2. Add its copy in `src/content/steps.ts` (scene, view, duration, `at` times, control/check).
-3. If it needs a new scene, add a module in `src/three/tools/`, register it in
-   `tools/index.tsx`, and give it poses in `tools/poses/`.
-4. Run `npm test` (determinism tests cover the new ops automatically) and `npm run e2e`.
+2. Add its copy in `src/content/steps.ts` (scene, view, duration, `at` times, control/check)
+   and its captions in `src/content/beats.ts` (one idea each, 12–24 words, timed in step
+   progress; `npm test` checks the length and order).
+3. If it needs a new machine, add a scene in `src/three/tools/`, register it in
+   `tools/index.tsx`, give it poses (with its `mount` and `cutaway`) in `tools/poses/`, a
+   station in `tools/poses/fab.ts` and a housing in `tools/Fab.tsx`, and list it in
+   `state/nav.ts` (`MACHINES`) and `content/machines.ts` (what the explorer says about it).
+4. The camera follows the default grammar for the step's view; add a track to `SHOTS` in
+   `src/content/shots.ts` only if the step needs different direction.
+5. For the film, add a segment to `src/content/narration.json` and `src/content/film.ts`,
+   bump the narration `version`, and run `tools/narration/build.sh` (see its README).
+6. Run `npm test` (determinism tests cover the new ops automatically) and `npm run e2e`.

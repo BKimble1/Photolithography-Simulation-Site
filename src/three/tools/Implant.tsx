@@ -563,7 +563,12 @@ export default function Implant({ variant }: ToolProps) {
     const w = wafer.current;
     if (w) {
       w.visible = e.present;
-      if (e.present) {
+      if (!e.present) {
+        // away being masked: the (hidden) wafer waits on the retracted blade in the load lock,
+        // where it will reappear, so wafer framings look at the load lock rather than the floor
+        w.position.set(ROOT_IN - BLADE_OFF, Y_B + IDLE.bladeY, Z_W);
+        w.rotation.set(0, 0, 0);
+      } else {
         if (e.onArm) {
           // riding on the blade (wafer centre BLADE_OFF ahead of the root, toward −x)
           w.position.set(rootX - BLADE_OFF, Y_B + Math.max(e.bladeY, e.ext > 0.999 ? e.pins : 0), Z_W);

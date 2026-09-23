@@ -1,0 +1,465 @@
+{
+ "version": "example-1",
+ "generatedAt": "2026-09-23T04:18:27Z",
+ "voice": "bm_george",
+ "speed": 1.0,
+ "fingerprint": {
+  "engine": "float-conv",
+  "engineSha256": "2e83328bed32c73a02614d7405cc78a8f9e5ad9588c5f179e34569c99cdc949d",
+  "sourceSha256": "fbae9257e1e05ffc727e951ef9b9c98418e6d79f1c9b6b13bd59f5c9028a1478",
+  "onnxruntime": "1.30.0",
+  "threads": 4,
+  "g2p": {
+   "g2p": "2026-09-23.1",
+   "misaki": "0.9.4",
+   "phonemizer-fork": "3.3.2",
+   "espeakng-loader": "0.2.4",
+   "espeak-ng": "1.52.0",
+   "num2words": "0.5.14"
+  }
+ },
+ "thresholds": {
+  "rateDeviation": 0.25,
+  "rateMinPhonemesPerS": 9.0,
+  "rateMaxPhonemesPerS": 17.0,
+  "longInternalSilenceS": 0.8,
+  "onsetBurstDb": 12.0,
+  "pitchJumpsPerMin": 30.0,
+  "asrWer": 0.25,
+  "minCueS": 0.6
+ },
+ "hardFlags": [
+  "clipping",
+  "decode-mismatch",
+  "no-phonemes-for-word"
+ ],
+ "summary": {
+  "segments": 2,
+  "cues": 5,
+  "audioSeconds": 27.97,
+  "modelAudioSeconds": 27.82,
+  "synthSeconds": 15.77,
+  "rtf": 0.567,
+  "cacheHits": 5,
+  "medianPhonemesPerS": 10.25,
+  "medianSpeechWpm": 148.0,
+  "flags": 0,
+  "hardFlags": 0,
+  "bytes": 225024,
+  "asrWer": 0.0
+ },
+ "segments": [
+  {
+   "id": "intro",
+   "file": "intro.mp3",
+   "durationMs": 10240,
+   "loudness": {
+    "inputLufs": -21.5,
+    "inputTruePeakDb": -5.5,
+    "gainDb": 3.5,
+    "outputLufs": -18.0,
+    "outputTruePeakDb": -2.0
+   },
+   "encoded": {
+    "bytes": 82560,
+    "decodedSamples": 245760,
+    "sourceSamples": 245760,
+    "durationMs": 10240,
+    "lagSamples": 0,
+    "lengthMatches": true,
+    "gapless": {
+     "xingTag": true,
+     "tag": "Info",
+     "frames": 429,
+     "bytes": 82560,
+     "encoder": "Lavf lame",
+     "encoderDelaySamples": 576,
+     "paddingSamples": 768
+    },
+    "decodedPeakDbfs": -2.51
+   },
+   "decodedPeakDbfs": -2.51,
+   "flags": [],
+   "cues": [
+    {
+     "id": "title",
+     "text": "This is FAB / ONE.",
+     "startMs": 300,
+     "endMs": 1770,
+     "audioText": "This is Fab One.",
+     "phonemes": "ðˌɪs ɪz fˈab wˈʌn.",
+     "dictionary": [
+      "FAB / ONE"
+     ],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 18,
+     "chunks": 1,
+     "synthS": 2.226,
+     "cached": true,
+     "modelLeadS": 0.25,
+     "modelTailS": 0.45,
+     "pauses": [],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 1.47,
+      "peakDbfs": -2.03,
+      "clippedSamples": 0,
+      "dcOffset": -0.00021,
+      "leadingSilenceS": 0.04,
+      "trailingSilenceS": 0.08,
+      "longestInternalSilenceS": 0.0,
+      "pauses": [],
+      "speechSpanS": 1.35,
+      "f0MedianHz": 168.1,
+      "f0RangeSemitones": 7.2,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.299,
+      "burstDb": 5.5,
+      "burstAtS": 0.1,
+      "onsetBurstDb": 5.5,
+      "spikes": 0,
+      "hfShareDb": -29.0,
+      "words": 4,
+      "wpm": 163.3,
+      "speechWpm": 177.8,
+      "rawPeakDbfs": -5.53,
+      "phonemesPerS": 8.15
+     },
+     "asr": {
+      "hypothesis": "This is Fab One.",
+      "reference": "this is fab one",
+      "errors": 0,
+      "refWords": 4,
+      "wer": 0.0,
+      "diffs": []
+     },
+     "flags": []
+    },
+    {
+     "id": "premise",
+     "text": "We follow one silicon wafer through a simplified CMOS process, from bare substrate to a working inverter.",
+     "startMs": 2270,
+     "endMs": 9440,
+     "audioText": "We follow one silicon [wafer] through a simplified [CMOS] process, from bare substrate to a working [inverter].",
+     "phonemes": "wˌiː fˈɒlQ wˈʌn sˈɪlɪkᵊn wˈAfə θɹuː ɐ sˈɪmplɪfId sˈiːmɒs pɹˈQsɛs, fɹɒm bˈɛː sˈʌbstɹAt tə ɐ wˈɜːkɪŋ ɪnvˈɜːtə.",
+     "dictionary": [
+      "wafer",
+      "CMOS",
+      "inverter"
+     ],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 108,
+     "chunks": 1,
+     "synthS": 4.739,
+     "cached": true,
+     "modelLeadS": 0.28,
+     "modelTailS": 0.52,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.125,
+       "depthDb": -68.0,
+       "t": 4.335
+      }
+     ],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 7.17,
+      "peakDbfs": -2.48,
+      "clippedSamples": 0,
+      "dcOffset": -0.00018,
+      "leadingSilenceS": 0.04,
+      "trailingSilenceS": 0.09,
+      "longestInternalSilenceS": 0.4,
+      "pauses": [
+       [
+        1.72,
+        0.23
+       ],
+       [
+        4.02,
+        0.4
+       ],
+       [
+        5.53,
+        0.29
+       ]
+      ],
+      "speechSpanS": 7.04,
+      "f0MedianHz": 138.5,
+      "f0RangeSemitones": 8.2,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.368,
+      "burstDb": 6.9,
+      "burstAtS": 0.05,
+      "onsetBurstDb": 6.9,
+      "spikes": 0,
+      "hfShareDb": -28.5,
+      "words": 17,
+      "wpm": 142.3,
+      "speechWpm": 144.9,
+      "rawPeakDbfs": -5.98,
+      "phonemesPerS": 10.23
+     },
+     "asr": {
+      "hypothesis": "We follow one silicon wafer through a simplified CMOS process, from bare substrate to a working inverter.",
+      "reference": "we follow one silicon wafer through a simplified cmos process from bare substrate to a working inverter",
+      "errors": 0,
+      "refWords": 17,
+      "wer": 0.0,
+      "diffs": []
+     },
+     "flags": []
+    }
+   ]
+  },
+  {
+   "id": "litho-expose",
+   "file": "litho-expose.mp3",
+   "durationMs": 17730,
+   "loudness": {
+    "inputLufs": -21.6,
+    "inputTruePeakDb": -5.8,
+    "gainDb": 3.6,
+    "outputLufs": -18.0,
+    "outputTruePeakDb": -2.2
+   },
+   "encoded": {
+    "bytes": 142464,
+    "decodedSamples": 425520,
+    "sourceSamples": 425520,
+    "durationMs": 17730,
+    "lagSamples": 0,
+    "lengthMatches": true,
+    "gapless": {
+     "xingTag": true,
+     "tag": "Info",
+     "frames": 741,
+     "bytes": 142464,
+     "encoder": "Lavf lame",
+     "encoderDelaySamples": 576,
+     "paddingSamples": 720
+    },
+    "decodedPeakDbfs": -2.63
+   },
+   "decodedPeakDbfs": -2.63,
+   "flags": [],
+   "cues": [
+    {
+     "id": "light",
+     "text": "In the scanner, 193-nanometre deep ultraviolet light passes through the reticle.",
+     "startMs": 200,
+     "endMs": 6220,
+     "audioText": "In the [scanner], one ninety-three [nanometre] deep [ultraviolet] light passes through the [reticle].",
+     "phonemes": "ɪn ðə skˈanə, wˈʌn nˈIntiθɹˌiː nˈanQmˌiːtə dˈiːp ˌʌltɹəvˈIələt lˈIt pˈɑːsɪz θɹuː ðə ɹˈɛtɪkᵊl.",
+     "dictionary": [
+      "scanner",
+      "193",
+      "nanometre",
+      "ultraviolet",
+      "reticle"
+     ],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 93,
+     "chunks": 1,
+     "synthS": 4.583,
+     "cached": true,
+     "modelLeadS": 0.28,
+     "modelTailS": 0.52,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.175,
+       "depthDb": -69.2,
+       "t": 0.96
+      }
+     ],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 6.02,
+      "peakDbfs": -3.32,
+      "clippedSamples": 0,
+      "dcOffset": -0.00024,
+      "leadingSilenceS": 0.04,
+      "trailingSilenceS": 0.1,
+      "longestInternalSilenceS": 0.3,
+      "pauses": [
+       [
+        0.77,
+        0.3
+       ],
+       [
+        3.09,
+        0.22
+       ]
+      ],
+      "speechSpanS": 5.88,
+      "f0MedianHz": 138.5,
+      "f0RangeSemitones": 6.9,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.369,
+      "burstDb": 6.2,
+      "burstAtS": 0.05,
+      "onsetBurstDb": 6.2,
+      "spikes": 0,
+      "hfShareDb": -28.1,
+      "words": 13,
+      "wpm": 129.6,
+      "speechWpm": 132.7,
+      "rawPeakDbfs": -6.92,
+      "phonemesPerS": 10.54
+     },
+     "asr": {
+      "hypothesis": "In the scanner, one 93 nanometer deep ultraviolet light passes through the reticle.",
+      "reference": "in the scanner one ninety three nanometer deep ultraviolet light passes through the reticle",
+      "errors": 0,
+      "refWords": 14,
+      "wer": 0.0,
+      "diffs": []
+     },
+     "flags": []
+    },
+    {
+     "id": "shrink",
+     "text": "The pattern is shrunk four times and projected onto the photoresist.",
+     "startMs": 6570,
+     "endMs": 11170,
+     "audioText": "The pattern is shrunk four times and projected onto the [photoresist].",
+     "phonemes": "ðə pˈatᵊn ɪz ʃɹˈʌŋk fˈɔː tˈImz and pɹəʤˈɛktɪd ˈɒntuː ðə fˌQtQɹɪzˈɪst.",
+     "dictionary": [
+      "photoresist"
+     ],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 69,
+     "chunks": 1,
+     "synthS": 1.895,
+     "cached": true,
+     "modelLeadS": 0.27,
+     "modelTailS": 0.5,
+     "pauses": [],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 4.6,
+      "peakDbfs": -2.18,
+      "clippedSamples": 0,
+      "dcOffset": -0.00028,
+      "leadingSilenceS": 0.04,
+      "trailingSilenceS": 0.1,
+      "longestInternalSilenceS": 0.35,
+      "pauses": [
+       [
+        2.04,
+        0.35
+       ]
+      ],
+      "speechSpanS": 4.46,
+      "f0MedianHz": 141.0,
+      "f0RangeSemitones": 7.3,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.348,
+      "burstDb": 6.1,
+      "burstAtS": 2.55,
+      "onsetBurstDb": 5.7,
+      "spikes": 0,
+      "hfShareDb": -30.3,
+      "words": 11,
+      "wpm": 143.5,
+      "speechWpm": 148.0,
+      "rawPeakDbfs": -5.78,
+      "phonemesPerS": 10.76
+     },
+     "asr": {
+      "hypothesis": "The pattern is shrunk four times and projected onto the photo resist.",
+      "reference": "the pattern is shrunk four times projected onto the photoresist",
+      "errors": 0,
+      "refWords": 10,
+      "wer": 0.0,
+      "diffs": []
+     },
+     "flags": []
+    },
+    {
+     "id": "latent",
+     "text": "Nothing is etched yet. The exposed resist holds only a hidden, latent image.",
+     "startMs": 11620,
+     "endMs": 16930,
+     "audioText": "Nothing is etched yet. The exposed [resist] holds only a hidden, latent image.",
+     "phonemes": "nˈʌθɪŋ ɪz ˈɛʧt jˈɛt. ði ɪkspˈQzd ɹɪzˈɪst hˈQldz ˈQnli ɐ hˈɪdᵊn, lˈAtᵊnt ˈɪmɪʤ.",
+     "dictionary": [
+      "resist"
+     ],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 78,
+     "chunks": 1,
+     "synthS": 2.327,
+     "cached": true,
+     "modelLeadS": 0.27,
+     "modelTailS": 0.515,
+     "pauses": [
+      {
+       "mark": ".",
+       "pauseS": 0.125,
+       "depthDb": -69.0,
+       "t": 1.595
+      },
+      {
+       "mark": ",",
+       "pauseS": 0.15,
+       "depthDb": -68.8,
+       "t": 4.145
+      }
+     ],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 5.31,
+      "peakDbfs": -3.34,
+      "clippedSamples": 0,
+      "dcOffset": -0.00022,
+      "leadingSilenceS": 0.04,
+      "trailingSilenceS": 0.1,
+      "longestInternalSilenceS": 0.38,
+      "pauses": [
+       [
+        1.33,
+        0.38
+       ],
+       [
+        4.06,
+        0.15
+       ]
+      ],
+      "speechSpanS": 5.17,
+      "f0MedianHz": 142.3,
+      "f0RangeSemitones": 6.7,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.367,
+      "burstDb": 6.1,
+      "burstAtS": 1.75,
+      "onsetBurstDb": 5.8,
+      "spikes": 0,
+      "hfShareDb": -27.8,
+      "words": 13,
+      "wpm": 146.9,
+      "speechWpm": 150.9,
+      "rawPeakDbfs": -6.94,
+      "phonemesPerS": 10.25
+     },
+     "asr": {
+      "hypothesis": "Nothing is etched yet. The exposed resist holds only a hidden, latent image.",
+      "reference": "nothing is etched yet the exposed resist holds only a hidden latent image",
+      "errors": 0,
+      "refWords": 13,
+      "wer": 0.0,
+      "diffs": []
+     },
+     "flags": []
+    }
+   ]
+  }
+ ]
+}

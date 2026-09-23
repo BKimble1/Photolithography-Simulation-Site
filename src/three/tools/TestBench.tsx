@@ -4,14 +4,15 @@
  * both driven by the electrical result of the simulated process (the same connectivity
  * test the device view uses). Click the switch to flip the input. Cables run to a small
  * bench tester that supplies VDD and reads the pins. Silkscreen marks name the switch and
- * the LED; nothing else is labelled.
+ * the LED; nothing else is labelled. The tester cabinet beside the bench completes the
+ * station as the bay model (Fab.tsx, finalTest) shows it, which this scene replaces close up.
  */
 import { useFrame, type ThreeEvent } from '@react-three/fiber';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 import { engine } from '../../state/sim';
-import { Box, Cyl, StandaloneOnly } from '../kit/parts';
+import { Box, Cyl, LightTower, StandaloneOnly } from '../kit/parts';
 import { MAT } from '../materials';
 import type { ToolProps } from './index';
 import { useFinalInput, useRunChoices } from '../../state/presentation';
@@ -262,6 +263,19 @@ function OutputLed({ lit }: { lit: boolean }) {
   );
 }
 
+/** The tester cabinet at the left end of the bench, as in the bay model. */
+function TesterCabinet() {
+  return (
+    <group position={[-1.4, 0, 0]}>
+      <Box size={[1.25, 0.1, 1.05]} position={[0, 0.05, 0]} m="panelGray" radius={0.01} />
+      <Box size={[1.3, 1.75, 1.1]} position={[0, 0.975, 0]} m="panel" radius={0.035} />
+      <Box size={[0.8, 0.5, 0.012]} position={[0, 1.25, 0.554]} m="glassDark" radius={0.004} castShadow={false} />
+      <Box size={[1.3, 0.014, 0.012]} position={[0, 0.95, 0.556]} m="black" radius={0.002} castShadow={false} />
+      <LightTower position={[0.5, 1.85, -0.4]} on="green" />
+    </group>
+  );
+}
+
 /** A small bench tester (supply and pin monitor) behind the board. */
 function Tester() {
   return (
@@ -311,23 +325,27 @@ export default function TestBench({ variant }: ToolProps) {
         <boxGeometry args={[1.2, 0.004, 0.66]} />
       </mesh>
 
-      {/* local key light with a tight shadow frustum for these small parts */}
-      <primitive object={lightTarget} position={[0, BENCH_Y, 0]} />
-      <directionalLight
-        position={[0.4, BENCH_Y + 0.9, 0.55]}
-        target={lightTarget}
-        intensity={0.9}
-        castShadow
-        shadow-mapSize={[1024, 1024]}
-        shadow-camera-left={-0.4}
-        shadow-camera-right={0.4}
-        shadow-camera-top={0.4}
-        shadow-camera-bottom={-0.4}
-        shadow-camera-near={0.3}
-        shadow-camera-far={2.2}
-        shadow-bias={-0.0002}
-        shadow-normalBias={0.0006}
-      />
+      {/* local key light with a tight shadow frustum for these small parts (standalone only:
+          in the bay a light would light every machine; the bay's key light follows the focus) */}
+      <StandaloneOnly>
+        <primitive object={lightTarget} position={[0, BENCH_Y, 0]} />
+        <directionalLight
+          position={[0.4, BENCH_Y + 0.9, 0.55]}
+          target={lightTarget}
+          intensity={0.9}
+          castShadow
+          shadow-mapSize={[1024, 1024]}
+          shadow-camera-left={-0.4}
+          shadow-camera-right={0.4}
+          shadow-camera-top={0.4}
+          shadow-camera-bottom={-0.4}
+          shadow-camera-near={0.3}
+          shadow-camera-far={2.2}
+          shadow-bias={-0.0002}
+          shadow-normalBias={0.0006}
+        />
+      </StandaloneOnly>
+      <TesterCabinet />
 
       {/* load board on standoffs */}
       {[

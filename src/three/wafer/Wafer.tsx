@@ -4,6 +4,8 @@ import { drawWafer, lookKey, makeCanvasTexture, type WaferLook } from './waferTe
 import { waferRegistry } from '../stage/anchors';
 import { useStationEnv } from '../stage/context';
 import { usePresentation } from '../../state/presentation';
+import { useStep } from '../../state/sim';
+import { STEP_INDEX } from '../../sim/flow';
 
 /**
  * A 300 mm wafer (radius 0.15 m) with a notch. The top face shows the simulated surface;
@@ -56,6 +58,11 @@ export function Wafer({
   roughness?: number;
   metalness?: number;
 }) {
+  // From the die map on, the learner's wafer always shows "your die" outlined in violet, so it
+  // can be picked out wherever the wafer goes (and the camera can close in on it).
+  const { index } = useStep();
+  const mark = anchor && index >= STEP_INDEX.diemap && !look.highlightDie;
+  look = mark ? { ...look, highlightDie: true } : look;
   const geo = useWaferGeometry(radius);
   const { canvas, tex } = useMemo(() => makeCanvasTexture(size), [size]);
   const topMat = useMemo(

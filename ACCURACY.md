@@ -209,8 +209,31 @@ source. "Model" says how the simulation reflects it.
 | **Furnace** | Pad oxide and nitride are grown in the same tube, one after the other. | Fabs usually use separate furnaces for oxidation and LPCVD nitride. |
 | **Implanter and other tools** | A generic medium-current beamline; the FOUP shell is drawn translucent so the wafers show; spin speeds and robot motions are visual, not real rpm or timing. | Tool layouts differ by vendor and application. |
 | **Back end** | Probe needles, dicing blade (0.8 mm drawn), bond wires and loops are drawn much larger than real; the lead frame is a generic 4-lead strip (VDD, IN, OUT, GND); the prober touches down on every complete die in sequence. | Blades are tens of micrometres thick; probe cards contact many dies at once; packages follow standard outlines. |
-| **Fab bay** | One 36 m bay holds every tool of the journey, with the back end behind a glass wall. | Front-end fabs are far larger, tools are grouped by type in separate bays, and packaging and test usually happen at other sites. |
+| **Fab bay** | One bay about 50 m long holds every tool of the journey, with the back end behind a glass wall; the explorer says the layout is conceptual. | Front-end fabs are far larger, tools are grouped by type in separate bays, and packaging and test usually happen at other sites. |
+| **Housings and cutaways** *(round two)* | Each machine has one enclosure in the bay; when the story reaches it, the upper front is cut away to show a stylised interior sized to fit. | Real tools are fully enclosed (mini-environments, interlocked covers); nobody sees inside while they run. The cutaway is an explanatory reveal, like a textbook illustration. |
+| **Camera and magnification** *(round two)* | The camera moves continuously from the machine to the wafer to your die, then cross-fades to the schematic cross-section, anchored on the die and matched to the viewing direction. The label says "Magnified cross-section · schematic, not to scale" and no magnification factor is quoted. | The real jump from a wafer to a transistor is about four orders of magnitude, far more than any single continuous zoom could show legibly. |
 | **Inspection and metrology** | The tool view scans in a spiral, the wafer view in a line, so particles appear in a different order. The CD-SEM images the one simulated die at each of five sites, with small offsets and noise. | Inspection recipes, sampling plans and SEM imaging physics. |
+
+### The film and captions *(round two)*
+
+Every sentence of the film's narration (`src/content/narration.json`) and every lesson caption
+(`src/content/beats.ts`) was written from the step copy and the notes in section 1, and
+checked against what the model shows at that moment: the captions and narration are timed so
+that a change (the resist clearing in the developer, the gate etch, the strip) happens while
+the sentence describing it is spoken or shown, and a unit test pins the most important of
+these to the measured audio timings. Captions that depend on the learner's run (a skipped
+clean, a failed inverter) have a variant for each outcome. The film always shows the
+canonical successful run. Deliberate simplifications in the film's wording:
+
+* "Over the next few minutes" and the step order follow this app's flow, not a real process
+  of record; "dozens of steps" refers to this journey's 37.
+* "The wafers never meet the air of the room" (sealed pods opened only inside a tool's
+  filtered front end) is the principle of FOUP/EFEM handling, not an absolute guarantee.
+* "A modern chip repeats that loop dozens of times, to build billions of transistors": a
+  rounded description of leading-edge logic (many dozens of mask layers; tens of billions of
+  transistors in the largest chips).
+* The narration says "193 nanometres" (deep ultraviolet, ArF); it does not describe
+  immersion, which the app does not model.
 
 The inverter layout is illustrative, not from a real design kit. Colours for doping and the
 latent image are highlights: doped silicon looks the same as undoped silicon, and a latent

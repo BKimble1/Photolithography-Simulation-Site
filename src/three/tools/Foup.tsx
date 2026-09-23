@@ -8,6 +8,11 @@
  *    under the wafer, lifts it, swings it to a pre-aligner, which spins it past an edge sensor
  *    to find the notch and stops with the notch toward +z.
  * Every motion is a pure function of the step progress p.
+ *
+ * In the fab this is the inside of the wafer sorter at the load-port station (`sorter` in
+ * Fab.tsx): the bay model is its enclosure (walls, roof, fan-filter unit, controller cabinet),
+ * so when placed the scene keeps only what is inside it and the port band it docks against,
+ * and the hoist hangs from the bay's overhead rail.
  */
 import { useEffect, useLayoutEffect, useMemo, useRef, type ReactNode, type Ref, type RefObject } from 'react';
 import * as THREE from 'three';
@@ -15,6 +20,7 @@ import { useSimState } from '../../state/sim';
 import { lerp, smooth, useProgressFrame } from '../anim';
 import { MAT } from '../materials';
 import { Box, CleanFloor, Cyl, LightTower } from '../kit/parts';
+import { useStationEnv } from '../stage/context';
 import { Wafer } from '../wafer/Wafer';
 import type { ToolProps } from './index';
 
@@ -37,6 +43,8 @@ const SLOT_Y = FOUP_Y + SLOT0 + OUR_SLOT * PITCH; // bottom face of our wafer in
 const EF = { x0: -0.72, x1: 0.6, z0: -0.98, z1: 0, top: 2.02, deck: 0.5 };
 const WIN_Y0 = 1.4; // lower edge of the front window band
 const WIN_Y1 = 1.92;
+/** In the bay, the sorter's roof and filter stay on behind this plane (poses/foup.ts cutaway). */
+const ROOF_CUT = -0.62;
 
 // R-θ robot: two equal links keep the blade radial; the wafer rides BLADE_OFF past the wrist.
 const RB = { x: 0, z: -0.45 };
@@ -420,6 +428,8 @@ function PortDoorMech({
 // ───────────────────────────── EFEM enclosure ─────────────────────────────
 
 function Efem() {
+  // placed in the bay, the sorter housing is the enclosure: keep the interior and the port band
+  const { placed } = useStationEnv();
   const deckTex = useMemo(() => perforatedTexture('#5d636b', '#2c3035', [10, 7]), []);
   const diffTex = useMemo(() => perforatedTexture('#e3e6ea', '#9ea5ad', [14, 10]), []);
   useEffect(
@@ -439,6 +449,45 @@ function Efem() {
   const xc = (EF.x0 + EF.x1) / 2;
   const zc = (EF.z0 + EF.z1) / 2;
   const plateEdge = PORT_X + 0.25; // right edge of our port's plate
+  if (placed) {
+    // the filter face under the roof: only where the housing's roof stays on
+    const diff = { z0: EF.z0 + 0.03, z1: ROOF_CUT };
+    return (
+      <group>
+        {/* the port band the pods dock against: port plates with their openings, fillers, sill */}
+        {[-PORT_X, PORT_X].map((x) => (
+          <mesh key={x} geometry={plate} position={[x, 0, 0]} material={MAT.panelGray} castShadow receiveShadow />
+        ))}
+        {(
+          [
+            [EF.x0 + 0.085, 0.17],
+            [0, 0.1],
+            [(EF.x1 + plateEdge) / 2, EF.x1 - plateEdge],
+          ] as const
+        ).map(([x, w]) => (
+          <Box key={x} size={[w, 0.78, 0.03]} position={[x, 1.01, -0.015]} m="panel" radius={0.006} />
+        ))}
+        <Box size={[W, 0.05, 0.04]} position={[xc, WIN_Y0 + 0.025, -0.02]} m="panelGray" radius={0.008} />
+        <Box size={[0.12, 0.09, 0.01]} position={[EF.x0 + 0.085, 1.22, 0.004]} m="screen" radius={0.005} castShadow={false} />
+        {/* back wall fittings: slot valve, cable duct, controller; ionizer bar under the filter */}
+        <Box size={[0.46, 0.12, 0.03]} position={[-0.1, 1.12, EF.z0 + 0.04]} m="steelSatin" radius={0.01} />
+        <Box size={[0.38, 0.05, 0.012]} position={[-0.1, 1.12, EF.z0 + 0.058]} m="black" radius={0.004} castShadow={false} />
+        <Box size={[0.08, 1.3, 0.06]} position={[EF.x0 + 0.075, 1.2, EF.z0 + 0.06]} m="steelSatin" radius={0.01} />
+        <Box size={[0.3, 0.2, 0.06]} position={[0.32, 0.72, EF.z0 + 0.06]} m="panel" radius={0.01} />
+        <Box size={[W - 0.12, 0.022, 0.03]} position={[xc, EF.top - 0.1, ROOF_CUT - 0.12]} m="black" radius={0.006} castShadow={false} />
+        {/* perforated deck (return air) and the filter face */}
+        <mesh position={[xc, EF.deck, zc]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+          <planeGeometry args={[W - 0.06, D - 0.06]} />
+          <meshStandardMaterial map={deckTex} metalness={0.5} roughness={0.5} />
+        </mesh>
+        <mesh position={[xc, EF.top - 0.004, (diff.z0 + diff.z1) / 2]} rotation={[Math.PI / 2, 0, 0]}>
+          <planeGeometry args={[W - 0.06, diff.z1 - diff.z0]} />
+          <meshStandardMaterial map={diffTex} metalness={0.4} roughness={0.5} side={THREE.DoubleSide} />
+        </mesh>
+        <pointLight position={[xc, EF.top - 0.25, zc]} intensity={1.6} distance={3} decay={1.6} color="#f4f7ff" />
+      </group>
+    );
+  }
   return (
     <group>
       {/* frame posts (the front-right one is left out: that corner is cut away) */}
@@ -603,8 +652,24 @@ function Aligner({ chuckRef, children }: { chuckRef: Ref<THREE.Group>; children?
 // ───────────────────────────── overhead hoist ─────────────────────────────
 
 const RAIL_Y = 3.3;
+/** In the bay the vehicle rides the bay's own overhead loop (Fab.tsx LOOP.y = 3.72): same height as its vehicles. */
+const RAIL_Y_BAY = 3.73;
 
-function Hoist({ gripRef, jawL, jawR, beltRef }: { gripRef: Ref<THREE.Group>; jawL: Ref<THREE.Group>; jawR: Ref<THREE.Group>; beltRef: Ref<THREE.Group> }) {
+function Hoist({
+  gripRef,
+  jawL,
+  jawR,
+  beltRef,
+  railY,
+  rail,
+}: {
+  gripRef: Ref<THREE.Group>;
+  jawL: Ref<THREE.Group>;
+  jawR: Ref<THREE.Group>;
+  beltRef: Ref<THREE.Group>;
+  railY: number;
+  rail: boolean;
+}) {
   const beltGeo = useMemo(() => {
     const g = new THREE.BoxGeometry(0.022, 1, 0.002);
     g.translate(0, 0.5, 0);
@@ -612,10 +677,10 @@ function Hoist({ gripRef, jawL, jawR, beltRef }: { gripRef: Ref<THREE.Group>; ja
   }, []);
   return (
     <group>
-      {/* rail and vehicle above the port */}
-      <Box size={[4.2, 0.08, 0.14]} position={[PORT_X, RAIL_Y + 0.28, UNDOCK_Z]} m="steelSatin" radius={0.01} />
-      <Box size={[0.66, 0.34, 0.5]} position={[PORT_X, RAIL_Y + 0.07, UNDOCK_Z]} m="panel" radius={0.03} />
-      <Box size={[0.5, 0.03, 0.4]} position={[PORT_X, RAIL_Y - 0.1, UNDOCK_Z]} m="panelGray" radius={0.008} />
+      {/* rail (the bay has its own) and vehicle above the port */}
+      {rail && <Box size={[4.2, 0.08, 0.14]} position={[PORT_X, railY + 0.28, UNDOCK_Z]} m="steelSatin" radius={0.01} />}
+      <Box size={[0.66, 0.34, 0.5]} position={[PORT_X, railY + 0.07, UNDOCK_Z]} m="panel" radius={0.03} />
+      <Box size={[0.5, 0.03, 0.4]} position={[PORT_X, railY - 0.1, UNDOCK_Z]} m="panelGray" radius={0.008} />
       <group ref={beltRef} position={[0, 2.5, 0]}>
         {[
           [-0.13, -0.1],
@@ -691,6 +756,8 @@ function transferPose(p: number) {
 export default function Foup({ variant }: ToolProps) {
   const state = useSimState();
   const docking = (variant ?? 'dock') !== 'robot';
+  const { placed } = useStationEnv();
+  const railY = placed ? RAIL_Y_BAY : RAIL_Y;
 
   const podRef = useRef<THREE.Group>(null);
   const plateRef = useRef<THREE.Group>(null);
@@ -728,7 +795,7 @@ export default function Foup({ variant }: ToolProps) {
       if (beltRef.current) {
         // four hoist belts span from the gripper up to the vehicle
         beltRef.current.position.y = gripY + 0.08;
-        beltRef.current.scale.y = Math.max(0.01, RAIL_Y - 0.1 - (gripY + 0.08));
+        beltRef.current.scale.y = Math.max(0.01, railY - 0.1 - (gripY + 0.08));
       }
       const unlatch = smooth(p, 0.5, 0.56);
       const back = DOOR_BACK * smooth(p, 0.56, 0.66);
@@ -792,7 +859,7 @@ export default function Foup({ variant }: ToolProps) {
           <group ref={podDoorRef} position={[PORT_X, FOUP_Y + 0.72, UNDOCK_Z + FRONT]}>
             <PodDoor />
           </group>
-          <Hoist gripRef={gripRef} jawL={jawL} jawR={jawR} beltRef={beltRef} />
+          <Hoist gripRef={gripRef} jawL={jawL} jawR={jawR} beltRef={beltRef} railY={railY} rail={!placed} />
         </>
       ) : (
         <>

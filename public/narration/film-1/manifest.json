@@ -1,0 +1,953 @@
+{
+  "version": "film-1",
+  "voice": "bm_george",
+  "speed": 1.0,
+  "model": {
+    "package": "expo-kokoro",
+    "version": "1.1.9",
+    "sha256": "fbae9257e1e05ffc727e951ef9b9c98418e6d79f1c9b6b13bd59f5c9028a1478",
+    "name": "Kokoro-82M v1.0",
+    "license": "Apache-2.0",
+    "engine": "float-conv",
+    "engineSha256": "2e83328bed32c73a02614d7405cc78a8f9e5ad9588c5f179e34569c99cdc949d"
+  },
+  "generatedAt": "2026-09-23T04:53:39Z",
+  "audio": {
+    "codec": "mp3",
+    "sampleRate": 24000,
+    "channels": 1,
+    "bitrateKbps": 64,
+    "loudnessLufs": -18.0,
+    "truePeakCeilingDb": -1.5,
+    "fileBase": "segment file names are relative to this manifest",
+    "timing": "startMs/endMs are sample positions of each cue clip in the segment (clip = speech plus 40 ms before and ~80 ms after); durationMs is the decoded length of the MP3. Measured with ffmpeg decoding, which honours the LAME gapless header (encoder delay and padding removed)."
+  },
+  "segments": [
+    {
+      "id": "intro",
+      "file": "intro.mp3",
+      "bytes": 150336,
+      "sha256": "8cad5f787e92d90795e8583d112e3f99de7df30c17237b2a58b5553ff04b6578",
+      "durationMs": 18700,
+      "cues": [
+        {
+          "id": "fab",
+          "text": "This is a fab: a factory for computer chips.",
+          "startMs": 600,
+          "endMs": 3780
+        },
+        {
+          "id": "follow",
+          "text": "Over the next few minutes, we'll follow one silicon wafer through it.",
+          "startMs": 4280,
+          "endMs": 8130
+        },
+        {
+          "id": "goal",
+          "text": "It starts as a bare, polished disc, and it ends as a working circuit: an inverter, the simplest logic gate, built from just two transistors.",
+          "startMs": 8480,
+          "endMs": 17900
+        }
+      ]
+    },
+    {
+      "id": "arrive",
+      "file": "arrive.mp3",
+      "bytes": 143808,
+      "sha256": "0b63fb1973226c67caf00705f11a5eb8563e450335cfd8034c81aa493825dc25",
+      "durationMs": 17900,
+      "cues": [
+        {
+          "id": "pods",
+          "text": "Wafers travel between machines in sealed pods called FOUPs, twenty-five at a time.",
+          "startMs": 300,
+          "endMs": 5840
+        },
+        {
+          "id": "dock",
+          "text": "The pod docks at a load port, and its door opens only inside the machine, so the wafers never meet the air of the room.",
+          "startMs": 6190,
+          "endMs": 14000
+        },
+        {
+          "id": "ours",
+          "text": "Ours is bare silicon, polished to a mirror.",
+          "startMs": 14350,
+          "endMs": 17300
+        }
+      ]
+    },
+    {
+      "id": "transfer",
+      "file": "transfer.mp3",
+      "bytes": 123072,
+      "sha256": "43e12797fb507ffdb9cb5a5b0c42a3e1f7d80333e9857996b3e309af3deacdc4",
+      "durationMs": 15310,
+      "cues": [
+        {
+          "id": "robot",
+          "text": "A robot reaches in on a thin blade and lifts our wafer out.",
+          "startMs": 200,
+          "endMs": 4220
+        },
+        {
+          "id": "notch",
+          "text": "On the pre-aligner, the wafer turns until a sensor finds a small notch in its edge.",
+          "startMs": 4570,
+          "endMs": 10010
+        },
+        {
+          "id": "orient",
+          "text": "From now on, every machine knows exactly which way it is facing.",
+          "startMs": 10360,
+          "endMs": 14710
+        }
+      ]
+    },
+    {
+      "id": "scan",
+      "file": "scan.mp3",
+      "bytes": 120768,
+      "sha256": "97a22ca9b5f16cb1ba0fa0d4db84e48200f53df53a3612e96feefe97592de36c",
+      "durationMs": 15020,
+      "cues": [
+        {
+          "id": "laser",
+          "text": "Before anything is built, a laser sweeps the surface.",
+          "startMs": 200,
+          "endMs": 3760
+        },
+        {
+          "id": "map",
+          "text": "A speck of dust scatters light into a detector, and each one becomes a dot on a defect map.",
+          "startMs": 4110,
+          "endMs": 10280
+        },
+        {
+          "id": "small",
+          "text": "Particles far smaller than a hair can still ruin a circuit.",
+          "startMs": 10630,
+          "endMs": 14420
+        }
+      ]
+    },
+    {
+      "id": "clean",
+      "file": "clean.mp3",
+      "bytes": 100416,
+      "sha256": "0dbb3c63d6bd6f0b5cb6df05d1dce9844f66fa4ca038a149a94a55f409f4336f",
+      "durationMs": 12480,
+      "cues": [
+        {
+          "id": "spray",
+          "text": "So the wafer is cleaned: chemicals and ultrapure water spray across it as it spins, lifting particles away.",
+          "startMs": 200,
+          "endMs": 7840
+        },
+        {
+          "id": "buried",
+          "text": "Anything left now would be buried under the layers to come.",
+          "startMs": 8190,
+          "endMs": 11880
+        }
+      ]
+    },
+    {
+      "id": "diemap",
+      "file": "diemap.mp3",
+      "bytes": 109824,
+      "sha256": "c8dbf3eeaf4be79350b6720ff66f62635635a38e7c2961c8042ab951bd598ab2",
+      "durationMs": 13650,
+      "cues": [
+        {
+          "id": "grid",
+          "text": "The wafer will carry hundreds of identical chips, called dies, laid out in a grid.",
+          "startMs": 200,
+          "endMs": 5530
+        },
+        {
+          "id": "ours",
+          "text": "We'll follow this one.",
+          "startMs": 5880,
+          "endMs": 7420
+        },
+        {
+          "id": "fields",
+          "text": "Every pattern is printed across the whole wafer, one exposure field at a time.",
+          "startMs": 7770,
+          "endMs": 12850
+        }
+      ]
+    },
+    {
+      "id": "padox",
+      "file": "padox.mp3",
+      "bytes": 155904,
+      "sha256": "f8c43215c4190eaf2d9b8e1682735c66caf14176f9e2333ae024e5c49e91694f",
+      "durationMs": 19410,
+      "cues": [
+        {
+          "id": "begin",
+          "text": "Now the building begins.",
+          "startMs": 300,
+          "endMs": 2160
+        },
+        {
+          "id": "oxide",
+          "text": "In a furnace, oxygen reacts with the hot silicon and grows a thin skin of silicon dioxide, partly consuming the silicon beneath.",
+          "startMs": 2560,
+          "endMs": 11350
+        },
+        {
+          "id": "nitride",
+          "text": "Then a layer of silicon nitride is deposited on top. Together, they form a hard mask for what comes next.",
+          "startMs": 11700,
+          "endMs": 18810
+        }
+      ]
+    },
+    {
+      "id": "sti-etch",
+      "file": "sti-etch.mp3",
+      "bytes": 128640,
+      "sha256": "6012617e23e4df536b7550b4b53e5762868e0a147e48cc6f92e41a2583cf7fa9",
+      "durationMs": 15990,
+      "cues": [
+        {
+          "id": "islands",
+          "text": "The first pattern marks out islands where the transistors will live.",
+          "startMs": 200,
+          "endMs": 4400
+        },
+        {
+          "id": "litho",
+          "text": "That takes lithography, which we'll see in full shortly.",
+          "startMs": 4750,
+          "endMs": 8250
+        },
+        {
+          "id": "etch",
+          "text": "Then a plasma etch cuts trenches through the nitride and deep into the silicon around each island.",
+          "startMs": 8600,
+          "endMs": 15190
+        }
+      ]
+    },
+    {
+      "id": "sti-fill",
+      "file": "sti-fill.mp3",
+      "bytes": 138432,
+      "sha256": "0be78f67aaabb7c3652a94c13cf585da9c9851a9a34330f0eec378542a60ba26",
+      "durationMs": 17210,
+      "cues": [
+        {
+          "id": "fill",
+          "text": "The trenches are filled with oxide.",
+          "startMs": 200,
+          "endMs": 2840
+        },
+        {
+          "id": "polish",
+          "text": "Then the wafer is polished flat, down to the nitride, and the nitride is stripped away.",
+          "startMs": 3190,
+          "endMs": 8540
+        },
+        {
+          "id": "moat",
+          "text": "Each silicon island now sits in its own insulating moat, so neighbouring transistors can't leak into each other.",
+          "startMs": 8890,
+          "endMs": 16610
+        }
+      ]
+    },
+    {
+      "id": "wells",
+      "file": "wells.mp3",
+      "bytes": 154368,
+      "sha256": "8b2e3cd70132232d7f4bbcfe35cd350a7bbc7d79f076b85aa3572b08526efd76",
+      "durationMs": 19210,
+      "cues": [
+        {
+          "id": "two",
+          "text": "Next, the silicon is prepared for two kinds of transistor.",
+          "startMs": 200,
+          "endMs": 3880
+        },
+        {
+          "id": "phos",
+          "text": "Resist covers one half, while an implanter fires phosphorus ions into the other.",
+          "startMs": 4230,
+          "endMs": 9550
+        },
+        {
+          "id": "boron",
+          "text": "Then the masks swap, and boron goes into the second half.",
+          "startMs": 9900,
+          "endMs": 13680
+        },
+        {
+          "id": "invisible",
+          "text": "Nothing looks different, but the silicon now conducts in two different ways.",
+          "startMs": 14030,
+          "endMs": 18610
+        }
+      ]
+    },
+    {
+      "id": "anneal",
+      "file": "anneal.mp3",
+      "bytes": 98496,
+      "sha256": "557034568fdc3dbc722d03fee35dca8c0ff158ff6d8804f1b11bb39dda032c6e",
+      "durationMs": 12220,
+      "cues": [
+        {
+          "id": "heat",
+          "text": "A short trip back to the furnace.",
+          "startMs": 200,
+          "endMs": 2220
+        },
+        {
+          "id": "active",
+          "text": "Heat lets the implanted atoms settle into the crystal, where they become electrically active, and it repairs the damage the ions left behind.",
+          "startMs": 2570,
+          "endMs": 11620
+        }
+      ]
+    },
+    {
+      "id": "gatestack",
+      "file": "gatestack.mp3",
+      "bytes": 125184,
+      "sha256": "e938599dcb04e8ace343a04abbd215d42e7e0e3b48fe2476209a19f27d350890",
+      "durationMs": 15570,
+      "cues": [
+        {
+          "id": "oxide",
+          "text": "Now the most delicate layer: the gate oxide, only a few nanometres thick.",
+          "startMs": 200,
+          "endMs": 5120
+        },
+        {
+          "id": "poly",
+          "text": "On top of it goes a film of polysilicon.",
+          "startMs": 5470,
+          "endMs": 8650
+        },
+        {
+          "id": "switch",
+          "text": "Once patterned, it becomes the gates: the switches that turn each transistor on and off.",
+          "startMs": 9000,
+          "endMs": 14770
+        }
+      ]
+    },
+    {
+      "id": "prime",
+      "file": "prime.mp3",
+      "bytes": 74112,
+      "sha256": "5b689a40ac7488daf53093b1ca75121bbf98529a60264faac23fcf1b581b62f6",
+      "durationMs": 9190,
+      "cues": [
+        {
+          "id": "full",
+          "text": "Here is lithography in full.",
+          "startMs": 300,
+          "endMs": 2700
+        },
+        {
+          "id": "prime",
+          "text": "In the track, the wafer is baked dry and primed with a vapour that helps the resist stick.",
+          "startMs": 3100,
+          "endMs": 8690
+        }
+      ]
+    },
+    {
+      "id": "coat",
+      "file": "coat.mp3",
+      "bytes": 120384,
+      "sha256": "19095d3dc71361ef6c383865c07456e9470b8fd413194b8bbf7d89450a9ab603",
+      "durationMs": 14960,
+      "cues": [
+        {
+          "id": "puddle",
+          "text": "A nozzle pours a puddle of photoresist onto the centre.",
+          "startMs": 200,
+          "endMs": 4110
+        },
+        {
+          "id": "spin",
+          "text": "The wafer spins up, the resist spreads into a thin, even film, and the excess flies off the edge.",
+          "startMs": 4460,
+          "endMs": 10880
+        },
+        {
+          "id": "rim",
+          "text": "A fine jet of solvent cleans the rim.",
+          "startMs": 11230,
+          "endMs": 14160
+        }
+      ]
+    },
+    {
+      "id": "softbake",
+      "file": "softbake.mp3",
+      "bytes": 54336,
+      "sha256": "40935470c0281296798120dd356d6362bef0ae318b60458b83310e326d9064c4",
+      "durationMs": 6700,
+      "cues": [
+        {
+          "id": "bake",
+          "text": "A hot plate drives most of the solvent out of the resist, leaving a firm, stable film.",
+          "startMs": 200,
+          "endMs": 5900
+        }
+      ]
+    },
+    {
+      "id": "reticle",
+      "file": "reticle.mp3",
+      "bytes": 84288,
+      "sha256": "63051aa5ee4d8a97ee16d7ad6495ab249ae61b4935916ada2cb8e76c1ebb4327",
+      "durationMs": 10450,
+      "cues": [
+        {
+          "id": "load",
+          "text": "Meanwhile, the scanner loads the reticle for this layer.",
+          "startMs": 200,
+          "endMs": 3800
+        },
+        {
+          "id": "chrome",
+          "text": "It is a quartz plate carrying the pattern in chrome, drawn four times larger than it will print.",
+          "startMs": 4150,
+          "endMs": 9850
+        }
+      ]
+    },
+    {
+      "id": "align",
+      "file": "align.mp3",
+      "bytes": 86976,
+      "sha256": "0f01a4dbf7ed2b57eef2a9619060f6c77feb9afa9483de3518352b9223e7bb59",
+      "durationMs": 10780,
+      "cues": [
+        {
+          "id": "marks",
+          "text": "Before exposing, the scanner finds alignment marks left by the first pattern.",
+          "startMs": 200,
+          "endMs": 5270
+        },
+        {
+          "id": "correct",
+          "text": "It adjusts its stages so the gates will land exactly on the islands.",
+          "startMs": 5620,
+          "endMs": 10180
+        }
+      ]
+    },
+    {
+      "id": "expose",
+      "file": "expose.mp3",
+      "bytes": 161856,
+      "sha256": "58f9904b1eb982c60324e389c8bb16534a9ffc7fd7241521c647ca98f269009c",
+      "durationMs": 20140,
+      "cues": [
+        {
+          "id": "light",
+          "text": "Deep ultraviolet light, at 193 nanometres, passes through the reticle.",
+          "startMs": 200,
+          "endMs": 5750
+        },
+        {
+          "id": "shrink",
+          "text": "The lens shrinks the image four times, and the scanner sweeps it across the wafer, field by field.",
+          "startMs": 6100,
+          "endMs": 12390
+        },
+        {
+          "id": "latent",
+          "text": "Where the light strikes, the resist changes chemically. Nothing can be seen yet: this is a latent image.",
+          "startMs": 12740,
+          "endMs": 19340
+        }
+      ]
+    },
+    {
+      "id": "peb",
+      "file": "peb.mp3",
+      "bytes": 50688,
+      "sha256": "03a7e87462141f5750e55ad4065ce587f2cac4170a253fef5cebcd198fe3f0d2",
+      "durationMs": 6250,
+      "cues": [
+        {
+          "id": "bake",
+          "text": "A second bake lets that chemistry finish, turning the exposed resist soluble.",
+          "startMs": 200,
+          "endMs": 5450
+        }
+      ]
+    },
+    {
+      "id": "develop",
+      "file": "develop.mp3",
+      "bytes": 111552,
+      "sha256": "7e35f4da3e2a4789cc480f3b2a5d6fa17ae79ef2c2c4fbaeea4cd9c0b8b3c809",
+      "durationMs": 13870,
+      "cues": [
+        {
+          "id": "developer",
+          "text": "Then the developer.",
+          "startMs": 200,
+          "endMs": 1710
+        },
+        {
+          "id": "dissolve",
+          "text": "This is a positive resist, so wherever the light fell, the resist dissolves and washes away.",
+          "startMs": 2060,
+          "endMs": 7970
+        },
+        {
+          "id": "lines",
+          "text": "What remains are resist lines, exactly where the chrome cast its shadow.",
+          "startMs": 8320,
+          "endMs": 13070
+        }
+      ]
+    },
+    {
+      "id": "adi",
+      "file": "adi.mp3",
+      "bytes": 106752,
+      "sha256": "32268e04e7c863e68dad48b1ba87b197226e2b7282f89a16f6827a612d670f1d",
+      "durationMs": 13270,
+      "cues": [
+        {
+          "id": "measure",
+          "text": "An electron microscope measures the lines.",
+          "startMs": 200,
+          "endMs": 3250
+        },
+        {
+          "id": "rework",
+          "text": "If they're out of specification, the resist can still be stripped and the whole cycle repeated.",
+          "startMs": 3600,
+          "endMs": 9500
+        },
+        {
+          "id": "noreturn",
+          "text": "After the next step, there's no going back.",
+          "startMs": 9850,
+          "endMs": 12670
+        }
+      ]
+    },
+    {
+      "id": "gate-etch",
+      "file": "gate-etch.mp3",
+      "bytes": 122496,
+      "sha256": "e30bbe9629ca1e9daac3dbc614e4e808214778d6ae99b1352f5c9d3bf8761d83",
+      "durationMs": 15220,
+      "cues": [
+        {
+          "id": "plasma",
+          "text": "In the etch chamber, a plasma sends ions straight down onto the wafer.",
+          "startMs": 200,
+          "endMs": 4770
+        },
+        {
+          "id": "carve",
+          "text": "They carve through the polysilicon wherever it's uncovered, and stop at the thin gate oxide.",
+          "startMs": 5120,
+          "endMs": 10840
+        },
+        {
+          "id": "gates",
+          "text": "The resist lines have become polysilicon gates.",
+          "startMs": 11190,
+          "endMs": 14620
+        }
+      ]
+    },
+    {
+      "id": "strip",
+      "file": "strip.mp3",
+      "bytes": 105216,
+      "sha256": "867cc2cf75fc514a8e49137be9bb2444eaaae67380655d262914e0a9d1721316",
+      "durationMs": 13060,
+      "cues": [
+        {
+          "id": "ash",
+          "text": "An oxygen plasma burns away the leftover resist.",
+          "startMs": 200,
+          "endMs": 3940
+        },
+        {
+          "id": "cycle",
+          "text": "That was one complete lithography cycle. Every patterned layer of a chip goes through the same loop, each with its own reticle.",
+          "startMs": 4290,
+          "endMs": 12260
+        }
+      ]
+    },
+    {
+      "id": "sd",
+      "file": "sd.mp3",
+      "bytes": 139968,
+      "sha256": "437d63da8c4512255157fc69baee7aaac24c6a551f7e308b1dc45cf5e30083e8",
+      "durationMs": 17410,
+      "cues": [
+        {
+          "id": "repeat",
+          "text": "The loop runs twice more, to implant the sources and drains: arsenic for one transistor, boron for the other.",
+          "startMs": 200,
+          "endMs": 7350
+        },
+        {
+          "id": "self",
+          "text": "The gates themselves block the ions, so every source and drain lines up perfectly with its gate.",
+          "startMs": 7700,
+          "endMs": 13870
+        },
+        {
+          "id": "done",
+          "text": "Our two transistors are complete.",
+          "startMs": 14220,
+          "endMs": 16810
+        }
+      ]
+    },
+    {
+      "id": "pmd",
+      "file": "pmd.mp3",
+      "bytes": 68736,
+      "sha256": "369b61bd53fc08c01007c2ad3eaea369c7d02f3c7f520c8af82a965ef80a6b6e",
+      "durationMs": 8510,
+      "cues": [
+        {
+          "id": "wire",
+          "text": "Now they must be wired together.",
+          "startMs": 300,
+          "endMs": 2410
+        },
+        {
+          "id": "bury",
+          "text": "First, a thick layer of insulating oxide buries them, polished perfectly flat.",
+          "startMs": 2710,
+          "endMs": 7910
+        }
+      ]
+    },
+    {
+      "id": "contact-align",
+      "file": "contact-align.mp3",
+      "bytes": 86208,
+      "sha256": "c6d802d345f96b83ebfb6e28edf05b1b7dffe9203d207c14a60b0a51a9e996d2",
+      "durationMs": 10690,
+      "cues": [
+        {
+          "id": "align",
+          "text": "Another coat of resist, and the contact reticle is aligned to the gates beneath.",
+          "startMs": 200,
+          "endMs": 5510
+        },
+        {
+          "id": "drift",
+          "text": "If it drifts too far, a contact could land on the wrong terminal.",
+          "startMs": 5860,
+          "endMs": 10090
+        }
+      ]
+    },
+    {
+      "id": "contact-print",
+      "file": "contact-print.mp3",
+      "bytes": 59136,
+      "sha256": "55fa4fb0c8be8a456e78538485d273380b5cca2fd8b2838b530c3de1d709e2a4",
+      "durationMs": 7320,
+      "cues": [
+        {
+          "id": "print",
+          "text": "The contact holes are printed into the resist, and their position is checked before anything is etched.",
+          "startMs": 200,
+          "endMs": 6520
+        }
+      ]
+    },
+    {
+      "id": "contact-etch",
+      "file": "contact-etch.mp3",
+      "bytes": 62016,
+      "sha256": "9a9cabc5a781506b30a22d6fb28aa8b0e5130a9ce691fcdaaabc2059e7d16118",
+      "durationMs": 7670,
+      "cues": [
+        {
+          "id": "etch",
+          "text": "Then the plasma cuts narrow holes down through the oxide, stopping on the silicon and polysilicon below.",
+          "startMs": 200,
+          "endMs": 6870
+        }
+      ]
+    },
+    {
+      "id": "contact-fill",
+      "file": "contact-fill.mp3",
+      "bytes": 69504,
+      "sha256": "b24a9cce9f0b35009bd29ad78f5cf47c4bc6572e7ecf40ee1429fee076f6b493",
+      "durationMs": 8600,
+      "cues": [
+        {
+          "id": "tungsten",
+          "text": "Tungsten fills the holes.",
+          "startMs": 200,
+          "endMs": 2200
+        },
+        {
+          "id": "plugs",
+          "text": "Polishing removes everything above the oxide, leaving a metal plug in each one.",
+          "startMs": 2550,
+          "endMs": 8000
+        }
+      ]
+    },
+    {
+      "id": "metal1",
+      "file": "metal1.mp3",
+      "bytes": 133440,
+      "sha256": "aebe50a79ea2e040e222f2b98fdcbf131b5a5b988f1a8b4610147a09bb3164a7",
+      "durationMs": 16600,
+      "cues": [
+        {
+          "id": "same",
+          "text": "The first level of copper wiring is built the same way.",
+          "startMs": 200,
+          "endMs": 3720
+        },
+        {
+          "id": "damascene",
+          "text": "Trenches are etched into a fresh insulating layer, filled with copper and polished flat.",
+          "startMs": 4070,
+          "endMs": 9880
+        },
+        {
+          "id": "join",
+          "text": "These wires join the two transistors into one circuit, and bring in power and ground.",
+          "startMs": 10230,
+          "endMs": 16000
+        }
+      ]
+    },
+    {
+      "id": "metal2",
+      "file": "metal2.mp3",
+      "bytes": 80064,
+      "sha256": "f5b88b14e6b4aa4b96da79f6edb5f5b8179f42a124ce52380a60ef9a5aec36f7",
+      "durationMs": 9920,
+      "cues": [
+        {
+          "id": "second",
+          "text": "A second level goes on top, connected to the first through small vias.",
+          "startMs": 200,
+          "endMs": 4920
+        },
+        {
+          "id": "many",
+          "text": "Real chips stack many more levels; our inverter needs just two.",
+          "startMs": 5270,
+          "endMs": 9320
+        }
+      ]
+    },
+    {
+      "id": "passivate",
+      "file": "passivate.mp3",
+      "bytes": 72192,
+      "sha256": "5b0a482711995f1cd957affc460dea3668281ed646e7860abc563d2deca99db7",
+      "durationMs": 8950,
+      "cues": [
+        {
+          "id": "seal",
+          "text": "Finally, a tough passivation layer seals the chip against moisture and scratches, with windows left open over the pads.",
+          "startMs": 200,
+          "endMs": 8150
+        }
+      ]
+    },
+    {
+      "id": "inspect",
+      "file": "inspect.mp3",
+      "bytes": 67008,
+      "sha256": "814823e2e3292729844f85a7d01a369656ef32a77db181471b7e04912be53a4a",
+      "durationMs": 8300,
+      "cues": [
+        {
+          "id": "last",
+          "text": "The finished wafer is scanned one last time, and the results of every inspection along the way are reviewed together.",
+          "startMs": 300,
+          "endMs": 7700
+        }
+      ]
+    },
+    {
+      "id": "probe",
+      "file": "probe.mp3",
+      "bytes": 90624,
+      "sha256": "b0bff6a592e4c41fbba734198bda2a64fd5497ba89ae6d498d025bfe6da3fb88",
+      "durationMs": 11250,
+      "cues": [
+        {
+          "id": "test",
+          "text": "Now the test. A probe card touches the pads of each die in turn, and runs the inverter through its paces.",
+          "startMs": 200,
+          "endMs": 7220
+        },
+        {
+          "id": "map",
+          "text": "Each result is marked on the wafer map.",
+          "startMs": 7570,
+          "endMs": 10450
+        }
+      ]
+    },
+    {
+      "id": "dice",
+      "file": "dice.mp3",
+      "bytes": 50112,
+      "sha256": "746a716aa92d39a920e27068472db5ea915ac5bb1e238ad13e4bc2e24c8101ff",
+      "durationMs": 6180,
+      "cues": [
+        {
+          "id": "saw",
+          "text": "The wafer is mounted on tape, and sawn along the narrow streets between the dies.",
+          "startMs": 200,
+          "endMs": 5380
+        }
+      ]
+    },
+    {
+      "id": "attach",
+      "file": "attach.mp3",
+      "bytes": 38208,
+      "sha256": "5a534386f399a01b5b0d285d39b480f1c6a3904bbde437f78cabc76ed81e369b",
+      "durationMs": 4700,
+      "cues": [
+        {
+          "id": "pick",
+          "text": "A good die is picked from the tape and bonded into a package.",
+          "startMs": 200,
+          "endMs": 4100
+        }
+      ]
+    },
+    {
+      "id": "bond",
+      "file": "bond.mp3",
+      "bytes": 70848,
+      "sha256": "ec52b551e0df4b3daed5ebf5b2dd0160569de2de3359d478455d18a88237a965",
+      "durationMs": 8780,
+      "cues": [
+        {
+          "id": "wires",
+          "text": "Gold wires, finer than a hair, link its pads to the package leads.",
+          "startMs": 200,
+          "endMs": 4550
+        },
+        {
+          "id": "mould",
+          "text": "Then the whole assembly is sealed in epoxy.",
+          "startMs": 4900,
+          "endMs": 7980
+        }
+      ]
+    },
+    {
+      "id": "final",
+      "file": "final.mp3",
+      "bytes": 158208,
+      "sha256": "a12298536137a385680653d56f744b0a56f49a5c79e6fc360384fc7b81cabf7d",
+      "durationMs": 19690,
+      "cues": [
+        {
+          "id": "here",
+          "text": "And here is our inverter.",
+          "startMs": 300,
+          "endMs": 2660
+        },
+        {
+          "id": "low",
+          "text": "With the input low, the PMOS transistor conducts, and the output goes high.",
+          "startMs": 3060,
+          "endMs": 8090
+        },
+        {
+          "id": "high",
+          "text": "With the input high, the NMOS transistor takes over, and the output goes low.",
+          "startMs": 8440,
+          "endMs": 13640
+        },
+        {
+          "id": "gate",
+          "text": "A working logic gate: one of the building blocks of every digital chip.",
+          "startMs": 13990,
+          "endMs": 18690
+        }
+      ]
+    },
+    {
+      "id": "outro",
+      "file": "outro.mp3",
+      "bytes": 156096,
+      "sha256": "c8bf4548f802b6dca0b0b683246202cc8847cdf2b5dc2f30ecd3655968c58f2c",
+      "durationMs": 19420,
+      "cues": [
+        {
+          "id": "journey",
+          "text": "That's the journey: one wafer, dozens of steps, and one idea repeated again and again.",
+          "startMs": 400,
+          "endMs": 6290
+        },
+        {
+          "id": "idea",
+          "text": "Lithography draws a pattern in light, and every other process makes it permanent.",
+          "startMs": 6640,
+          "endMs": 11810
+        },
+        {
+          "id": "scale",
+          "text": "A modern chip repeats that loop dozens of times, to build billions of transistors.",
+          "startMs": 12160,
+          "endMs": 17820
+        }
+      ]
+    }
+  ],
+  "licenses": [
+    {
+      "component": "Kokoro-82M v1.0 model weights and voice styles (generated this audio)",
+      "author": "hexgrad",
+      "license": "Apache-2.0",
+      "source": "https://huggingface.co/hexgrad/Kokoro-82M (ONNX export bundled in the npm package expo-kokoro@1.1.9)",
+      "text": "tools/narration/LICENSES/Kokoro-82M-Apache-2.0.txt"
+    },
+    {
+      "component": "expo-kokoro 1.1.9 (npm package that ships the ONNX export)",
+      "author": "Dane Madsen",
+      "license": "MIT",
+      "text": "tools/narration/LICENSES/expo-kokoro-MIT.txt"
+    },
+    {
+      "component": "misaki 0.9.4 (English G2P rules and British lexicon; build time only)",
+      "author": "hexgrad",
+      "license": "Apache-2.0",
+      "text": "tools/narration/LICENSES/misaki-Apache-2.0.txt"
+    },
+    {
+      "component": "espeak-ng 1.52.0 via espeakng-loader and phonemizer-fork (fallback G2P; build time only, not distributed)",
+      "license": "GPL-3.0-or-later"
+    },
+    {
+      "component": "FFmpeg with LAME (MP3 encoding; build time only, not distributed)",
+      "license": "GPL (static build from imageio-ffmpeg); LAME is LGPL-2.0"
+    }
+  ]
+}

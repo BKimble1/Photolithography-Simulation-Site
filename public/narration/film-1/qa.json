@@ -1,0 +1,7773 @@
+{
+ "version": "film-1",
+ "generatedAt": "2026-09-23T04:53:39Z",
+ "voice": "bm_george",
+ "speed": 1.0,
+ "fingerprint": {
+  "engine": "float-conv",
+  "engineSha256": "2e83328bed32c73a02614d7405cc78a8f9e5ad9588c5f179e34569c99cdc949d",
+  "sourceSha256": "fbae9257e1e05ffc727e951ef9b9c98418e6d79f1c9b6b13bd59f5c9028a1478",
+  "onnxruntime": "1.30.0",
+  "threads": 2,
+  "g2p": {
+   "g2p": "2026-09-23.1",
+   "misaki": "0.9.4",
+   "phonemizer-fork": "3.3.2",
+   "espeakng-loader": "0.2.4",
+   "espeak-ng": "1.52.0",
+   "num2words": "0.5.14"
+  }
+ },
+ "thresholds": {
+  "rateDeviation": 0.25,
+  "rateMinPhonemesPerS": 9.0,
+  "rateMaxPhonemesPerS": 17.0,
+  "longInternalSilenceS": 0.8,
+  "onsetBurstDb": 12.0,
+  "pitchJumpsPerMin": 30.0,
+  "asrWer": 0.25,
+  "minCueS": 0.6
+ },
+ "hardFlags": [
+  "clipping",
+  "decode-mismatch",
+  "no-phonemes-for-word"
+ ],
+ "summary": {
+  "segments": 39,
+  "cues": 91,
+  "audioSeconds": 500.55,
+  "modelAudioSeconds": 504.1,
+  "synthSeconds": 299.11,
+  "rtf": 0.593,
+  "cacheHits": 0,
+  "medianPhonemesPerS": 10.28,
+  "medianSpeechWpm": 165.6,
+  "flags": 5,
+  "hardFlags": 0,
+  "bytes": 4030272,
+  "asrWer": 0.03
+ },
+ "segments": [
+  {
+   "id": "intro",
+   "file": "intro.mp3",
+   "durationMs": 18700,
+   "loudness": {
+    "inputLufs": -21.5,
+    "inputTruePeakDb": -4.4,
+    "gainDb": 2.9,
+    "outputLufs": -18.6,
+    "outputTruePeakDb": -1.5
+   },
+   "encoded": {
+    "bytes": 150336,
+    "decodedSamples": 448800,
+    "sourceSamples": 448800,
+    "durationMs": 18700,
+    "lagSamples": 0,
+    "lengthMatches": true,
+    "gapless": {
+     "xingTag": true,
+     "tag": "Info",
+     "frames": 782,
+     "bytes": 150336,
+     "encoder": "Lavf lame",
+     "encoderDelaySamples": 576,
+     "paddingSamples": 1056
+    },
+    "decodedPeakDbfs": -2.18
+   },
+   "decodedPeakDbfs": -2.18,
+   "flags": [],
+   "cues": [
+    {
+     "id": "fab",
+     "text": "This is a fab: a factory for computer chips.",
+     "startMs": 600,
+     "endMs": 3780,
+     "audioText": "This is a fab: a factory for computer chips.",
+     "phonemes": "ðˌɪs ɪz ɐ fˈab: ɐ fˈaktəɹi fɔː kəmpjˈuːtə ʧˈɪps.",
+     "dictionary": [],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 48,
+     "chunks": 1,
+     "synthS": 3.218,
+     "cached": false,
+     "modelLeadS": 0.26,
+     "modelTailS": 0.455,
+     "pauses": [
+      {
+       "mark": ":",
+       "pauseS": 0.175,
+       "depthDb": -68.2,
+       "t": 1.18
+      }
+     ],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 3.18,
+      "peakDbfs": -2.0,
+      "clippedSamples": 0,
+      "dcOffset": -0.00032,
+      "leadingSilenceS": 0.04,
+      "trailingSilenceS": 0.11,
+      "longestInternalSilenceS": 0.26,
+      "pauses": [
+       [
+        1.03,
+        0.26
+       ]
+      ],
+      "speechSpanS": 3.03,
+      "f0MedianHz": 140.0,
+      "f0RangeSemitones": 12.0,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.317,
+      "burstDb": 5.3,
+      "burstAtS": 0.05,
+      "onsetBurstDb": 5.3,
+      "spikes": 0,
+      "hfShareDb": -28.4,
+      "words": 9,
+      "wpm": 169.8,
+      "speechWpm": 178.2,
+      "rawPeakDbfs": -4.9,
+      "phonemesPerS": 10.23
+     },
+     "asr": {
+      "hypothesis": "This is a farm, a factory for computer chips.",
+      "reference": "this is a fab a factory for computer chips",
+      "errors": 1,
+      "refWords": 9,
+      "wer": 0.111,
+      "diffs": [
+       [
+        "fab",
+        "farm"
+       ]
+      ]
+     },
+     "flags": []
+    },
+    {
+     "id": "follow",
+     "text": "Over the next few minutes, we'll follow one silicon wafer through it.",
+     "startMs": 4280,
+     "endMs": 8130,
+     "audioText": "Over the next few minutes, we'll follow one silicon [wafer] through it.",
+     "phonemes": "ˈQvə ðə nˈɛkst fjˈuː mˈɪnɪts, wiːl fˈɒlQ wˈʌn sˈɪlɪkᵊn wˈAfə θɹuː ɪt.",
+     "dictionary": [
+      "wafer"
+     ],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 69,
+     "chunks": 1,
+     "synthS": 4.05,
+     "cached": false,
+     "modelLeadS": 0.27,
+     "modelTailS": 0.5,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.125,
+       "depthDb": -70.5,
+       "t": 1.47
+      }
+     ],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 3.85,
+      "peakDbfs": -4.59,
+      "clippedSamples": 0,
+      "dcOffset": -0.00021,
+      "leadingSilenceS": 0.04,
+      "trailingSilenceS": 0.1,
+      "longestInternalSilenceS": 0.3,
+      "pauses": [
+       [
+        1.26,
+        0.3
+       ]
+      ],
+      "speechSpanS": 3.71,
+      "f0MedianHz": 147.1,
+      "f0RangeSemitones": 7.3,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.406,
+      "burstDb": 4.2,
+      "burstAtS": 1.6,
+      "onsetBurstDb": 4.1,
+      "spikes": 0,
+      "hfShareDb": -29.5,
+      "words": 12,
+      "wpm": 187.0,
+      "speechWpm": 194.1,
+      "rawPeakDbfs": -7.49,
+      "phonemesPerS": 12.13
+     },
+     "asr": {
+      "hypothesis": "Over the next few minutes, we'll follow one silicon wafer through it.",
+      "reference": "over the next few minutes well follow one silicon wafer through it",
+      "errors": 0,
+      "refWords": 12,
+      "wer": 0.0,
+      "diffs": []
+     },
+     "flags": []
+    },
+    {
+     "id": "goal",
+     "text": "It starts as a bare, polished disc, and it ends as a working circuit: an inverter, the simplest logic gate, built from just two transistors.",
+     "startMs": 8480,
+     "endMs": 17900,
+     "audioText": "It starts as a bare, polished disc, and it ends as a working circuit: an [inverter], the simplest logic gate, built from just two transistors.",
+     "phonemes": "ˌɪt stˈɑːts az ɐ bˈɛː, pˈɒlɪʃt dˈɪsk, and ɪt ˈɛndz az ɐ wˈɜːkɪŋ sˈɜːkɪt: ɐn ɪnvˈɜːtə, ðə sˈɪmpᵊlɪst lˈɒʤɪk ɡˈAt, bˈɪlt fɹɒm ʤˈʌst tˈuː tɹanzˈɪstəz.",
+     "dictionary": [
+      "inverter"
+     ],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 147,
+     "chunks": 1,
+     "synthS": 9.94,
+     "cached": false,
+     "modelLeadS": 0.28,
+     "modelTailS": 0.495,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.125,
+       "depthDb": -48.5,
+       "t": 1.21
+      },
+      {
+       "mark": ",",
+       "pauseS": 0.125,
+       "depthDb": -63.2,
+       "t": 2.46
+      },
+      {
+       "mark": ":",
+       "pauseS": 0.125,
+       "depthDb": -68.7,
+       "t": 4.735
+      },
+      {
+       "mark": ",",
+       "pauseS": 0.125,
+       "depthDb": -68.5,
+       "t": 5.685
+      },
+      {
+       "mark": ",",
+       "pauseS": 0.15,
+       "depthDb": -68.4,
+       "t": 7.385
+      }
+     ],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 9.42,
+      "peakDbfs": -1.68,
+      "clippedSamples": 0,
+      "dcOffset": -0.00019,
+      "leadingSilenceS": 0.04,
+      "trailingSilenceS": 0.1,
+      "longestInternalSilenceS": 0.41,
+      "pauses": [
+       [
+        2.18,
+        0.36
+       ],
+       [
+        4.4,
+        0.41
+       ],
+       [
+        5.58,
+        0.2
+       ],
+       [
+        7.17,
+        0.34
+       ]
+      ],
+      "speechSpanS": 9.28,
+      "f0MedianHz": 141.9,
+      "f0RangeSemitones": 8.3,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.368,
+      "burstDb": 6.2,
+      "burstAtS": 4.85,
+      "onsetBurstDb": 4.4,
+      "spikes": 0,
+      "hfShareDb": -27.6,
+      "words": 25,
+      "wpm": 159.2,
+      "speechWpm": 161.6,
+      "rawPeakDbfs": -4.58,
+      "phonemesPerS": 10.24
+     },
+     "asr": {
+      "hypothesis": "It starts as a bare polished disc, and it ends as a working circuit, an inverter, the simplest logic gate built from just two transistors.",
+      "reference": "it starts as a bare polished disc it ends as a working circuit an inverter the simplest logic gate built from just two transistors",
+      "errors": 0,
+      "refWords": 24,
+      "wer": 0.0,
+      "diffs": []
+     },
+     "flags": []
+    }
+   ]
+  },
+  {
+   "id": "arrive",
+   "file": "arrive.mp3",
+   "durationMs": 17900,
+   "loudness": {
+    "inputLufs": -21.7,
+    "inputTruePeakDb": -5.0,
+    "gainDb": 3.5,
+    "outputLufs": -18.2,
+    "outputTruePeakDb": -1.5
+   },
+   "encoded": {
+    "bytes": 143808,
+    "decodedSamples": 429600,
+    "sourceSamples": 429600,
+    "durationMs": 17900,
+    "lagSamples": 0,
+    "lengthMatches": true,
+    "gapless": {
+     "xingTag": true,
+     "tag": "Info",
+     "frames": 748,
+     "bytes": 143808,
+     "encoder": "Lavf lame",
+     "encoderDelaySamples": 576,
+     "paddingSamples": 672
+    },
+    "decodedPeakDbfs": -2.01
+   },
+   "decodedPeakDbfs": -2.01,
+   "flags": [],
+   "cues": [
+    {
+     "id": "pods",
+     "text": "Wafers travel between machines in sealed pods called FOUPs, twenty-five at a time.",
+     "startMs": 300,
+     "endMs": 5840,
+     "audioText": "[wafers] travel between machines in sealed pods called [FOUPs], twenty-five at a time.",
+     "phonemes": "wˈAfəz tɹˈavᵊl bɪtwˈiːn məʃˈiːnz ɪn sˈiːld pˈɒdz kˈɔːld fˈuːps, twˈɛntifˌIv at ɐ tˈIm.",
+     "dictionary": [
+      "wafer",
+      "FOUP"
+     ],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 86,
+     "chunks": 1,
+     "synthS": 6.109,
+     "cached": false,
+     "modelLeadS": 0.28,
+     "modelTailS": 0.525,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.125,
+       "depthDb": -68.0,
+       "t": 3.935
+      }
+     ],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 5.54,
+      "peakDbfs": -2.47,
+      "clippedSamples": 0,
+      "dcOffset": -0.00034,
+      "leadingSilenceS": 0.04,
+      "trailingSilenceS": 0.1,
+      "longestInternalSilenceS": 0.34,
+      "pauses": [
+       [
+        3.69,
+        0.34
+       ]
+      ],
+      "speechSpanS": 5.4,
+      "f0MedianHz": 141.0,
+      "f0RangeSemitones": 6.2,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.372,
+      "burstDb": 6.4,
+      "burstAtS": 0.05,
+      "onsetBurstDb": 6.4,
+      "spikes": 0,
+      "hfShareDb": -28.6,
+      "words": 13,
+      "wpm": 140.8,
+      "speechWpm": 144.4,
+      "rawPeakDbfs": -5.97,
+      "phonemesPerS": 10.37
+     },
+     "asr": {
+      "hypothesis": "Wafers travel between machines in sealed pods called \"Fups\" 25 at a time.",
+      "reference": "wafers travel between machines in sealed pods called foups twenty five at a time",
+      "errors": 1,
+      "refWords": 14,
+      "wer": 0.071,
+      "diffs": [
+       [
+        "foups",
+        "fups"
+       ]
+      ]
+     },
+     "flags": []
+    },
+    {
+     "id": "dock",
+     "text": "The pod docks at a load port, and its door opens only inside the machine, so the wafers never meet the air of the room.",
+     "startMs": 6190,
+     "endMs": 14000,
+     "audioText": "The pod docks at a load port, and its door opens only inside the machine, so the [wafers] never meet the air of the room.",
+     "phonemes": "ðə pˈɒd dˈɒks at ɐ lˈQd pˈɔːt, and ɪts dˈɔː ˈQpᵊnz ˈQnli ˌɪnsˈId ðə məʃˈiːn, sˌQ ðə wˈAfəz nˈɛvə mˈiːt ði ˈɛː ɒv ðə ɹˈuːm.",
+     "dictionary": [
+      "wafer"
+     ],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 122,
+     "chunks": 1,
+     "synthS": 6.707,
+     "cached": false,
+     "modelLeadS": 0.27,
+     "modelTailS": 0.515,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.125,
+       "depthDb": -68.8,
+       "t": 2.145
+      },
+      {
+       "mark": ",",
+       "pauseS": 0.125,
+       "depthDb": -66.6,
+       "t": 5.195
+      }
+     ],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 7.81,
+      "peakDbfs": -1.46,
+      "clippedSamples": 0,
+      "dcOffset": -0.00013,
+      "leadingSilenceS": 0.05,
+      "trailingSilenceS": 0.09,
+      "longestInternalSilenceS": 0.37,
+      "pauses": [
+       [
+        1.86,
+        0.37
+       ],
+       [
+        4.9,
+        0.36
+       ]
+      ],
+      "speechSpanS": 7.67,
+      "f0MedianHz": 136.0,
+      "f0RangeSemitones": 7.8,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.366,
+      "burstDb": 6.0,
+      "burstAtS": 2.3,
+      "onsetBurstDb": 4.5,
+      "spikes": 0,
+      "hfShareDb": -28.3,
+      "words": 25,
+      "wpm": 192.1,
+      "speechWpm": 195.6,
+      "rawPeakDbfs": -4.96,
+      "phonemesPerS": 9.52
+     },
+     "asr": {
+      "hypothesis": "The pod dock set a load port and its door opens only inside the machine so the waafers never meet the air of the room.",
+      "reference": "the pod docks at a load port its door opens only inside the machine so the wafers never meet the air of the room",
+      "errors": 3,
+      "refWords": 24,
+      "wer": 0.125,
+      "diffs": [
+       [
+        "docks at",
+        "dock set"
+       ],
+       [
+        "wafers",
+        "waafers"
+       ]
+      ]
+     },
+     "flags": []
+    },
+    {
+     "id": "ours",
+     "text": "Ours is bare silicon, polished to a mirror.",
+     "startMs": 14350,
+     "endMs": 17300,
+     "audioText": "Ours is bare silicon, polished to a mirror.",
+     "phonemes": "ˈWəz ɪz bˈɛː sˈɪlɪkᵊn, pˈɒlɪʃt tə ɐ mˈɪɹə.",
+     "dictionary": [],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 42,
+     "chunks": 1,
+     "synthS": 1.973,
+     "cached": false,
+     "modelLeadS": 0.27,
+     "modelTailS": 0.5,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.125,
+       "depthDb": -69.1,
+       "t": 1.62
+      }
+     ],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 2.95,
+      "peakDbfs": -4.01,
+      "clippedSamples": 0,
+      "dcOffset": -0.0003,
+      "leadingSilenceS": 0.04,
+      "trailingSilenceS": 0.1,
+      "longestInternalSilenceS": 0.22,
+      "pauses": [
+       [
+        1.5,
+        0.22
+       ]
+      ],
+      "speechSpanS": 2.81,
+      "f0MedianHz": 149.9,
+      "f0RangeSemitones": 10.5,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.414,
+      "burstDb": 5.3,
+      "burstAtS": 2.2,
+      "onsetBurstDb": 3.0,
+      "spikes": 0,
+      "hfShareDb": -29.0,
+      "words": 8,
+      "wpm": 162.7,
+      "speechWpm": 170.8,
+      "rawPeakDbfs": -7.51,
+      "phonemesPerS": 9.61
+     },
+     "asr": {
+      "hypothesis": "Owers is bare silicon, polished to a mirror.",
+      "reference": "ours is bare silicon polished to a mirror",
+      "errors": 1,
+      "refWords": 8,
+      "wer": 0.125,
+      "diffs": [
+       [
+        "ours",
+        "owers"
+       ]
+      ]
+     },
+     "flags": []
+    }
+   ]
+  },
+  {
+   "id": "transfer",
+   "file": "transfer.mp3",
+   "durationMs": 15310,
+   "loudness": {
+    "inputLufs": -21.6,
+    "inputTruePeakDb": -3.8,
+    "gainDb": 2.3,
+    "outputLufs": -19.3,
+    "outputTruePeakDb": -1.5
+   },
+   "encoded": {
+    "bytes": 123072,
+    "decodedSamples": 367440,
+    "sourceSamples": 367440,
+    "durationMs": 15310,
+    "lagSamples": 0,
+    "lengthMatches": true,
+    "gapless": {
+     "xingTag": true,
+     "tag": "Info",
+     "frames": 640,
+     "bytes": 123072,
+     "encoder": "Lavf lame",
+     "encoderDelaySamples": 576,
+     "paddingSamples": 624
+    },
+    "decodedPeakDbfs": -1.94
+   },
+   "decodedPeakDbfs": -1.94,
+   "flags": [],
+   "cues": [
+    {
+     "id": "robot",
+     "text": "A robot reaches in on a thin blade and lifts our wafer out.",
+     "startMs": 200,
+     "endMs": 4220,
+     "audioText": "A robot reaches in on a thin blade and lifts our [wafer] out.",
+     "phonemes": "ɐ ɹˈQbɒt ɹˈiːʧɪz ɪn ˌɒn ɐ θˈɪn blˈAd and lˈɪfts ˌWə wˈAfə ˈWt.",
+     "dictionary": [
+      "wafer"
+     ],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 62,
+     "chunks": 1,
+     "synthS": 3.077,
+     "cached": false,
+     "modelLeadS": 0.27,
+     "modelTailS": 0.505,
+     "pauses": [],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 4.02,
+      "peakDbfs": -4.39,
+      "clippedSamples": 0,
+      "dcOffset": -0.00027,
+      "leadingSilenceS": 0.04,
+      "trailingSilenceS": 0.1,
+      "longestInternalSilenceS": 0.31,
+      "pauses": [
+       [
+        2.31,
+        0.31
+       ]
+      ],
+      "speechSpanS": 3.88,
+      "f0MedianHz": 147.1,
+      "f0RangeSemitones": 7.6,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.396,
+      "burstDb": 6.1,
+      "burstAtS": 0.1,
+      "onsetBurstDb": 6.1,
+      "spikes": 0,
+      "hfShareDb": -31.0,
+      "words": 13,
+      "wpm": 194.0,
+      "speechWpm": 201.0,
+      "rawPeakDbfs": -6.69,
+      "phonemesPerS": 10.05
+     },
+     "asr": {
+      "hypothesis": "A robot reaches in on a thin blade and lifts our wafer out.",
+      "reference": "a robot reaches in on a thin blade lifts our wafer out",
+      "errors": 0,
+      "refWords": 12,
+      "wer": 0.0,
+      "diffs": []
+     },
+     "flags": []
+    },
+    {
+     "id": "notch",
+     "text": "On the pre-aligner, the wafer turns until a sensor finds a small notch in its edge.",
+     "startMs": 4570,
+     "endMs": 10010,
+     "audioText": "On the pre-aligner, the [wafer] turns until a sensor finds a small notch in its edge.",
+     "phonemes": "ˌɒn ðə pɹˌiːəlˈInə, ðə wˈAfə tˈɜːnz əntˈɪl ɐ sˈɛnsə fˈIndz ɐ smˈɔːl nˈɒʧ ɪn ɪts ˈɛʤ.",
+     "dictionary": [
+      "wafer"
+     ],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 84,
+     "chunks": 1,
+     "synthS": 3.843,
+     "cached": false,
+     "modelLeadS": 0.28,
+     "modelTailS": 0.5,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.15,
+       "depthDb": -69.5,
+       "t": 1.185
+      }
+     ],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 5.44,
+      "peakDbfs": -3.25,
+      "clippedSamples": 0,
+      "dcOffset": -0.0002,
+      "leadingSilenceS": 0.04,
+      "trailingSilenceS": 0.12,
+      "longestInternalSilenceS": 0.35,
+      "pauses": [
+       [
+        0.96,
+        0.35
+       ],
+       [
+        3.22,
+        0.19
+       ]
+      ],
+      "speechSpanS": 5.28,
+      "f0MedianHz": 141.4,
+      "f0RangeSemitones": 6.6,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.368,
+      "burstDb": 5.6,
+      "burstAtS": 1.85,
+      "onsetBurstDb": 5.4,
+      "spikes": 0,
+      "hfShareDb": -28.5,
+      "words": 16,
+      "wpm": 176.5,
+      "speechWpm": 181.8,
+      "rawPeakDbfs": -5.55,
+      "phonemesPerS": 10.04
+     },
+     "asr": {
+      "hypothesis": "On the pre-Aliner, the wafer turns until a sensor finds a small notch in its edge.",
+      "reference": "on the pre aligner the wafer turns until a sensor finds a small notch in its edge",
+      "errors": 1,
+      "refWords": 17,
+      "wer": 0.059,
+      "diffs": [
+       [
+        "aligner",
+        "aliner"
+       ]
+      ]
+     },
+     "flags": []
+    },
+    {
+     "id": "orient",
+     "text": "From now on, every machine knows exactly which way it is facing.",
+     "startMs": 10360,
+     "endMs": 14710,
+     "audioText": "From now on, every machine knows exactly which way it is facing.",
+     "phonemes": "fɹˌɒm nˈW ˌɒn, ˈɛvəɹi məʃˈiːn nˈQz ɪɡzˈaktli wˌɪʧ wˈA ɪt ɪz fˈAsɪŋ.",
+     "dictionary": [],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 67,
+     "chunks": 1,
+     "synthS": 4.262,
+     "cached": false,
+     "modelLeadS": 0.26,
+     "modelTailS": 0.535,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.15,
+       "depthDb": -69.5,
+       "t": 0.955
+      }
+     ],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 4.35,
+      "peakDbfs": -1.59,
+      "clippedSamples": 0,
+      "dcOffset": -0.00029,
+      "leadingSilenceS": 0.05,
+      "trailingSilenceS": 0.11,
+      "longestInternalSilenceS": 0.31,
+      "pauses": [
+       [
+        0.76,
+        0.31
+       ]
+      ],
+      "speechSpanS": 4.19,
+      "f0MedianHz": 135.3,
+      "f0RangeSemitones": 6.5,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.456,
+      "burstDb": 5.0,
+      "burstAtS": 0.1,
+      "onsetBurstDb": 5.0,
+      "spikes": 0,
+      "hfShareDb": -28.7,
+      "words": 12,
+      "wpm": 165.5,
+      "speechWpm": 171.8,
+      "rawPeakDbfs": -3.89,
+      "phonemesPerS": 10.26
+     },
+     "asr": {
+      "hypothesis": "From now on, every machine knows exactly which way it is facing.",
+      "reference": "from now on every machine knows exactly which way it is facing",
+      "errors": 0,
+      "refWords": 12,
+      "wer": 0.0,
+      "diffs": []
+     },
+     "flags": []
+    }
+   ]
+  },
+  {
+   "id": "scan",
+   "file": "scan.mp3",
+   "durationMs": 15020,
+   "loudness": {
+    "inputLufs": -21.6,
+    "inputTruePeakDb": -5.3,
+    "gainDb": 3.6,
+    "outputLufs": -18.0,
+    "outputTruePeakDb": -1.7
+   },
+   "encoded": {
+    "bytes": 120768,
+    "decodedSamples": 360480,
+    "sourceSamples": 360480,
+    "durationMs": 15020,
+    "lagSamples": 0,
+    "lengthMatches": true,
+    "gapless": {
+     "xingTag": true,
+     "tag": "Info",
+     "frames": 628,
+     "bytes": 120768,
+     "encoder": "Lavf lame",
+     "encoderDelaySamples": 576,
+     "paddingSamples": 672
+    },
+    "decodedPeakDbfs": -2.23
+   },
+   "decodedPeakDbfs": -2.23,
+   "flags": [],
+   "cues": [
+    {
+     "id": "laser",
+     "text": "Before anything is built, a laser sweeps the surface.",
+     "startMs": 200,
+     "endMs": 3760,
+     "audioText": "Before anything is built, a laser sweeps the surface.",
+     "phonemes": "bɪfˈɔː ˈɛnɪθɪŋ ɪz bˈɪlt, ɐ lˈAzə swˈiːps ðə sˈɜːfɪs.",
+     "dictionary": [],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 52,
+     "chunks": 1,
+     "synthS": 3.749,
+     "cached": false,
+     "modelLeadS": 0.28,
+     "modelTailS": 0.48,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.15,
+       "depthDb": -69.9,
+       "t": 1.61
+      }
+     ],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 3.56,
+      "peakDbfs": -1.79,
+      "clippedSamples": 0,
+      "dcOffset": -0.00034,
+      "leadingSilenceS": 0.04,
+      "trailingSilenceS": 0.11,
+      "longestInternalSilenceS": 0.29,
+      "pauses": [
+       [
+        1.4,
+        0.29
+       ]
+      ],
+      "speechSpanS": 3.41,
+      "f0MedianHz": 144.0,
+      "f0RangeSemitones": 10.0,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.38,
+      "burstDb": 6.0,
+      "burstAtS": 0.05,
+      "onsetBurstDb": 6.0,
+      "spikes": 0,
+      "hfShareDb": -29.2,
+      "words": 9,
+      "wpm": 151.7,
+      "speechWpm": 158.4,
+      "rawPeakDbfs": -5.39,
+      "phonemesPerS": 9.68
+     },
+     "asr": {
+      "hypothesis": "Before anything is built, a laser sweeps the surface.",
+      "reference": "before anything is built a laser sweeps the surface",
+      "errors": 0,
+      "refWords": 9,
+      "wer": 0.0,
+      "diffs": []
+     },
+     "flags": []
+    },
+    {
+     "id": "map",
+     "text": "A speck of dust scatters light into a detector, and each one becomes a dot on a defect map.",
+     "startMs": 4110,
+     "endMs": 10280,
+     "audioText": "A speck of dust scatters light into a detector, and each one becomes a dot on a defect map.",
+     "phonemes": "ɐ spˈɛk ɒv dˈʌst skˈatəz lˈIt ˈɪntuː ɐ dɪtˈɛktə, and ˈiːʧ wˈʌn bɪkˈʌmz ɐ dˈɒt ˌɒn ɐ dˈiːfɛkt mˈap.",
+     "dictionary": [],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 98,
+     "chunks": 1,
+     "synthS": 5.46,
+     "cached": false,
+     "modelLeadS": 0.27,
+     "modelTailS": 0.48,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.15,
+       "depthDb": -68.0,
+       "t": 3.12
+      }
+     ],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 6.17,
+      "peakDbfs": -3.18,
+      "clippedSamples": 0,
+      "dcOffset": -0.0002,
+      "leadingSilenceS": 0.04,
+      "trailingSilenceS": 0.11,
+      "longestInternalSilenceS": 0.41,
+      "pauses": [
+       [
+        2.81,
+        0.41
+       ],
+       [
+        4.81,
+        0.2
+       ]
+      ],
+      "speechSpanS": 6.02,
+      "f0MedianHz": 138.1,
+      "f0RangeSemitones": 10.0,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.332,
+      "burstDb": 6.7,
+      "burstAtS": 3.25,
+      "onsetBurstDb": 4.6,
+      "spikes": 0,
+      "hfShareDb": -27.3,
+      "words": 19,
+      "wpm": 184.8,
+      "speechWpm": 189.4,
+      "rawPeakDbfs": -6.78,
+      "phonemesPerS": 10.3
+     },
+     "asr": {
+      "hypothesis": "A speck of dust scatters light into a detector, and each one becomes a dot on a defect map.",
+      "reference": "a speck of dust scatters light into a detector each one becomes a dot on a defect map",
+      "errors": 0,
+      "refWords": 18,
+      "wer": 0.0,
+      "diffs": []
+     },
+     "flags": []
+    },
+    {
+     "id": "small",
+     "text": "Particles far smaller than a hair can still ruin a circuit.",
+     "startMs": 10630,
+     "endMs": 14420,
+     "audioText": "Particles far smaller than a hair can still ruin a circuit.",
+     "phonemes": "pˈɑːtɪkᵊlz fˈɑː smˈɔːlə ðən ɐ hˈɛː kan stˈɪl ɹˈuːɪn ɐ sˈɜːkɪt.",
+     "dictionary": [],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 62,
+     "chunks": 1,
+     "synthS": 2.689,
+     "cached": false,
+     "modelLeadS": 0.28,
+     "modelTailS": 0.525,
+     "pauses": [],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 3.79,
+      "peakDbfs": -1.96,
+      "clippedSamples": 0,
+      "dcOffset": -0.00024,
+      "leadingSilenceS": 0.04,
+      "trailingSilenceS": 0.1,
+      "longestInternalSilenceS": 0.21,
+      "pauses": [
+       [
+        1.96,
+        0.21
+       ]
+      ],
+      "speechSpanS": 3.65,
+      "f0MedianHz": 147.4,
+      "f0RangeSemitones": 8.7,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.383,
+      "burstDb": 6.2,
+      "burstAtS": 2.2,
+      "onsetBurstDb": 4.0,
+      "spikes": 0,
+      "hfShareDb": -28.3,
+      "words": 11,
+      "wpm": 174.1,
+      "speechWpm": 180.8,
+      "rawPeakDbfs": -5.56,
+      "phonemesPerS": 10.41
+     },
+     "asr": {
+      "hypothesis": "Particles far smaller than a hair can still ruin a circuit.",
+      "reference": "particles far smaller than a hair can still ruin a circuit",
+      "errors": 0,
+      "refWords": 11,
+      "wer": 0.0,
+      "diffs": []
+     },
+     "flags": []
+    }
+   ]
+  },
+  {
+   "id": "clean",
+   "file": "clean.mp3",
+   "durationMs": 12480,
+   "loudness": {
+    "inputLufs": -21.7,
+    "inputTruePeakDb": -5.3,
+    "gainDb": 3.7,
+    "outputLufs": -18.0,
+    "outputTruePeakDb": -1.6
+   },
+   "encoded": {
+    "bytes": 100416,
+    "decodedSamples": 299520,
+    "sourceSamples": 299520,
+    "durationMs": 12480,
+    "lagSamples": 0,
+    "lengthMatches": true,
+    "gapless": {
+     "xingTag": true,
+     "tag": "Info",
+     "frames": 522,
+     "bytes": 100416,
+     "encoder": "Lavf lame",
+     "encoderDelaySamples": 576,
+     "paddingSamples": 576
+    },
+    "decodedPeakDbfs": -2.08
+   },
+   "decodedPeakDbfs": -2.08,
+   "flags": [],
+   "cues": [
+    {
+     "id": "spray",
+     "text": "So the wafer is cleaned: chemicals and ultrapure water spray across it as it spins, lifting particles away.",
+     "startMs": 200,
+     "endMs": 7840,
+     "audioText": "So the [wafer] is cleaned: chemicals and [ultrapure] water spray across it as it spins, lifting particles away.",
+     "phonemes": "sˌQ ðə wˈAfə ɪz klˈiːnd: kˈɛmɪkᵊlz and ˌʌltɹəpjˈʊə wˈɔːtə spɹˈA əkɹˈɒs ɪt az ɪt spˈɪnz, lˈɪftɪŋ pˈɑːtɪkᵊlz əwˈA.",
+     "dictionary": [
+      "wafer",
+      "ultrapure"
+     ],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 112,
+     "chunks": 1,
+     "synthS": 5.518,
+     "cached": false,
+     "modelLeadS": 0.26,
+     "modelTailS": 0.495,
+     "pauses": [
+      {
+       "mark": ":",
+       "pauseS": 0.175,
+       "depthDb": -68.7,
+       "t": 1.805
+      },
+      {
+       "mark": ",",
+       "pauseS": 0.175,
+       "depthDb": -68.6,
+       "t": 5.955
+      }
+     ],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 7.64,
+      "peakDbfs": -1.62,
+      "clippedSamples": 0,
+      "dcOffset": -0.0002,
+      "leadingSilenceS": 0.04,
+      "trailingSilenceS": 0.1,
+      "longestInternalSilenceS": 0.41,
+      "pauses": [
+       [
+        1.52,
+        0.41
+       ],
+       [
+        4.62,
+        0.23
+       ],
+       [
+        5.71,
+        0.35
+       ]
+      ],
+      "speechSpanS": 7.5,
+      "f0MedianHz": 142.4,
+      "f0RangeSemitones": 9.5,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.35,
+      "burstDb": 7.0,
+      "burstAtS": 6.1,
+      "onsetBurstDb": 5.3,
+      "spikes": 0,
+      "hfShareDb": -27.8,
+      "words": 18,
+      "wpm": 141.4,
+      "speechWpm": 144.0,
+      "rawPeakDbfs": -5.32,
+      "phonemesPerS": 10.13
+     },
+     "asr": {
+      "hypothesis": "So the wafer is cleaned, chemicals and ultra pure water spray across it as it spins lifting particles away.",
+      "reference": "so the wafer is cleaned chemicals ultrapure water spray across it as it spins lifting particles away",
+      "errors": 0,
+      "refWords": 17,
+      "wer": 0.0,
+      "diffs": []
+     },
+     "flags": []
+    },
+    {
+     "id": "buried",
+     "text": "Anything left now would be buried under the layers to come.",
+     "startMs": 8190,
+     "endMs": 11880,
+     "audioText": "Anything left now would be buried under the layers to come.",
+     "phonemes": "ˈɛnɪθɪŋ lˈɛft nˈW wʊd biː bˈɛɹɪd ˈʌndə ðə lˈAəz tə kˈʌm.",
+     "dictionary": [],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 56,
+     "chunks": 1,
+     "synthS": 2.641,
+     "cached": false,
+     "modelLeadS": 0.27,
+     "modelTailS": 0.485,
+     "pauses": [],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 3.69,
+      "peakDbfs": -2.61,
+      "clippedSamples": 0,
+      "dcOffset": -0.00043,
+      "leadingSilenceS": 0.04,
+      "trailingSilenceS": 0.1,
+      "longestInternalSilenceS": 0.21,
+      "pauses": [
+       [
+        1.23,
+        0.19
+       ],
+       [
+        2.11,
+        0.21
+       ]
+      ],
+      "speechSpanS": 3.55,
+      "f0MedianHz": 143.1,
+      "f0RangeSemitones": 8.1,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.41,
+      "burstDb": 5.2,
+      "burstAtS": 3.25,
+      "onsetBurstDb": 4.6,
+      "spikes": 0,
+      "hfShareDb": -30.4,
+      "words": 11,
+      "wpm": 178.9,
+      "speechWpm": 185.9,
+      "rawPeakDbfs": -6.31,
+      "phonemesPerS": 10.42
+     },
+     "asr": {
+      "hypothesis": "Anything left now would be buried under the layers to come.",
+      "reference": "anything left now would be buried under the layers to come",
+      "errors": 0,
+      "refWords": 11,
+      "wer": 0.0,
+      "diffs": []
+     },
+     "flags": []
+    }
+   ]
+  },
+  {
+   "id": "diemap",
+   "file": "diemap.mp3",
+   "durationMs": 13650,
+   "loudness": {
+    "inputLufs": -21.7,
+    "inputTruePeakDb": -5.8,
+    "gainDb": 3.7,
+    "outputLufs": -18.0,
+    "outputTruePeakDb": -2.1
+   },
+   "encoded": {
+    "bytes": 109824,
+    "decodedSamples": 327600,
+    "sourceSamples": 327600,
+    "durationMs": 13650,
+    "lagSamples": 0,
+    "lengthMatches": true,
+    "gapless": {
+     "xingTag": true,
+     "tag": "Info",
+     "frames": 571,
+     "bytes": 109824,
+     "encoder": "Lavf lame",
+     "encoderDelaySamples": 576,
+     "paddingSamples": 720
+    },
+    "decodedPeakDbfs": -2.44
+   },
+   "decodedPeakDbfs": -2.44,
+   "flags": [],
+   "cues": [
+    {
+     "id": "grid",
+     "text": "The wafer will carry hundreds of identical chips, called dies, laid out in a grid.",
+     "startMs": 200,
+     "endMs": 5530,
+     "audioText": "The [wafer] will carry hundreds of identical chips, called [dies], laid out in a grid.",
+     "phonemes": "ðə wˈAfə wɪl kˈaɹi hˈʌndɹədz ɒv Idˈɛntɪkᵊl ʧˈɪps, kˈɔːld dˈIz, lˈAd ˈWt ɪn ɐ ɡɹˈɪd.",
+     "dictionary": [
+      "wafer",
+      "dies"
+     ],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 83,
+     "chunks": 1,
+     "synthS": 2.31,
+     "cached": false,
+     "modelLeadS": 0.27,
+     "modelTailS": 0.52,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.125,
+       "depthDb": -68.7,
+       "t": 2.82
+      },
+      {
+       "mark": ",",
+       "pauseS": 0.175,
+       "depthDb": -69.3,
+       "t": 3.945
+      }
+     ],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 5.33,
+      "peakDbfs": -2.74,
+      "clippedSamples": 0,
+      "dcOffset": -0.00033,
+      "leadingSilenceS": 0.05,
+      "trailingSilenceS": 0.1,
+      "longestInternalSilenceS": 0.31,
+      "pauses": [
+       [
+        2.63,
+        0.28
+       ],
+       [
+        3.73,
+        0.31
+       ]
+      ],
+      "speechSpanS": 5.18,
+      "f0MedianHz": 142.3,
+      "f0RangeSemitones": 8.6,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.402,
+      "burstDb": 4.8,
+      "burstAtS": 0.05,
+      "onsetBurstDb": 4.8,
+      "spikes": 0,
+      "hfShareDb": -28.6,
+      "words": 15,
+      "wpm": 168.9,
+      "speechWpm": 173.7,
+      "rawPeakDbfs": -6.44,
+      "phonemesPerS": 10.62
+     },
+     "asr": {
+      "hypothesis": "The wafer will carry hundreds of identical chips, called dyes, laid out in a grid.",
+      "reference": "the wafer will carry hundreds of identical chips called dies laid out in a grid",
+      "errors": 1,
+      "refWords": 15,
+      "wer": 0.067,
+      "diffs": [
+       [
+        "dies",
+        "dyes"
+       ]
+      ]
+     },
+     "flags": []
+    },
+    {
+     "id": "ours",
+     "text": "We'll follow this one.",
+     "startMs": 5880,
+     "endMs": 7420,
+     "audioText": "We'll follow this one.",
+     "phonemes": "wˌiːl fˈɒlQ ðɪs wˈʌn.",
+     "dictionary": [],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 21,
+     "chunks": 1,
+     "synthS": 0.808,
+     "cached": false,
+     "modelLeadS": 0.25,
+     "modelTailS": 0.455,
+     "pauses": [],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 1.54,
+      "peakDbfs": -2.1,
+      "clippedSamples": 0,
+      "dcOffset": -0.00032,
+      "leadingSilenceS": 0.05,
+      "trailingSilenceS": 0.09,
+      "longestInternalSilenceS": 0.0,
+      "pauses": [],
+      "speechSpanS": 1.4,
+      "f0MedianHz": 141.0,
+      "f0RangeSemitones": 7.5,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.377,
+      "burstDb": 5.8,
+      "burstAtS": 0.05,
+      "onsetBurstDb": 5.8,
+      "spikes": 0,
+      "hfShareDb": -28.9,
+      "words": 4,
+      "wpm": 155.8,
+      "speechWpm": 171.4,
+      "rawPeakDbfs": -5.8,
+      "phonemesPerS": 9.29
+     },
+     "asr": {
+      "hypothesis": "We'll follow this one.",
+      "reference": "well follow this one",
+      "errors": 0,
+      "refWords": 4,
+      "wer": 0.0,
+      "diffs": []
+     },
+     "flags": []
+    },
+    {
+     "id": "fields",
+     "text": "Every pattern is printed across the whole wafer, one exposure field at a time.",
+     "startMs": 7770,
+     "endMs": 12850,
+     "audioText": "Every pattern is printed across the whole [wafer], one exposure field at a time.",
+     "phonemes": "ˈɛvəɹi pˈatᵊn ɪz pɹˈɪntɪd əkɹˈɒs ðə hˈQl wˈAfə, wˈʌn ɪkspˈQʒə fˈiːld at ɐ tˈIm.",
+     "dictionary": [
+      "wafer"
+     ],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 79,
+     "chunks": 1,
+     "synthS": 2.181,
+     "cached": false,
+     "modelLeadS": 0.27,
+     "modelTailS": 0.52,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.175,
+       "depthDb": -68.6,
+       "t": 2.87
+      }
+     ],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 5.08,
+      "peakDbfs": -3.52,
+      "clippedSamples": 0,
+      "dcOffset": -0.0003,
+      "leadingSilenceS": 0.04,
+      "trailingSilenceS": 0.1,
+      "longestInternalSilenceS": 0.35,
+      "pauses": [
+       [
+        2.63,
+        0.35
+       ]
+      ],
+      "speechSpanS": 4.94,
+      "f0MedianHz": 146.4,
+      "f0RangeSemitones": 7.0,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.35,
+      "burstDb": 5.6,
+      "burstAtS": 3.0,
+      "onsetBurstDb": 4.4,
+      "spikes": 0,
+      "hfShareDb": -27.4,
+      "words": 14,
+      "wpm": 165.4,
+      "speechWpm": 170.0,
+      "rawPeakDbfs": -7.22,
+      "phonemesPerS": 10.73
+     },
+     "asr": {
+      "hypothesis": "Every pattern is printed across the whole wafer, one exposure field at a time.",
+      "reference": "every pattern is printed across the whole wafer one exposure field at a time",
+      "errors": 0,
+      "refWords": 14,
+      "wer": 0.0,
+      "diffs": []
+     },
+     "flags": []
+    }
+   ]
+  },
+  {
+   "id": "padox",
+   "file": "padox.mp3",
+   "durationMs": 19410,
+   "loudness": {
+    "inputLufs": -21.6,
+    "inputTruePeakDb": -4.8,
+    "gainDb": 3.3,
+    "outputLufs": -18.3,
+    "outputTruePeakDb": -1.5
+   },
+   "encoded": {
+    "bytes": 155904,
+    "decodedSamples": 465840,
+    "sourceSamples": 465840,
+    "durationMs": 19410,
+    "lagSamples": 0,
+    "lengthMatches": true,
+    "gapless": {
+     "xingTag": true,
+     "tag": "Info",
+     "frames": 811,
+     "bytes": 155904,
+     "encoder": "Lavf lame",
+     "encoderDelaySamples": 576,
+     "paddingSamples": 720
+    },
+    "decodedPeakDbfs": -1.99
+   },
+   "decodedPeakDbfs": -1.99,
+   "flags": [],
+   "cues": [
+    {
+     "id": "begin",
+     "text": "Now the building begins.",
+     "startMs": 300,
+     "endMs": 2160,
+     "audioText": "Now the building begins.",
+     "phonemes": "nˈW ðə bˈɪldɪŋ bɪɡˈɪnz.",
+     "dictionary": [],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 23,
+     "chunks": 1,
+     "synthS": 0.951,
+     "cached": false,
+     "modelLeadS": 0.26,
+     "modelTailS": 0.525,
+     "pauses": [],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 1.86,
+      "peakDbfs": -3.69,
+      "clippedSamples": 0,
+      "dcOffset": -0.00038,
+      "leadingSilenceS": 0.04,
+      "trailingSilenceS": 0.1,
+      "longestInternalSilenceS": 0.02,
+      "pauses": [],
+      "speechSpanS": 1.72,
+      "f0MedianHz": 144.3,
+      "f0RangeSemitones": 9.9,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.557,
+      "burstDb": 5.2,
+      "burstAtS": 0.05,
+      "onsetBurstDb": 5.2,
+      "spikes": 0,
+      "hfShareDb": -28.8,
+      "words": 4,
+      "wpm": 129.0,
+      "speechWpm": 139.5,
+      "rawPeakDbfs": -6.99,
+      "phonemesPerS": 9.3
+     },
+     "asr": {
+      "hypothesis": "Now the building begins.",
+      "reference": "now the building begins",
+      "errors": 0,
+      "refWords": 4,
+      "wer": 0.0,
+      "diffs": []
+     },
+     "flags": []
+    },
+    {
+     "id": "oxide",
+     "text": "In a furnace, oxygen reacts with the hot silicon and grows a thin skin of silicon dioxide, partly consuming the silicon beneath.",
+     "startMs": 2560,
+     "endMs": 11350,
+     "audioText": "In a furnace, oxygen reacts with the hot silicon and grows a thin skin of [silicon dioxide], partly consuming the silicon beneath.",
+     "phonemes": "ɪn ɐ fˈɜːnɪs, ˈɒksɪʤᵊn ɹɪˈakts wɪð ðə hˈɒt sˈɪlɪkᵊn and ɡɹˈQz ɐ θˈɪn skˈɪn ɒv sˈɪlɪkᵊn dIˈɒksId, pˈɑːtli kənsjˈuːmɪŋ ðə sˈɪlɪkᵊn bɪnˈiːθ.",
+     "dictionary": [
+      "silicon dioxide"
+     ],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 137,
+     "chunks": 1,
+     "synthS": 8.843,
+     "cached": false,
+     "modelLeadS": 0.28,
+     "modelTailS": 0.5,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.125,
+       "depthDb": -69.7,
+       "t": 0.985
+      },
+      {
+       "mark": ",",
+       "pauseS": 0.175,
+       "depthDb": -69.1,
+       "t": 6.385
+      }
+     ],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 8.79,
+      "peakDbfs": -2.42,
+      "clippedSamples": 0,
+      "dcOffset": -0.0002,
+      "leadingSilenceS": 0.04,
+      "trailingSilenceS": 0.12,
+      "longestInternalSilenceS": 0.42,
+      "pauses": [
+       [
+        0.79,
+        0.28
+       ],
+       [
+        3.02,
+        0.36
+       ],
+       [
+        6.1,
+        0.42
+       ]
+      ],
+      "speechSpanS": 8.63,
+      "f0MedianHz": 137.6,
+      "f0RangeSemitones": 8.4,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.366,
+      "burstDb": 5.4,
+      "burstAtS": 7.0,
+      "onsetBurstDb": 5.3,
+      "spikes": 0,
+      "hfShareDb": -28.1,
+      "words": 22,
+      "wpm": 150.2,
+      "speechWpm": 153.0,
+      "rawPeakDbfs": -5.72,
+      "phonemesPerS": 11.01
+     },
+     "asr": {
+      "hypothesis": "In a furnace, oxygen reacts with the hot silicon and grows a thin skin of silicon dioxide, partly consuming the silicon beneath.",
+      "reference": "in a furnace oxygen reacts with the hot silicon grows a thin skin of silicon dioxide partly consuming the silicon beneath",
+      "errors": 0,
+      "refWords": 21,
+      "wer": 0.0,
+      "diffs": []
+     },
+     "flags": []
+    },
+    {
+     "id": "nitride",
+     "text": "Then a layer of silicon nitride is deposited on top. Together, they form a hard mask for what comes next.",
+     "startMs": 11700,
+     "endMs": 18810,
+     "audioText": "Then a layer of [silicon nitride] is deposited on top. Together, they form a hard mask for what comes next.",
+     "phonemes": "ðˈɛn ɐ lˈAə ɒv sˈɪlɪkᵊn nˈItɹId ɪz dɪpˈɒzɪtɪd ˌɒn tˈɒp. təɡˈɛðə, ðA fˈɔːm ɐ hˈɑːd mˈɑːsk fɔː wˌɒt kˈʌmz nˈɛkst.",
+     "dictionary": [
+      "silicon nitride"
+     ],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 111,
+     "chunks": 1,
+     "synthS": 5.858,
+     "cached": false,
+     "modelLeadS": 0.28,
+     "modelTailS": 0.48,
+     "pauses": [
+      {
+       "mark": ".",
+       "pauseS": 0.125,
+       "depthDb": -68.7,
+       "t": 3.66
+      },
+      {
+       "mark": ",",
+       "pauseS": 0.15,
+       "depthDb": -69.1,
+       "t": 4.46
+      }
+     ],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 7.11,
+      "peakDbfs": -1.51,
+      "clippedSamples": 0,
+      "dcOffset": -0.00025,
+      "leadingSilenceS": 0.04,
+      "trailingSilenceS": 0.11,
+      "longestInternalSilenceS": 0.43,
+      "pauses": [
+       [
+        3.32,
+        0.43
+       ],
+       [
+        4.25,
+        0.34
+       ]
+      ],
+      "speechSpanS": 6.96,
+      "f0MedianHz": 139.2,
+      "f0RangeSemitones": 7.2,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.383,
+      "burstDb": 6.4,
+      "burstAtS": 3.8,
+      "onsetBurstDb": 5.8,
+      "spikes": 0,
+      "hfShareDb": -29.0,
+      "words": 20,
+      "wpm": 168.8,
+      "speechWpm": 172.4,
+      "rawPeakDbfs": -4.81,
+      "phonemesPerS": 10.2
+     },
+     "asr": {
+      "hypothesis": "Then a layer of silicon nitride is deposited on top. Together, they form a hard mask for what comes next.",
+      "reference": "then a layer of silicon nitride is deposited on top together they form a hard mask for what comes next",
+      "errors": 0,
+      "refWords": 20,
+      "wer": 0.0,
+      "diffs": []
+     },
+     "flags": []
+    }
+   ]
+  },
+  {
+   "id": "sti-etch",
+   "file": "sti-etch.mp3",
+   "durationMs": 15990,
+   "loudness": {
+    "inputLufs": -21.7,
+    "inputTruePeakDb": -5.2,
+    "gainDb": 3.7,
+    "outputLufs": -18.0,
+    "outputTruePeakDb": -1.5
+   },
+   "encoded": {
+    "bytes": 128640,
+    "decodedSamples": 383760,
+    "sourceSamples": 383760,
+    "durationMs": 15990,
+    "lagSamples": 0,
+    "lengthMatches": true,
+    "gapless": {
+     "xingTag": true,
+     "tag": "Info",
+     "frames": 669,
+     "bytes": 128640,
+     "encoder": "Lavf lame",
+     "encoderDelaySamples": 576,
+     "paddingSamples": 1008
+    },
+    "decodedPeakDbfs": -2.0
+   },
+   "decodedPeakDbfs": -2.0,
+   "flags": [],
+   "cues": [
+    {
+     "id": "islands",
+     "text": "The first pattern marks out islands where the transistors will live.",
+     "startMs": 200,
+     "endMs": 4400,
+     "audioText": "The first pattern marks out islands where the transistors will live.",
+     "phonemes": "ðə fˈɜːst pˈatᵊn mˈɑːks ˈWt ˈIləndz wˌɛː ðə tɹanzˈɪstəz wɪl lˈɪv.",
+     "dictionary": [],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 65,
+     "chunks": 1,
+     "synthS": 1.687,
+     "cached": false,
+     "modelLeadS": 0.27,
+     "modelTailS": 0.5,
+     "pauses": [],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 4.2,
+      "peakDbfs": -2.12,
+      "clippedSamples": 0,
+      "dcOffset": -0.00023,
+      "leadingSilenceS": 0.05,
+      "trailingSilenceS": 0.12,
+      "longestInternalSilenceS": 0.32,
+      "pauses": [
+       [
+        2.21,
+        0.32
+       ]
+      ],
+      "speechSpanS": 4.03,
+      "f0MedianHz": 141.1,
+      "f0RangeSemitones": 10.9,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.336,
+      "burstDb": 4.8,
+      "burstAtS": 0.05,
+      "onsetBurstDb": 4.8,
+      "spikes": 0,
+      "hfShareDb": -28.6,
+      "words": 11,
+      "wpm": 157.1,
+      "speechWpm": 163.8,
+      "rawPeakDbfs": -5.82,
+      "phonemesPerS": 10.67
+     },
+     "asr": {
+      "hypothesis": "The first pattern marks out islands where the transistors will live.",
+      "reference": "the first pattern marks out islands where the transistors will live",
+      "errors": 0,
+      "refWords": 11,
+      "wer": 0.0,
+      "diffs": []
+     },
+     "flags": []
+    },
+    {
+     "id": "litho",
+     "text": "That takes lithography, which we'll see in full shortly.",
+     "startMs": 4750,
+     "endMs": 8250,
+     "audioText": "That takes [lithography], which we'll see in full shortly.",
+     "phonemes": "ðˈat tˈAks lɪθˈɒɡɹəfi, wˌɪʧ wiːl sˈiː ɪn fˈʊl ʃˈɔːtli.",
+     "dictionary": [
+      "lithography"
+     ],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 54,
+     "chunks": 1,
+     "synthS": 1.343,
+     "cached": false,
+     "modelLeadS": 0.27,
+     "modelTailS": 0.475,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.15,
+       "depthDb": -68.5,
+       "t": 1.52
+      }
+     ],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 3.5,
+      "peakDbfs": -2.39,
+      "clippedSamples": 0,
+      "dcOffset": -0.00016,
+      "leadingSilenceS": 0.04,
+      "trailingSilenceS": 0.1,
+      "longestInternalSilenceS": 0.26,
+      "pauses": [
+       [
+        1.38,
+        0.26
+       ]
+      ],
+      "speechSpanS": 3.36,
+      "f0MedianHz": 148.0,
+      "f0RangeSemitones": 9.8,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.349,
+      "burstDb": 5.8,
+      "burstAtS": 1.65,
+      "onsetBurstDb": 5.2,
+      "spikes": 0,
+      "hfShareDb": -28.4,
+      "words": 9,
+      "wpm": 154.3,
+      "speechWpm": 160.7,
+      "rawPeakDbfs": -6.09,
+      "phonemesPerS": 10.12
+     },
+     "asr": {
+      "hypothesis": "That takes lethography, which will see in full shortly.",
+      "reference": "that takes lithography which well see in full shortly",
+      "errors": 2,
+      "refWords": 9,
+      "wer": 0.222,
+      "diffs": [
+       [
+        "lithography",
+        "lethography"
+       ],
+       [
+        "well",
+        "will"
+       ]
+      ]
+     },
+     "flags": []
+    },
+    {
+     "id": "etch",
+     "text": "Then a plasma etch cuts trenches through the nitride and deep into the silicon around each island.",
+     "startMs": 8600,
+     "endMs": 15190,
+     "audioText": "Then a [plasma] etch cuts trenches through the nitride and deep into the silicon around each island.",
+     "phonemes": "ðˈɛn ɐ plˈazmə ˈɛʧ kˈʌts tɹˈɛnʧɪz θɹuː ðə nˈItɹId and dˈiːp ˈɪntuː ðə sˈɪlɪkᵊn əɹˈWnd ˈiːʧ ˈIlənd.",
+     "dictionary": [
+      "plasma"
+     ],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 98,
+     "chunks": 1,
+     "synthS": 2.928,
+     "cached": false,
+     "modelLeadS": 0.28,
+     "modelTailS": 0.525,
+     "pauses": [],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 6.59,
+      "peakDbfs": -1.49,
+      "clippedSamples": 0,
+      "dcOffset": -0.00019,
+      "leadingSilenceS": 0.04,
+      "trailingSilenceS": 0.09,
+      "longestInternalSilenceS": 0.28,
+      "pauses": [
+       [
+        1.65,
+        0.21
+       ],
+       [
+        3.31,
+        0.25
+       ],
+       [
+        4.05,
+        0.28
+       ]
+      ],
+      "speechSpanS": 6.46,
+      "f0MedianHz": 139.5,
+      "f0RangeSemitones": 8.6,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.363,
+      "burstDb": 6.6,
+      "burstAtS": 0.05,
+      "onsetBurstDb": 6.6,
+      "spikes": 0,
+      "hfShareDb": -28.3,
+      "words": 17,
+      "wpm": 154.8,
+      "speechWpm": 157.9,
+      "rawPeakDbfs": -5.19,
+      "phonemesPerS": 10.06
+     },
+     "asr": {
+      "hypothesis": "Then a plasma-atch cuts trenches through the nitride and deep into the silicon around each island.",
+      "reference": "then a plasma etch cuts trenches through the nitride deep into the silicon around each island",
+      "errors": 1,
+      "refWords": 16,
+      "wer": 0.062,
+      "diffs": [
+       [
+        "etch",
+        "atch"
+       ]
+      ]
+     },
+     "flags": []
+    }
+   ]
+  },
+  {
+   "id": "sti-fill",
+   "file": "sti-fill.mp3",
+   "durationMs": 17210,
+   "loudness": {
+    "inputLufs": -21.5,
+    "inputTruePeakDb": -4.6,
+    "gainDb": 3.1,
+    "outputLufs": -18.4,
+    "outputTruePeakDb": -1.5
+   },
+   "encoded": {
+    "bytes": 138432,
+    "decodedSamples": 413040,
+    "sourceSamples": 413040,
+    "durationMs": 17210,
+    "lagSamples": 0,
+    "lengthMatches": true,
+    "gapless": {
+     "xingTag": true,
+     "tag": "Info",
+     "frames": 720,
+     "bytes": 138432,
+     "encoder": "Lavf lame",
+     "encoderDelaySamples": 576,
+     "paddingSamples": 1104
+    },
+    "decodedPeakDbfs": -2.02
+   },
+   "decodedPeakDbfs": -2.02,
+   "flags": [],
+   "cues": [
+    {
+     "id": "fill",
+     "text": "The trenches are filled with oxide.",
+     "startMs": 200,
+     "endMs": 2840,
+     "audioText": "The trenches are filled with oxide.",
+     "phonemes": "ðə tɹˈɛnʧɪz ɑː fˈɪld wɪð ˈɒksId.",
+     "dictionary": [],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 32,
+     "chunks": 1,
+     "synthS": 1.108,
+     "cached": false,
+     "modelLeadS": 0.26,
+     "modelTailS": 0.47,
+     "pauses": [],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 2.64,
+      "peakDbfs": -2.11,
+      "clippedSamples": 0,
+      "dcOffset": -0.00026,
+      "leadingSilenceS": 0.04,
+      "trailingSilenceS": 0.1,
+      "longestInternalSilenceS": 0.25,
+      "pauses": [
+       [
+        0.79,
+        0.25
+       ]
+      ],
+      "speechSpanS": 2.5,
+      "f0MedianHz": 148.8,
+      "f0RangeSemitones": 7.4,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.352,
+      "burstDb": 4.7,
+      "burstAtS": 0.05,
+      "onsetBurstDb": 4.7,
+      "spikes": 0,
+      "hfShareDb": -28.9,
+      "words": 6,
+      "wpm": 136.4,
+      "speechWpm": 144.0,
+      "rawPeakDbfs": -5.21,
+      "phonemesPerS": 8.8
+     },
+     "asr": {
+      "hypothesis": "The trenches are filled with oxide.",
+      "reference": "the trenches are filled with oxide",
+      "errors": 0,
+      "refWords": 6,
+      "wer": 0.0,
+      "diffs": []
+     },
+     "flags": [
+      "rate-outlier"
+     ]
+    },
+    {
+     "id": "polish",
+     "text": "Then the wafer is polished flat, down to the nitride, and the nitride is stripped away.",
+     "startMs": 3190,
+     "endMs": 8540,
+     "audioText": "Then the [wafer] is polished flat, down to the nitride, and the nitride is stripped away.",
+     "phonemes": "ðˈɛn ðə wˈAfə ɪz pˈɒlɪʃt flˈat, dˌWn tə ðə nˈItɹId, and ðə nˈItɹId ɪz stɹˈɪpt əwˈA.",
+     "dictionary": [
+      "wafer"
+     ],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 83,
+     "chunks": 1,
+     "synthS": 2.137,
+     "cached": false,
+     "modelLeadS": 0.27,
+     "modelTailS": 0.5,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.125,
+       "depthDb": -68.7,
+       "t": 1.945
+      },
+      {
+       "mark": ",",
+       "pauseS": 0.125,
+       "depthDb": -68.8,
+       "t": 3.395
+      }
+     ],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 5.35,
+      "peakDbfs": -2.36,
+      "clippedSamples": 0,
+      "dcOffset": -0.00024,
+      "leadingSilenceS": 0.05,
+      "trailingSilenceS": 0.08,
+      "longestInternalSilenceS": 0.36,
+      "pauses": [
+       [
+        1.77,
+        0.27
+       ],
+       [
+        3.11,
+        0.36
+       ]
+      ],
+      "speechSpanS": 5.22,
+      "f0MedianHz": 145.7,
+      "f0RangeSemitones": 7.0,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.348,
+      "burstDb": 5.6,
+      "burstAtS": 3.5,
+      "onsetBurstDb": 4.6,
+      "spikes": 0,
+      "hfShareDb": -29.5,
+      "words": 16,
+      "wpm": 179.4,
+      "speechWpm": 183.9,
+      "rawPeakDbfs": -5.46,
+      "phonemesPerS": 10.73
+     },
+     "asr": {
+      "hypothesis": "Then the wafer is polished flat down to the knitride and the knitride is stripped away.",
+      "reference": "then the wafer is polished flat down to the nitride the nitride is stripped away",
+      "errors": 2,
+      "refWords": 15,
+      "wer": 0.133,
+      "diffs": [
+       [
+        "nitride",
+        "knitride"
+       ],
+       [
+        "nitride",
+        "knitride"
+       ]
+      ]
+     },
+     "flags": []
+    },
+    {
+     "id": "moat",
+     "text": "Each silicon island now sits in its own insulating moat, so neighbouring transistors can't leak into each other.",
+     "startMs": 8890,
+     "endMs": 16610,
+     "audioText": "Each silicon island now sits in its own insulating moat, so neighbouring transistors can't leak into each other.",
+     "phonemes": "ˈiːʧ sˈɪlɪkᵊn ˈIlənd nˈW sˈɪts ɪn ɪts ˈQn ˈɪnsjuːlˌAtɪŋ mˈQt, sˌQ nˈAbəɹɪŋ tɹanzˈɪstəz kˈɑːnt lˈiːk ˈɪntuː ˈiːʧ ˈʌðə.",
+     "dictionary": [],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 117,
+     "chunks": 1,
+     "synthS": 3.373,
+     "cached": false,
+     "modelLeadS": 0.27,
+     "modelTailS": 0.505,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.15,
+       "depthDb": -68.1,
+       "t": 4.32
+      }
+     ],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 7.72,
+      "peakDbfs": -1.46,
+      "clippedSamples": 0,
+      "dcOffset": -0.00018,
+      "leadingSilenceS": 0.04,
+      "trailingSilenceS": 0.09,
+      "longestInternalSilenceS": 0.4,
+      "pauses": [
+       [
+        1.3,
+        0.3
+       ],
+       [
+        3.99,
+        0.4
+       ],
+       [
+        5.91,
+        0.27
+       ]
+      ],
+      "speechSpanS": 7.59,
+      "f0MedianHz": 140.2,
+      "f0RangeSemitones": 7.0,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.373,
+      "burstDb": 4.6,
+      "burstAtS": 6.25,
+      "onsetBurstDb": 4.6,
+      "spikes": 0,
+      "hfShareDb": -28.4,
+      "words": 18,
+      "wpm": 139.9,
+      "speechWpm": 142.3,
+      "rawPeakDbfs": -4.56,
+      "phonemesPerS": 9.88
+     },
+     "asr": {
+      "hypothesis": "Each silicon island now sits in its own insulating moat, so neighboring transistors can't leak into each other.",
+      "reference": "each silicon island now sits in its own insulating moat so neighbouring transistors cant leak into each other",
+      "errors": 1,
+      "refWords": 18,
+      "wer": 0.056,
+      "diffs": [
+       [
+        "neighbouring",
+        "neighboring"
+       ]
+      ]
+     },
+     "flags": []
+    }
+   ]
+  },
+  {
+   "id": "wells",
+   "file": "wells.mp3",
+   "durationMs": 19210,
+   "loudness": {
+    "inputLufs": -21.5,
+    "inputTruePeakDb": -5.4,
+    "gainDb": 3.5,
+    "outputLufs": -18.0,
+    "outputTruePeakDb": -1.9
+   },
+   "encoded": {
+    "bytes": 154368,
+    "decodedSamples": 461040,
+    "sourceSamples": 461040,
+    "durationMs": 19210,
+    "lagSamples": 0,
+    "lengthMatches": true,
+    "gapless": {
+     "xingTag": true,
+     "tag": "Info",
+     "frames": 803,
+     "bytes": 154368,
+     "encoder": "Lavf lame",
+     "encoderDelaySamples": 576,
+     "paddingSamples": 912
+    },
+    "decodedPeakDbfs": -2.19
+   },
+   "decodedPeakDbfs": -2.19,
+   "flags": [],
+   "cues": [
+    {
+     "id": "two",
+     "text": "Next, the silicon is prepared for two kinds of transistor.",
+     "startMs": 200,
+     "endMs": 3880,
+     "audioText": "Next, the silicon is prepared for two kinds of transistor.",
+     "phonemes": "nˈɛkst, ðə sˈɪlɪkᵊn ɪz pɹɪpˈɛːd fɔː tˈuː kˈIndz ɒv tɹanzˈɪstə.",
+     "dictionary": [],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 62,
+     "chunks": 1,
+     "synthS": 1.746,
+     "cached": false,
+     "modelLeadS": 0.27,
+     "modelTailS": 0.52,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.05,
+       "depthDb": -1.5,
+       "t": 0.52
+      }
+     ],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 3.68,
+      "peakDbfs": -3.16,
+      "clippedSamples": 0,
+      "dcOffset": -0.00029,
+      "leadingSilenceS": 0.04,
+      "trailingSilenceS": 0.1,
+      "longestInternalSilenceS": 0.14,
+      "pauses": [],
+      "speechSpanS": 3.54,
+      "f0MedianHz": 137.8,
+      "f0RangeSemitones": 7.7,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.348,
+      "burstDb": 5.9,
+      "burstAtS": 0.05,
+      "onsetBurstDb": 5.9,
+      "spikes": 0,
+      "hfShareDb": -27.8,
+      "words": 10,
+      "wpm": 163.0,
+      "speechWpm": 169.5,
+      "rawPeakDbfs": -6.66,
+      "phonemesPerS": 11.86
+     },
+     "asr": {
+      "hypothesis": "Next, the silicon is prepared for two kinds of transistor.",
+      "reference": "next the silicon is prepared for two kinds of transistor",
+      "errors": 0,
+      "refWords": 10,
+      "wer": 0.0,
+      "diffs": []
+     },
+     "flags": []
+    },
+    {
+     "id": "phos",
+     "text": "Resist covers one half, while an implanter fires phosphorus ions into the other.",
+     "startMs": 4230,
+     "endMs": 9550,
+     "audioText": "[resist] covers one half, while an [implanter] fires phosphorus ions into the other.",
+     "phonemes": "ɹɪzˈɪst kˈʌvəz wˈʌn hˈɑːf, wˌIl ɐn ɪmplˈɑːntə fˈIəz fˈɒsfəɹəs ˈIənz ˈɪntuː ði ˈʌðə.",
+     "dictionary": [
+      "resist",
+      "implanter"
+     ],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 83,
+     "chunks": 1,
+     "synthS": 2.475,
+     "cached": false,
+     "modelLeadS": 0.27,
+     "modelTailS": 0.53,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.125,
+       "depthDb": -69.2,
+       "t": 1.92
+      }
+     ],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 5.32,
+      "peakDbfs": -1.91,
+      "clippedSamples": 0,
+      "dcOffset": -0.00028,
+      "leadingSilenceS": 0.04,
+      "trailingSilenceS": 0.1,
+      "longestInternalSilenceS": 0.36,
+      "pauses": [
+       [
+        1.66,
+        0.36
+       ]
+      ],
+      "speechSpanS": 5.18,
+      "f0MedianHz": 141.3,
+      "f0RangeSemitones": 7.5,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.374,
+      "burstDb": 7.1,
+      "burstAtS": 0.05,
+      "onsetBurstDb": 7.1,
+      "spikes": 0,
+      "hfShareDb": -29.3,
+      "words": 13,
+      "wpm": 146.6,
+      "speechWpm": 150.6,
+      "rawPeakDbfs": -5.41,
+      "phonemesPerS": 10.62
+     },
+     "asr": {
+      "hypothesis": "Resist covers one half while an implant of fires phosphorus ions into the other.",
+      "reference": "resist covers one half while an implanter fires phosphorus ions into the other",
+      "errors": 2,
+      "refWords": 13,
+      "wer": 0.154,
+      "diffs": [
+       [
+        "implanter",
+        "implant of"
+       ]
+      ]
+     },
+     "flags": []
+    },
+    {
+     "id": "boron",
+     "text": "Then the masks swap, and boron goes into the second half.",
+     "startMs": 9900,
+     "endMs": 13680,
+     "audioText": "Then the masks swap, and boron goes into the second half.",
+     "phonemes": "ðˈɛn ðə mˈɑːsks swˈɒp, and bˈɔːɹɒn ɡˈQz ˈɪntuː ðə sˈɛkᵊnd hˈɑːf.",
+     "dictionary": [],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 64,
+     "chunks": 1,
+     "synthS": 1.655,
+     "cached": false,
+     "modelLeadS": 0.27,
+     "modelTailS": 0.495,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.125,
+       "depthDb": -69.6,
+       "t": 1.445
+      }
+     ],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 3.78,
+      "peakDbfs": -2.25,
+      "clippedSamples": 0,
+      "dcOffset": -0.00034,
+      "leadingSilenceS": 0.04,
+      "trailingSilenceS": 0.12,
+      "longestInternalSilenceS": 0.29,
+      "pauses": [
+       [
+        1.23,
+        0.29
+       ]
+      ],
+      "speechSpanS": 3.62,
+      "f0MedianHz": 147.6,
+      "f0RangeSemitones": 6.5,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.405,
+      "burstDb": 6.2,
+      "burstAtS": 1.55,
+      "onsetBurstDb": 4.6,
+      "spikes": 0,
+      "hfShareDb": -28.3,
+      "words": 11,
+      "wpm": 174.6,
+      "speechWpm": 182.3,
+      "rawPeakDbfs": -5.75,
+      "phonemesPerS": 11.05
+     },
+     "asr": {
+      "hypothesis": "Then the masks swap and boron goes into the second half.",
+      "reference": "then the masks swap boron goes into the second half",
+      "errors": 0,
+      "refWords": 10,
+      "wer": 0.0,
+      "diffs": []
+     },
+     "flags": []
+    },
+    {
+     "id": "invisible",
+     "text": "Nothing looks different, but the silicon now conducts in two different ways.",
+     "startMs": 14030,
+     "endMs": 18610,
+     "audioText": "Nothing looks different, but the silicon now conducts in two different ways.",
+     "phonemes": "nˈʌθɪŋ lˈʊks dˈɪfəɹənt, bˌʌt ðə sˈɪlɪkᵊn nˈW kˈɒndʌkts ɪn tˈuː dˈɪfəɹənt wˈAz.",
+     "dictionary": [],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 78,
+     "chunks": 1,
+     "synthS": 1.748,
+     "cached": false,
+     "modelLeadS": 0.27,
+     "modelTailS": 0.52,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.125,
+       "depthDb": -69.0,
+       "t": 1.445
+      }
+     ],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 4.58,
+      "peakDbfs": -3.05,
+      "clippedSamples": 0,
+      "dcOffset": -0.00019,
+      "leadingSilenceS": 0.04,
+      "trailingSilenceS": 0.1,
+      "longestInternalSilenceS": 0.37,
+      "pauses": [
+       [
+        1.19,
+        0.37
+       ]
+      ],
+      "speechSpanS": 4.44,
+      "f0MedianHz": 143.2,
+      "f0RangeSemitones": 8.9,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.396,
+      "burstDb": 5.8,
+      "burstAtS": 0.05,
+      "onsetBurstDb": 5.8,
+      "spikes": 0,
+      "hfShareDb": -28.2,
+      "words": 12,
+      "wpm": 157.2,
+      "speechWpm": 162.2,
+      "rawPeakDbfs": -6.55,
+      "phonemesPerS": 12.16
+     },
+     "asr": {
+      "hypothesis": "Nothing looks different, but the silicon now conducts in two different ways.",
+      "reference": "nothing looks different but the silicon now conducts in two different ways",
+      "errors": 0,
+      "refWords": 12,
+      "wer": 0.0,
+      "diffs": []
+     },
+     "flags": []
+    }
+   ]
+  },
+  {
+   "id": "anneal",
+   "file": "anneal.mp3",
+   "durationMs": 12220,
+   "loudness": {
+    "inputLufs": -21.6,
+    "inputTruePeakDb": -4.7,
+    "gainDb": 3.2,
+    "outputLufs": -18.4,
+    "outputTruePeakDb": -1.5
+   },
+   "encoded": {
+    "bytes": 98496,
+    "decodedSamples": 293280,
+    "sourceSamples": 293280,
+    "durationMs": 12220,
+    "lagSamples": 0,
+    "lengthMatches": true,
+    "gapless": {
+     "xingTag": true,
+     "tag": "Info",
+     "frames": 512,
+     "bytes": 98496,
+     "encoder": "Lavf lame",
+     "encoderDelaySamples": 576,
+     "paddingSamples": 1056
+    },
+    "decodedPeakDbfs": -1.94
+   },
+   "decodedPeakDbfs": -1.94,
+   "flags": [],
+   "cues": [
+    {
+     "id": "heat",
+     "text": "A short trip back to the furnace.",
+     "startMs": 200,
+     "endMs": 2220,
+     "audioText": "A short trip back to the furnace.",
+     "phonemes": "ɐ ʃˈɔːt tɹˈɪp bˈak tə ðə fˈɜːnɪs.",
+     "dictionary": [],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 33,
+     "chunks": 1,
+     "synthS": 1.032,
+     "cached": false,
+     "modelLeadS": 0.25,
+     "modelTailS": 0.45,
+     "pauses": [],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 2.02,
+      "peakDbfs": -3.09,
+      "clippedSamples": 0,
+      "dcOffset": -0.00028,
+      "leadingSilenceS": 0.04,
+      "trailingSilenceS": 0.1,
+      "longestInternalSilenceS": 0.04,
+      "pauses": [],
+      "speechSpanS": 1.88,
+      "f0MedianHz": 139.7,
+      "f0RangeSemitones": 8.7,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.347,
+      "burstDb": 8.1,
+      "burstAtS": 0.25,
+      "onsetBurstDb": 8.1,
+      "spikes": 0,
+      "hfShareDb": -30.2,
+      "words": 7,
+      "wpm": 207.9,
+      "speechWpm": 223.4,
+      "rawPeakDbfs": -6.29,
+      "phonemesPerS": 10.64
+     },
+     "asr": {
+      "hypothesis": "A short trip back to the furnace.",
+      "reference": "a short trip back to the furnace",
+      "errors": 0,
+      "refWords": 7,
+      "wer": 0.0,
+      "diffs": []
+     },
+     "flags": []
+    },
+    {
+     "id": "active",
+     "text": "Heat lets the implanted atoms settle into the crystal, where they become electrically active, and it repairs the damage the ions left behind.",
+     "startMs": 2570,
+     "endMs": 11620,
+     "audioText": "Heat lets the [implanted] atoms settle into the crystal, where they become electrically active, and it repairs the damage the ions left behind.",
+     "phonemes": "hˈiːt lˈɛts ði ɪmplˈɑːntɪd ˈatəmz sˈɛtᵊl ˈɪntuː ðə kɹˈɪstᵊl, wˌɛː ðA bɪkˈʌm ɪlˈɛktɹɪkli ˈaktɪv, and ɪt ɹɪpˈɛːz ðə dˈamɪʤ ði ˈIənz lˈɛft bɪhˈInd.",
+     "dictionary": [
+      "implanted"
+     ],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 144,
+     "chunks": 1,
+     "synthS": 3.73,
+     "cached": false,
+     "modelLeadS": 0.27,
+     "modelTailS": 0.55,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.125,
+       "depthDb": -67.9,
+       "t": 3.52
+      },
+      {
+       "mark": ",",
+       "pauseS": 0.125,
+       "depthDb": -68.3,
+       "t": 5.82
+      }
+     ],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 9.05,
+      "peakDbfs": -1.52,
+      "clippedSamples": 0,
+      "dcOffset": -0.00012,
+      "leadingSilenceS": 0.04,
+      "trailingSilenceS": 0.09,
+      "longestInternalSilenceS": 0.42,
+      "pauses": [
+       [
+        3.22,
+        0.4
+       ],
+       [
+        5.48,
+        0.42
+       ]
+      ],
+      "speechSpanS": 8.92,
+      "f0MedianHz": 137.4,
+      "f0RangeSemitones": 7.0,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.325,
+      "burstDb": 6.5,
+      "burstAtS": 0.05,
+      "onsetBurstDb": 6.5,
+      "spikes": 0,
+      "hfShareDb": -28.2,
+      "words": 23,
+      "wpm": 152.5,
+      "speechWpm": 154.7,
+      "rawPeakDbfs": -4.72,
+      "phonemesPerS": 10.99
+     },
+     "asr": {
+      "hypothesis": "Heat lets the implanted atoms settle into the crystal, where they become electrically active, and it repairs the damage the irons left behind.",
+      "reference": "heat lets the implanted atoms settle into the crystal where they become electrically active it repairs the damage the ions left behind",
+      "errors": 1,
+      "refWords": 22,
+      "wer": 0.045,
+      "diffs": [
+       [
+        "ions",
+        "irons"
+       ]
+      ]
+     },
+     "flags": []
+    }
+   ]
+  },
+  {
+   "id": "gatestack",
+   "file": "gatestack.mp3",
+   "durationMs": 15570,
+   "loudness": {
+    "inputLufs": -21.5,
+    "inputTruePeakDb": -4.9,
+    "gainDb": 3.4,
+    "outputLufs": -18.1,
+    "outputTruePeakDb": -1.5
+   },
+   "encoded": {
+    "bytes": 125184,
+    "decodedSamples": 373680,
+    "sourceSamples": 373680,
+    "durationMs": 15570,
+    "lagSamples": 0,
+    "lengthMatches": true,
+    "gapless": {
+     "xingTag": true,
+     "tag": "Info",
+     "frames": 651,
+     "bytes": 125184,
+     "encoder": "Lavf lame",
+     "encoderDelaySamples": 576,
+     "paddingSamples": 720
+    },
+    "decodedPeakDbfs": -1.96
+   },
+   "decodedPeakDbfs": -1.96,
+   "flags": [],
+   "cues": [
+    {
+     "id": "oxide",
+     "text": "Now the most delicate layer: the gate oxide, only a few nanometres thick.",
+     "startMs": 200,
+     "endMs": 5120,
+     "audioText": "Now the most delicate layer: the gate oxide, only a few [nanometres] thick.",
+     "phonemes": "nˈW ðə mˈQst dˈɛlɪkət lˈAə: ðə ɡˈAt ˈɒksId, ˈQnli ɐ fjˈuː nˈanQmˌiːtəz θˈɪk.",
+     "dictionary": [
+      "nanometres"
+     ],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 76,
+     "chunks": 1,
+     "synthS": 3.65,
+     "cached": false,
+     "modelLeadS": 0.27,
+     "modelTailS": 0.455,
+     "pauses": [
+      {
+       "mark": ":",
+       "pauseS": 0.125,
+       "depthDb": -69.6,
+       "t": 1.87
+      },
+      {
+       "mark": ",",
+       "pauseS": 0.125,
+       "depthDb": -69.2,
+       "t": 3.045
+      }
+     ],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 4.92,
+      "peakDbfs": -3.12,
+      "clippedSamples": 0,
+      "dcOffset": -0.00023,
+      "leadingSilenceS": 0.04,
+      "trailingSilenceS": 0.11,
+      "longestInternalSilenceS": 0.33,
+      "pauses": [
+       [
+        1.64,
+        0.33
+       ],
+       [
+        2.9,
+        0.23
+       ]
+      ],
+      "speechSpanS": 4.77,
+      "f0MedianHz": 147.3,
+      "f0RangeSemitones": 6.8,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.393,
+      "burstDb": 5.2,
+      "burstAtS": 0.05,
+      "onsetBurstDb": 5.2,
+      "spikes": 0,
+      "hfShareDb": -28.9,
+      "words": 13,
+      "wpm": 158.5,
+      "speechWpm": 163.5,
+      "rawPeakDbfs": -6.52,
+      "phonemesPerS": 10.06
+     },
+     "asr": {
+      "hypothesis": "Now the most delicate layer, the gate oxide only a few nanometres thick.",
+      "reference": "now the most delicate layer the gate oxide only a few nanometers thick",
+      "errors": 0,
+      "refWords": 13,
+      "wer": 0.0,
+      "diffs": []
+     },
+     "flags": []
+    },
+    {
+     "id": "poly",
+     "text": "On top of it goes a film of polysilicon.",
+     "startMs": 5470,
+     "endMs": 8650,
+     "audioText": "On top of it goes a film of [polysilicon].",
+     "phonemes": "ˌɒn tˈɒp ɒv ɪt ɡˈQz ɐ fˈɪlm ɒv pˌɒlisˈɪlɪkᵊn.",
+     "dictionary": [
+      "polysilicon"
+     ],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 45,
+     "chunks": 1,
+     "synthS": 2.397,
+     "cached": false,
+     "modelLeadS": 0.27,
+     "modelTailS": 0.47,
+     "pauses": [],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 3.18,
+      "peakDbfs": -3.26,
+      "clippedSamples": 0,
+      "dcOffset": -0.00023,
+      "leadingSilenceS": 0.04,
+      "trailingSilenceS": 0.1,
+      "longestInternalSilenceS": 0.28,
+      "pauses": [
+       [
+        0.78,
+        0.28
+       ]
+      ],
+      "speechSpanS": 3.04,
+      "f0MedianHz": 144.5,
+      "f0RangeSemitones": 7.5,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.375,
+      "burstDb": 4.2,
+      "burstAtS": 0.3,
+      "onsetBurstDb": 4.2,
+      "spikes": 0,
+      "hfShareDb": -29.6,
+      "words": 9,
+      "wpm": 169.8,
+      "speechWpm": 177.6,
+      "rawPeakDbfs": -6.66,
+      "phonemesPerS": 9.87
+     },
+     "asr": {
+      "hypothesis": "On top of it goes a film of poly silicon.",
+      "reference": "on top of it goes a film of polysilicon",
+      "errors": 0,
+      "refWords": 9,
+      "wer": 0.0,
+      "diffs": []
+     },
+     "flags": []
+    },
+    {
+     "id": "switch",
+     "text": "Once patterned, it becomes the gates: the switches that turn each transistor on and off.",
+     "startMs": 9000,
+     "endMs": 14770,
+     "audioText": "Once patterned, it becomes the gates: the switches that turn each transistor on and off.",
+     "phonemes": "wˈʌns pˈatᵊnd, ɪt bɪkˈʌmz ðə ɡˈAts: ðə swˈɪʧɪz ðˈat tˈɜːn ˈiːʧ tɹanzˈɪstə ˌɒn and ˈɒf.",
+     "dictionary": [],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 86,
+     "chunks": 1,
+     "synthS": 4.194,
+     "cached": false,
+     "modelLeadS": 0.27,
+     "modelTailS": 0.48,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.125,
+       "depthDb": -68.3,
+       "t": 0.97
+      },
+      {
+       "mark": ":",
+       "pauseS": 0.125,
+       "depthDb": -68.0,
+       "t": 2.52
+      }
+     ],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 5.77,
+      "peakDbfs": -1.51,
+      "clippedSamples": 0,
+      "dcOffset": -0.00023,
+      "leadingSilenceS": 0.04,
+      "trailingSilenceS": 0.12,
+      "longestInternalSilenceS": 0.38,
+      "pauses": [
+       [
+        0.8,
+        0.25
+       ],
+       [
+        2.24,
+        0.38
+       ]
+      ],
+      "speechSpanS": 5.61,
+      "f0MedianHz": 139.5,
+      "f0RangeSemitones": 7.9,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.345,
+      "burstDb": 6.5,
+      "burstAtS": 1.35,
+      "onsetBurstDb": 5.3,
+      "spikes": 0,
+      "hfShareDb": -27.4,
+      "words": 15,
+      "wpm": 156.0,
+      "speechWpm": 160.4,
+      "rawPeakDbfs": -4.91,
+      "phonemesPerS": 9.98
+     },
+     "asr": {
+      "hypothesis": "Once patent, it becomes the gates, the switches that turn each transistor on and off.",
+      "reference": "once patterned it becomes the gates the switches that turn each transistor on off",
+      "errors": 1,
+      "refWords": 14,
+      "wer": 0.071,
+      "diffs": [
+       [
+        "patterned",
+        "patent"
+       ]
+      ]
+     },
+     "flags": []
+    }
+   ]
+  },
+  {
+   "id": "prime",
+   "file": "prime.mp3",
+   "durationMs": 9190,
+   "loudness": {
+    "inputLufs": -21.6,
+    "inputTruePeakDb": -5.6,
+    "gainDb": 3.6,
+    "outputLufs": -18.0,
+    "outputTruePeakDb": -2.0
+   },
+   "encoded": {
+    "bytes": 74112,
+    "decodedSamples": 220560,
+    "sourceSamples": 220560,
+    "durationMs": 9190,
+    "lagSamples": 0,
+    "lengthMatches": true,
+    "gapless": {
+     "xingTag": true,
+     "tag": "Info",
+     "frames": 385,
+     "bytes": 74112,
+     "encoder": "Lavf lame",
+     "encoderDelaySamples": 576,
+     "paddingSamples": 624
+    },
+    "decodedPeakDbfs": -2.57
+   },
+   "decodedPeakDbfs": -2.57,
+   "flags": [],
+   "cues": [
+    {
+     "id": "full",
+     "text": "Here is lithography in full.",
+     "startMs": 300,
+     "endMs": 2700,
+     "audioText": "Here is [lithography] in full.",
+     "phonemes": "hˈɪə ɪz lɪθˈɒɡɹəfi ɪn fˈʊl.",
+     "dictionary": [
+      "lithography"
+     ],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 27,
+     "chunks": 1,
+     "synthS": 2.762,
+     "cached": false,
+     "modelLeadS": 0.26,
+     "modelTailS": 0.485,
+     "pauses": [],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 2.4,
+      "peakDbfs": -2.14,
+      "clippedSamples": 0,
+      "dcOffset": -0.00033,
+      "leadingSilenceS": 0.05,
+      "trailingSilenceS": 0.09,
+      "longestInternalSilenceS": 0.16,
+      "pauses": [
+       [
+        1.42,
+        0.16
+       ]
+      ],
+      "speechSpanS": 2.26,
+      "f0MedianHz": 151.5,
+      "f0RangeSemitones": 8.1,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.363,
+      "burstDb": 6.0,
+      "burstAtS": 0.1,
+      "onsetBurstDb": 6.0,
+      "spikes": 0,
+      "hfShareDb": -30.5,
+      "words": 5,
+      "wpm": 125.0,
+      "speechWpm": 132.7,
+      "rawPeakDbfs": -5.74,
+      "phonemesPerS": 8.41
+     },
+     "asr": {
+      "hypothesis": "Here is lethography in full.",
+      "reference": "here is lithography in full",
+      "errors": 1,
+      "refWords": 5,
+      "wer": 0.2,
+      "diffs": [
+       [
+        "lithography",
+        "lethography"
+       ]
+      ]
+     },
+     "flags": [
+      "rate-outlier"
+     ]
+    },
+    {
+     "id": "prime",
+     "text": "In the track, the wafer is baked dry and primed with a vapour that helps the resist stick.",
+     "startMs": 3100,
+     "endMs": 8690,
+     "audioText": "In the track, the [wafer] is baked dry and primed with a vapour that helps the [resist] stick.",
+     "phonemes": "ɪn ðə tɹˈak, ðə wˈAfə ɪz bˈAkt dɹˈI and pɹˈImd wɪð ɐ vˈApə ðat hˈɛlps ðə ɹɪzˈɪst stˈɪk.",
+     "dictionary": [
+      "wafer",
+      "resist"
+     ],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 87,
+     "chunks": 1,
+     "synthS": 6.135,
+     "cached": false,
+     "modelLeadS": 0.27,
+     "modelTailS": 0.485,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.1,
+       "depthDb": -67.3,
+       "t": 0.745
+      }
+     ],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 5.59,
+      "peakDbfs": -2.34,
+      "clippedSamples": 0,
+      "dcOffset": -0.00023,
+      "leadingSilenceS": 0.04,
+      "trailingSilenceS": 0.11,
+      "longestInternalSilenceS": 0.26,
+      "pauses": [
+       [
+        2.26,
+        0.24
+       ],
+       [
+        3.72,
+        0.26
+       ]
+      ],
+      "speechSpanS": 5.44,
+      "f0MedianHz": 142.9,
+      "f0RangeSemitones": 9.0,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.374,
+      "burstDb": 5.8,
+      "burstAtS": 0.1,
+      "onsetBurstDb": 5.8,
+      "spikes": 0,
+      "hfShareDb": -28.5,
+      "words": 18,
+      "wpm": 193.2,
+      "speechWpm": 198.5,
+      "rawPeakDbfs": -5.94,
+      "phonemesPerS": 10.85
+     },
+     "asr": {
+      "hypothesis": "In the track, the wafer is baked dry and primed with a vapor that helps the resist stick.",
+      "reference": "in the track the wafer is baked dry primed with a vapour that helps the resist stick",
+      "errors": 1,
+      "refWords": 17,
+      "wer": 0.059,
+      "diffs": [
+       [
+        "vapour",
+        "vapor"
+       ]
+      ]
+     },
+     "flags": []
+    }
+   ]
+  },
+  {
+   "id": "coat",
+   "file": "coat.mp3",
+   "durationMs": 14960,
+   "loudness": {
+    "inputLufs": -21.5,
+    "inputTruePeakDb": -5.6,
+    "gainDb": 3.5,
+    "outputLufs": -18.0,
+    "outputTruePeakDb": -2.1
+   },
+   "encoded": {
+    "bytes": 120384,
+    "decodedSamples": 359040,
+    "sourceSamples": 359040,
+    "durationMs": 14960,
+    "lagSamples": 0,
+    "lengthMatches": true,
+    "gapless": {
+     "xingTag": true,
+     "tag": "Info",
+     "frames": 626,
+     "bytes": 120384,
+     "encoder": "Lavf lame",
+     "encoderDelaySamples": 576,
+     "paddingSamples": 960
+    },
+    "decodedPeakDbfs": -2.58
+   },
+   "decodedPeakDbfs": -2.58,
+   "flags": [],
+   "cues": [
+    {
+     "id": "puddle",
+     "text": "A nozzle pours a puddle of photoresist onto the centre.",
+     "startMs": 200,
+     "endMs": 4110,
+     "audioText": "A nozzle pours a puddle of [photoresist] onto the centre.",
+     "phonemes": "ɐ nˈɒzᵊl pˈɔːz ɐ pˈʌdᵊl ɒv fˌQtQɹɪzˈɪst ˈɒntuː ðə sˈɛntə.",
+     "dictionary": [
+      "photoresist"
+     ],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 57,
+     "chunks": 1,
+     "synthS": 3.167,
+     "cached": false,
+     "modelLeadS": 0.26,
+     "modelTailS": 0.5,
+     "pauses": [],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 3.91,
+      "peakDbfs": -3.55,
+      "clippedSamples": 0,
+      "dcOffset": -0.00035,
+      "leadingSilenceS": 0.04,
+      "trailingSilenceS": 0.1,
+      "longestInternalSilenceS": 0.31,
+      "pauses": [
+       [
+        2.56,
+        0.31
+       ]
+      ],
+      "speechSpanS": 3.77,
+      "f0MedianHz": 146.2,
+      "f0RangeSemitones": 6.8,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.389,
+      "burstDb": 6.8,
+      "burstAtS": 0.1,
+      "onsetBurstDb": 6.8,
+      "spikes": 0,
+      "hfShareDb": -28.9,
+      "words": 10,
+      "wpm": 153.5,
+      "speechWpm": 159.2,
+      "rawPeakDbfs": -7.05,
+      "phonemesPerS": 10.08
+     },
+     "asr": {
+      "hypothesis": "A nozzle pours a puddle of photo resist onto the center.",
+      "reference": "a nozzle pours a puddle of photoresist onto the center",
+      "errors": 0,
+      "refWords": 10,
+      "wer": 0.0,
+      "diffs": []
+     },
+     "flags": []
+    },
+    {
+     "id": "spin",
+     "text": "The wafer spins up, the resist spreads into a thin, even film, and the excess flies off the edge.",
+     "startMs": 4460,
+     "endMs": 10880,
+     "audioText": "The [wafer] spins up, the [resist] spreads into a thin, even film, and the excess flies off the edge.",
+     "phonemes": "ðə wˈAfə spˈɪnz ˌʌp, ðə ɹɪzˈɪst spɹˈɛdz ˈɪntuː ɐ θˈɪn, ˈiːvᵊn fˈɪlm, and ði ɪksˈɛs flˈIz ˈɒf ði ˈɛʤ.",
+     "dictionary": [
+      "wafer",
+      "resist"
+     ],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 100,
+     "chunks": 1,
+     "synthS": 6.121,
+     "cached": false,
+     "modelLeadS": 0.27,
+     "modelTailS": 0.505,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.125,
+       "depthDb": -69.3,
+       "t": 1.395
+      },
+      {
+       "mark": ",",
+       "pauseS": 0.125,
+       "depthDb": -65.5,
+       "t": 3.195
+      },
+      {
+       "mark": ",",
+       "pauseS": 0.125,
+       "depthDb": -68.2,
+       "t": 4.37
+      }
+     ],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 6.42,
+      "peakDbfs": -2.82,
+      "clippedSamples": 0,
+      "dcOffset": -0.00024,
+      "leadingSilenceS": 0.05,
+      "trailingSilenceS": 0.1,
+      "longestInternalSilenceS": 0.35,
+      "pauses": [
+       [
+        1.18,
+        0.31
+       ],
+       [
+        4.1,
+        0.35
+       ]
+      ],
+      "speechSpanS": 6.27,
+      "f0MedianHz": 142.7,
+      "f0RangeSemitones": 8.6,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.307,
+      "burstDb": 5.9,
+      "burstAtS": 4.5,
+      "onsetBurstDb": 5.4,
+      "spikes": 0,
+      "hfShareDb": -28.4,
+      "words": 19,
+      "wpm": 177.6,
+      "speechWpm": 181.8,
+      "rawPeakDbfs": -6.32,
+      "phonemesPerS": 10.05
+     },
+     "asr": {
+      "hypothesis": "The wafer spins up, the resist spreads into a thin, even film, and the excess flies off the edge.",
+      "reference": "the wafer spins up the resist spreads into a thin even film the excess flies off the edge",
+      "errors": 0,
+      "refWords": 18,
+      "wer": 0.0,
+      "diffs": []
+     },
+     "flags": []
+    },
+    {
+     "id": "rim",
+     "text": "A fine jet of solvent cleans the rim.",
+     "startMs": 11230,
+     "endMs": 14160,
+     "audioText": "A fine jet of solvent cleans the rim.",
+     "phonemes": "ɐ fˈIn ʤˈɛt ɒv sˈɒlvᵊnt klˈiːnz ðə ɹˈɪm.",
+     "dictionary": [],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 40,
+     "chunks": 1,
+     "synthS": 2.509,
+     "cached": false,
+     "modelLeadS": 0.25,
+     "modelTailS": 0.49,
+     "pauses": [],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 2.93,
+      "peakDbfs": -2.09,
+      "clippedSamples": 0,
+      "dcOffset": -0.00026,
+      "leadingSilenceS": 0.04,
+      "trailingSilenceS": 0.1,
+      "longestInternalSilenceS": 0.23,
+      "pauses": [
+       [
+        0.89,
+        0.23
+       ]
+      ],
+      "speechSpanS": 2.79,
+      "f0MedianHz": 140.7,
+      "f0RangeSemitones": 6.6,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.407,
+      "burstDb": 4.5,
+      "burstAtS": 1.95,
+      "onsetBurstDb": 4.0,
+      "spikes": 0,
+      "hfShareDb": -27.8,
+      "words": 8,
+      "wpm": 163.8,
+      "speechWpm": 172.0,
+      "rawPeakDbfs": -5.59,
+      "phonemesPerS": 9.32
+     },
+     "asr": {
+      "hypothesis": "A fine jet of solvent cleans the rim.",
+      "reference": "a fine jet of solvent cleans the rim",
+      "errors": 0,
+      "refWords": 8,
+      "wer": 0.0,
+      "diffs": []
+     },
+     "flags": []
+    }
+   ]
+  },
+  {
+   "id": "softbake",
+   "file": "softbake.mp3",
+   "durationMs": 6700,
+   "loudness": {
+    "inputLufs": -21.5,
+    "inputTruePeakDb": -6.0,
+    "gainDb": 3.5,
+    "outputLufs": -18.0,
+    "outputTruePeakDb": -2.5
+   },
+   "encoded": {
+    "bytes": 54336,
+    "decodedSamples": 160800,
+    "sourceSamples": 160800,
+    "durationMs": 6700,
+    "lagSamples": 0,
+    "lengthMatches": true,
+    "gapless": {
+     "xingTag": true,
+     "tag": "Info",
+     "frames": 282,
+     "bytes": 54336,
+     "encoder": "Lavf lame",
+     "encoderDelaySamples": 576,
+     "paddingSamples": 1056
+    },
+    "decodedPeakDbfs": -2.94
+   },
+   "decodedPeakDbfs": -2.94,
+   "flags": [],
+   "cues": [
+    {
+     "id": "bake",
+     "text": "A hot plate drives most of the solvent out of the resist, leaving a firm, stable film.",
+     "startMs": 200,
+     "endMs": 5900,
+     "audioText": "A hot plate drives most of the solvent out of the [resist], leaving a firm, stable film.",
+     "phonemes": "ɐ hˈɒt plˈAt dɹˈIvz mˈQst ɒv ðə sˈɒlvᵊnt ˈWt ɒv ðə ɹɪzˈɪst, lˈiːvɪŋ ɐ fˈɜːm, stˈAbᵊl fˈɪlm.",
+     "dictionary": [
+      "resist"
+     ],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 91,
+     "chunks": 1,
+     "synthS": 4.649,
+     "cached": false,
+     "modelLeadS": 0.27,
+     "modelTailS": 0.5,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.15,
+       "depthDb": -68.8,
+       "t": 3.345
+      },
+      {
+       "mark": ",",
+       "pauseS": 0.175,
+       "depthDb": -68.4,
+       "t": 4.52
+      }
+     ],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 5.7,
+      "peakDbfs": -2.46,
+      "clippedSamples": 0,
+      "dcOffset": -0.00033,
+      "leadingSilenceS": 0.04,
+      "trailingSilenceS": 0.1,
+      "longestInternalSilenceS": 0.39,
+      "pauses": [
+       [
+        3.06,
+        0.39
+       ],
+       [
+        4.43,
+        0.16
+       ]
+      ],
+      "speechSpanS": 5.56,
+      "f0MedianHz": 145.3,
+      "f0RangeSemitones": 4.7,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.372,
+      "burstDb": 6.8,
+      "burstAtS": 3.5,
+      "onsetBurstDb": 4.6,
+      "spikes": 0,
+      "hfShareDb": -29.0,
+      "words": 17,
+      "wpm": 178.9,
+      "speechWpm": 183.5,
+      "rawPeakDbfs": -5.96,
+      "phonemesPerS": 10.61
+     },
+     "asr": {
+      "hypothesis": "A hot plate drives most of the solvent out of the resist, leaving a firm, stable film.",
+      "reference": "a hot plate drives most of the solvent out of the resist leaving a firm stable film",
+      "errors": 0,
+      "refWords": 17,
+      "wer": 0.0,
+      "diffs": []
+     },
+     "flags": []
+    }
+   ]
+  },
+  {
+   "id": "reticle",
+   "file": "reticle.mp3",
+   "durationMs": 10450,
+   "loudness": {
+    "inputLufs": -21.6,
+    "inputTruePeakDb": -5.6,
+    "gainDb": 3.6,
+    "outputLufs": -18.0,
+    "outputTruePeakDb": -2.0
+   },
+   "encoded": {
+    "bytes": 84288,
+    "decodedSamples": 250800,
+    "sourceSamples": 250800,
+    "durationMs": 10450,
+    "lagSamples": 0,
+    "lengthMatches": true,
+    "gapless": {
+     "xingTag": true,
+     "tag": "Info",
+     "frames": 438,
+     "bytes": 84288,
+     "encoder": "Lavf lame",
+     "encoderDelaySamples": 576,
+     "paddingSamples": 912
+    },
+    "decodedPeakDbfs": -2.68
+   },
+   "decodedPeakDbfs": -2.68,
+   "flags": [],
+   "cues": [
+    {
+     "id": "load",
+     "text": "Meanwhile, the scanner loads the reticle for this layer.",
+     "startMs": 200,
+     "endMs": 3800,
+     "audioText": "Meanwhile, the [scanner] loads the [reticle] for this layer.",
+     "phonemes": "mˈiːnwIl, ðə skˈanə lˈQdz ðə ɹˈɛtɪkᵊl fɔː ðɪs lˈAə.",
+     "dictionary": [
+      "scanner",
+      "reticle"
+     ],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 51,
+     "chunks": 1,
+     "synthS": 2.847,
+     "cached": false,
+     "modelLeadS": 0.27,
+     "modelTailS": 0.5,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.1,
+       "depthDb": -62.7,
+       "t": 0.695
+      }
+     ],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 3.6,
+      "peakDbfs": -2.08,
+      "clippedSamples": 0,
+      "dcOffset": -0.00027,
+      "leadingSilenceS": 0.04,
+      "trailingSilenceS": 0.11,
+      "longestInternalSilenceS": 0.29,
+      "pauses": [
+       [
+        1.37,
+        0.29
+       ]
+      ],
+      "speechSpanS": 3.45,
+      "f0MedianHz": 148.9,
+      "f0RangeSemitones": 8.5,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.353,
+      "burstDb": 6.3,
+      "burstAtS": 0.05,
+      "onsetBurstDb": 6.3,
+      "spikes": 0,
+      "hfShareDb": -28.2,
+      "words": 9,
+      "wpm": 150.0,
+      "speechWpm": 156.5,
+      "rawPeakDbfs": -5.68,
+      "phonemesPerS": 9.86
+     },
+     "asr": {
+      "hypothesis": "Meanwhile, the scanner loads the reticle for this layer.",
+      "reference": "meanwhile the scanner loads the reticle for this layer",
+      "errors": 0,
+      "refWords": 9,
+      "wer": 0.0,
+      "diffs": []
+     },
+     "flags": []
+    },
+    {
+     "id": "chrome",
+     "text": "It is a quartz plate carrying the pattern in chrome, drawn four times larger than it will print.",
+     "startMs": 4150,
+     "endMs": 9850,
+     "audioText": "It is a quartz plate carrying the pattern in chrome, drawn four times larger than it will print.",
+     "phonemes": "ˌɪt ɪz ɐ kwˈɔːts plˈAt kˈaɹiɪŋ ðə pˈatᵊn ɪn kɹˈQm, dɹˈɔːn fˈɔː tˈImz lˈɑːʤə ðən ɪt wɪl pɹˈɪnt.",
+     "dictionary": [],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 94,
+     "chunks": 1,
+     "synthS": 4.089,
+     "cached": false,
+     "modelLeadS": 0.28,
+     "modelTailS": 0.515,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.175,
+       "depthDb": -68.0,
+       "t": 3.06
+      }
+     ],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 5.7,
+      "peakDbfs": -2.5,
+      "clippedSamples": 0,
+      "dcOffset": -0.00031,
+      "leadingSilenceS": 0.04,
+      "trailingSilenceS": 0.09,
+      "longestInternalSilenceS": 0.37,
+      "pauses": [
+       [
+        2.81,
+        0.37
+       ],
+       [
+        4.69,
+        0.17
+       ]
+      ],
+      "speechSpanS": 5.57,
+      "f0MedianHz": 143.7,
+      "f0RangeSemitones": 8.5,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.374,
+      "burstDb": 6.0,
+      "burstAtS": 3.25,
+      "onsetBurstDb": 5.5,
+      "spikes": 0,
+      "hfShareDb": -28.8,
+      "words": 18,
+      "wpm": 189.5,
+      "speechWpm": 193.9,
+      "rawPeakDbfs": -6.1,
+      "phonemesPerS": 10.77
+     },
+     "asr": {
+      "hypothesis": "It is a quartz plate carrying the pattern in chrome, drawn four times larger than it will print.",
+      "reference": "it is a quartz plate carrying the pattern in chrome drawn four times larger than it will print",
+      "errors": 0,
+      "refWords": 18,
+      "wer": 0.0,
+      "diffs": []
+     },
+     "flags": []
+    }
+   ]
+  },
+  {
+   "id": "align",
+   "file": "align.mp3",
+   "durationMs": 10780,
+   "loudness": {
+    "inputLufs": -21.6,
+    "inputTruePeakDb": -5.7,
+    "gainDb": 3.6,
+    "outputLufs": -18.0,
+    "outputTruePeakDb": -2.1
+   },
+   "encoded": {
+    "bytes": 86976,
+    "decodedSamples": 258720,
+    "sourceSamples": 258720,
+    "durationMs": 10780,
+    "lagSamples": 0,
+    "lengthMatches": true,
+    "gapless": {
+     "xingTag": true,
+     "tag": "Info",
+     "frames": 452,
+     "bytes": 86976,
+     "encoder": "Lavf lame",
+     "encoderDelaySamples": 576,
+     "paddingSamples": 1056
+    },
+    "decodedPeakDbfs": -2.73
+   },
+   "decodedPeakDbfs": -2.73,
+   "flags": [],
+   "cues": [
+    {
+     "id": "marks",
+     "text": "Before exposing, the scanner finds alignment marks left by the first pattern.",
+     "startMs": 200,
+     "endMs": 5270,
+     "audioText": "Before exposing, the [scanner] finds alignment marks left by the first pattern.",
+     "phonemes": "bɪfˈɔː ɛkspˈQzɪŋ, ðə skˈanə fˈIndz əlˈInmᵊnt mˈɑːks lˈɛft bI ðə fˈɜːst pˈatᵊn.",
+     "dictionary": [
+      "scanner"
+     ],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 78,
+     "chunks": 1,
+     "synthS": 4.31,
+     "cached": false,
+     "modelLeadS": 0.28,
+     "modelTailS": 0.495,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.125,
+       "depthDb": -69.3,
+       "t": 1.31
+      }
+     ],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 5.07,
+      "peakDbfs": -2.09,
+      "clippedSamples": 0,
+      "dcOffset": -0.00021,
+      "leadingSilenceS": 0.05,
+      "trailingSilenceS": 0.09,
+      "longestInternalSilenceS": 0.31,
+      "pauses": [
+       [
+        1.1,
+        0.31
+       ],
+       [
+        3.28,
+        0.18
+       ]
+      ],
+      "speechSpanS": 4.93,
+      "f0MedianHz": 141.3,
+      "f0RangeSemitones": 8.7,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.375,
+      "burstDb": 6.5,
+      "burstAtS": 0.05,
+      "onsetBurstDb": 6.5,
+      "spikes": 0,
+      "hfShareDb": -27.4,
+      "words": 12,
+      "wpm": 142.0,
+      "speechWpm": 146.0,
+      "rawPeakDbfs": -5.69,
+      "phonemesPerS": 10.75
+     },
+     "asr": {
+      "hypothesis": "Before exposing, the scanner finds alignment marks left by the first pattern.",
+      "reference": "before exposing the scanner finds alignment marks left by the first pattern",
+      "errors": 0,
+      "refWords": 12,
+      "wer": 0.0,
+      "diffs": []
+     },
+     "flags": []
+    },
+    {
+     "id": "correct",
+     "text": "It adjusts its stages so the gates will land exactly on the islands.",
+     "startMs": 5620,
+     "endMs": 10180,
+     "audioText": "It adjusts its stages so the gates will land exactly on the islands.",
+     "phonemes": "ˌɪt əʤˈʌsts ɪts stˈAʤɪz sˌQ ðə ɡˈAts wɪl lˈand ɪɡzˈaktli ˌɒn ði ˈIləndz.",
+     "dictionary": [],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 72,
+     "chunks": 1,
+     "synthS": 3.382,
+     "cached": false,
+     "modelLeadS": 0.28,
+     "modelTailS": 0.505,
+     "pauses": [],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 4.56,
+      "peakDbfs": -2.76,
+      "clippedSamples": 0,
+      "dcOffset": -0.00031,
+      "leadingSilenceS": 0.04,
+      "trailingSilenceS": 0.11,
+      "longestInternalSilenceS": 0.33,
+      "pauses": [
+       [
+        1.42,
+        0.33
+       ]
+      ],
+      "speechSpanS": 4.41,
+      "f0MedianHz": 140.8,
+      "f0RangeSemitones": 7.2,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.384,
+      "burstDb": 5.1,
+      "burstAtS": 0.05,
+      "onsetBurstDb": 5.1,
+      "spikes": 0,
+      "hfShareDb": -29.0,
+      "words": 13,
+      "wpm": 171.1,
+      "speechWpm": 176.9,
+      "rawPeakDbfs": -6.36,
+      "phonemesPerS": 11.34
+     },
+     "asr": {
+      "hypothesis": "It adjusts its stages so the gates will land exactly on the islands.",
+      "reference": "it adjusts its stages so the gates will land exactly on the islands",
+      "errors": 0,
+      "refWords": 13,
+      "wer": 0.0,
+      "diffs": []
+     },
+     "flags": []
+    }
+   ]
+  },
+  {
+   "id": "expose",
+   "file": "expose.mp3",
+   "durationMs": 20140,
+   "loudness": {
+    "inputLufs": -21.5,
+    "inputTruePeakDb": -5.4,
+    "gainDb": 3.5,
+    "outputLufs": -18.0,
+    "outputTruePeakDb": -1.9
+   },
+   "encoded": {
+    "bytes": 161856,
+    "decodedSamples": 483360,
+    "sourceSamples": 483360,
+    "durationMs": 20140,
+    "lagSamples": 0,
+    "lengthMatches": true,
+    "gapless": {
+     "xingTag": true,
+     "tag": "Info",
+     "frames": 842,
+     "bytes": 161856,
+     "encoder": "Lavf lame",
+     "encoderDelaySamples": 576,
+     "paddingSamples": 1056
+    },
+    "decodedPeakDbfs": -2.3
+   },
+   "decodedPeakDbfs": -2.3,
+   "flags": [],
+   "cues": [
+    {
+     "id": "light",
+     "text": "Deep ultraviolet light, at 193 nanometres, passes through the reticle.",
+     "startMs": 200,
+     "endMs": 5750,
+     "audioText": "Deep [ultraviolet] light, at one ninety-three [nanometres], passes through the [reticle].",
+     "phonemes": "dˈiːp ˌʌltɹəvˈIələt lˈIt, at wˈʌn nˈIntiθɹˌiː nˈanQmˌiːtəz, pˈɑːsɪz θɹuː ðə ɹˈɛtɪkᵊl.",
+     "dictionary": [
+      "ultraviolet",
+      "193",
+      "nanometres",
+      "reticle"
+     ],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 85,
+     "chunks": 1,
+     "synthS": 5.71,
+     "cached": false,
+     "modelLeadS": 0.28,
+     "modelTailS": 0.515,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.15,
+       "depthDb": -69.4,
+       "t": 1.735
+      },
+      {
+       "mark": ",",
+       "pauseS": 0.15,
+       "depthDb": -68.7,
+       "t": 3.81
+      }
+     ],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 5.55,
+      "peakDbfs": -2.67,
+      "clippedSamples": 0,
+      "dcOffset": -0.00031,
+      "leadingSilenceS": 0.05,
+      "trailingSilenceS": 0.09,
+      "longestInternalSilenceS": 0.35,
+      "pauses": [
+       [
+        1.56,
+        0.26
+       ],
+       [
+        3.57,
+        0.35
+       ]
+      ],
+      "speechSpanS": 5.41,
+      "f0MedianHz": 142.8,
+      "f0RangeSemitones": 7.7,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.382,
+      "burstDb": 6.5,
+      "burstAtS": 0.1,
+      "onsetBurstDb": 6.5,
+      "spikes": 0,
+      "hfShareDb": -29.0,
+      "words": 11,
+      "wpm": 118.9,
+      "speechWpm": 122.0,
+      "rawPeakDbfs": -6.17,
+      "phonemesPerS": 10.35
+     },
+     "asr": {
+      "hypothesis": "Deep ultraviolet light at 193 nanometers passes through the reticle.",
+      "reference": "deep ultraviolet light at one hundred ninety three nanometers passes through the reticle",
+      "errors": 0,
+      "refWords": 13,
+      "wer": 0.0,
+      "diffs": []
+     },
+     "flags": []
+    },
+    {
+     "id": "shrink",
+     "text": "The lens shrinks the image four times, and the scanner sweeps it across the wafer, field by field.",
+     "startMs": 6100,
+     "endMs": 12390,
+     "audioText": "The lens shrinks the image four times, and the [scanner] sweeps it across the [wafer], field by field.",
+     "phonemes": "ðə lˈɛnz ʃɹˈɪŋks ði ˈɪmɪʤ fˈɔː tˈImz, and ðə skˈanə swˈiːps ɪt əkɹˈɒs ðə wˈAfə, fˈiːld bI fˈiːld.",
+     "dictionary": [
+      "scanner",
+      "wafer"
+     ],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 97,
+     "chunks": 1,
+     "synthS": 5.251,
+     "cached": false,
+     "modelLeadS": 0.27,
+     "modelTailS": 0.535,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.125,
+       "depthDb": -68.3,
+       "t": 2.62
+      },
+      {
+       "mark": ",",
+       "pauseS": 0.2,
+       "depthDb": -68.9,
+       "t": 4.895
+      }
+     ],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 6.29,
+      "peakDbfs": -1.96,
+      "clippedSamples": 0,
+      "dcOffset": -0.0002,
+      "leadingSilenceS": 0.05,
+      "trailingSilenceS": 0.11,
+      "longestInternalSilenceS": 0.39,
+      "pauses": [
+       [
+        2.31,
+        0.39
+       ],
+       [
+        4.76,
+        0.24
+       ]
+      ],
+      "speechSpanS": 6.13,
+      "f0MedianHz": 145.4,
+      "f0RangeSemitones": 8.0,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.372,
+      "burstDb": 6.2,
+      "burstAtS": 5.1,
+      "onsetBurstDb": 5.6,
+      "spikes": 0,
+      "hfShareDb": -28.4,
+      "words": 18,
+      "wpm": 171.7,
+      "speechWpm": 176.2,
+      "rawPeakDbfs": -5.46,
+      "phonemesPerS": 10.11
+     },
+     "asr": {
+      "hypothesis": "The lens shrinks the image four times, and the scanner sweeps it across the wafer, field by field.",
+      "reference": "the lens shrinks the image four times the scanner sweeps it across the wafer field by field",
+      "errors": 0,
+      "refWords": 17,
+      "wer": 0.0,
+      "diffs": []
+     },
+     "flags": []
+    },
+    {
+     "id": "latent",
+     "text": "Where the light strikes, the resist changes chemically. Nothing can be seen yet: this is a latent image.",
+     "startMs": 12740,
+     "endMs": 19340,
+     "audioText": "Where the light strikes, the [resist] changes chemically. Nothing can be seen yet: this is a latent image.",
+     "phonemes": "wˌɛː ðə lˈIt stɹˈIks, ðə ɹɪzˈɪst ʧˈAnʤɪz kˈɛmɪkli. nˈʌθɪŋ kan biː sˈiːn jˈɛt: ðɪs ɪz ɐ lˈAtᵊnt ˈɪmɪʤ.",
+     "dictionary": [
+      "resist"
+     ],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 101,
+     "chunks": 1,
+     "synthS": 6.96,
+     "cached": false,
+     "modelLeadS": 0.27,
+     "modelTailS": 0.475,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.1,
+       "depthDb": -68.7,
+       "t": 1.22
+      },
+      {
+       "mark": ".",
+       "pauseS": 0.15,
+       "depthDb": -68.7,
+       "t": 3.27
+      },
+      {
+       "mark": ":",
+       "pauseS": 0.125,
+       "depthDb": -69.2,
+       "t": 4.945
+      }
+     ],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 6.6,
+      "peakDbfs": -3.01,
+      "clippedSamples": 0,
+      "dcOffset": -0.00023,
+      "leadingSilenceS": 0.05,
+      "trailingSilenceS": 0.12,
+      "longestInternalSilenceS": 0.35,
+      "pauses": [
+       [
+        1.08,
+        0.21
+       ],
+       [
+        3.03,
+        0.32
+       ],
+       [
+        4.7,
+        0.35
+       ]
+      ],
+      "speechSpanS": 6.43,
+      "f0MedianHz": 143.6,
+      "f0RangeSemitones": 6.9,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.332,
+      "burstDb": 4.4,
+      "burstAtS": 0.05,
+      "onsetBurstDb": 4.4,
+      "spikes": 0,
+      "hfShareDb": -28.0,
+      "words": 18,
+      "wpm": 163.6,
+      "speechWpm": 168.0,
+      "rawPeakDbfs": -6.51,
+      "phonemesPerS": 10.26
+     },
+     "asr": {
+      "hypothesis": "Where the light strikes, the resist changes chemically, nothing can be seen yet. This is a latent image.",
+      "reference": "where the light strikes the resist changes chemically nothing can be seen yet this is a latent image",
+      "errors": 0,
+      "refWords": 18,
+      "wer": 0.0,
+      "diffs": []
+     },
+     "flags": []
+    }
+   ]
+  },
+  {
+   "id": "peb",
+   "file": "peb.mp3",
+   "durationMs": 6250,
+   "loudness": {
+    "inputLufs": -21.4,
+    "inputTruePeakDb": -3.4,
+    "gainDb": 1.9,
+    "outputLufs": -19.5,
+    "outputTruePeakDb": -1.5
+   },
+   "encoded": {
+    "bytes": 50688,
+    "decodedSamples": 150000,
+    "sourceSamples": 150000,
+    "durationMs": 6250,
+    "lagSamples": 0,
+    "lengthMatches": true,
+    "gapless": {
+     "xingTag": true,
+     "tag": "Info",
+     "frames": 263,
+     "bytes": 50688,
+     "encoder": "Lavf lame",
+     "encoderDelaySamples": 576,
+     "paddingSamples": 912
+    },
+    "decodedPeakDbfs": -1.92
+   },
+   "decodedPeakDbfs": -1.92,
+   "flags": [],
+   "cues": [
+    {
+     "id": "bake",
+     "text": "A second bake lets that chemistry finish, turning the exposed resist soluble.",
+     "startMs": 200,
+     "endMs": 5450,
+     "audioText": "A second bake lets that chemistry finish, turning the exposed [resist] soluble.",
+     "phonemes": "ɐ sˈɛkᵊnd bˈAk lˈɛts ðat kˈɛmɪstɹi fˈɪnɪʃ, tˈɜːnɪŋ ði ɪkspˈQzd ɹɪzˈɪst sˈɒljʊbᵊl.",
+     "dictionary": [
+      "resist"
+     ],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 81,
+     "chunks": 1,
+     "synthS": 6.078,
+     "cached": false,
+     "modelLeadS": 0.25,
+     "modelTailS": 0.495,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.125,
+       "depthDb": -68.0,
+       "t": 2.79
+      }
+     ],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 5.25,
+      "peakDbfs": -1.46,
+      "clippedSamples": 0,
+      "dcOffset": -0.00023,
+      "leadingSilenceS": 0.05,
+      "trailingSilenceS": 0.1,
+      "longestInternalSilenceS": 0.35,
+      "pauses": [
+       [
+        0.84,
+        0.21
+       ],
+       [
+        2.53,
+        0.35
+       ]
+      ],
+      "speechSpanS": 5.1,
+      "f0MedianHz": 145.2,
+      "f0RangeSemitones": 7.8,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.379,
+      "burstDb": 5.9,
+      "burstAtS": 2.9,
+      "onsetBurstDb": 3.2,
+      "spikes": 0,
+      "hfShareDb": -27.3,
+      "words": 12,
+      "wpm": 137.1,
+      "speechWpm": 141.2,
+      "rawPeakDbfs": -3.36,
+      "phonemesPerS": 11.37
+     },
+     "asr": {
+      "hypothesis": "A second bake lets that chemistry finish, turning the exposed resist soluble.",
+      "reference": "a second bake lets that chemistry finish turning the exposed resist soluble",
+      "errors": 0,
+      "refWords": 12,
+      "wer": 0.0,
+      "diffs": []
+     },
+     "flags": []
+    }
+   ]
+  },
+  {
+   "id": "develop",
+   "file": "develop.mp3",
+   "durationMs": 13870,
+   "loudness": {
+    "inputLufs": -21.7,
+    "inputTruePeakDb": -4.8,
+    "gainDb": 3.3,
+    "outputLufs": -18.4,
+    "outputTruePeakDb": -1.5
+   },
+   "encoded": {
+    "bytes": 111552,
+    "decodedSamples": 332880,
+    "sourceSamples": 332880,
+    "durationMs": 13870,
+    "lagSamples": 0,
+    "lengthMatches": true,
+    "gapless": {
+     "xingTag": true,
+     "tag": "Info",
+     "frames": 580,
+     "bytes": 111552,
+     "encoder": "Lavf lame",
+     "encoderDelaySamples": 576,
+     "paddingSamples": 624
+    },
+    "decodedPeakDbfs": -2.0
+   },
+   "decodedPeakDbfs": -2.0,
+   "flags": [],
+   "cues": [
+    {
+     "id": "developer",
+     "text": "Then the developer.",
+     "startMs": 200,
+     "endMs": 1710,
+     "audioText": "Then the developer.",
+     "phonemes": "ðˈɛn ðə dɪvˈɛləpə.",
+     "dictionary": [],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 18,
+     "chunks": 1,
+     "synthS": 1.91,
+     "cached": false,
+     "modelLeadS": 0.25,
+     "modelTailS": 0.435,
+     "pauses": [],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 1.51,
+      "peakDbfs": -2.31,
+      "clippedSamples": 0,
+      "dcOffset": -0.00046,
+      "leadingSilenceS": 0.04,
+      "trailingSilenceS": 0.11,
+      "longestInternalSilenceS": 0.02,
+      "pauses": [],
+      "speechSpanS": 1.36,
+      "f0MedianHz": 168.8,
+      "f0RangeSemitones": 7.7,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.453,
+      "burstDb": 4.8,
+      "burstAtS": 0.1,
+      "onsetBurstDb": 4.8,
+      "spikes": 0,
+      "hfShareDb": -31.8,
+      "words": 3,
+      "wpm": 119.2,
+      "speechWpm": 132.4,
+      "rawPeakDbfs": -5.61,
+      "phonemesPerS": 9.56
+     },
+     "asr": {
+      "hypothesis": "Then the developer.",
+      "reference": "then the developer",
+      "errors": 0,
+      "refWords": 3,
+      "wer": 0.0,
+      "diffs": []
+     },
+     "flags": []
+    },
+    {
+     "id": "dissolve",
+     "text": "This is a positive resist, so wherever the light fell, the resist dissolves and washes away.",
+     "startMs": 2060,
+     "endMs": 7970,
+     "audioText": "This is a positive [resist], so wherever the light fell, the [resist] dissolves and washes away.",
+     "phonemes": "ðˌɪs ɪz ɐ pˈɒzɪtɪv ɹɪzˈɪst, sˌQ wəɹˈɛvə ðə lˈIt fˈɛl, ðə ɹɪzˈɪst dɪzˈɒlvz and wˈɒʃɪz əwˈA.",
+     "dictionary": [
+      "resist",
+      "resist"
+     ],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 90,
+     "chunks": 1,
+     "synthS": 6.071,
+     "cached": false,
+     "modelLeadS": 0.28,
+     "modelTailS": 0.505,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.125,
+       "depthDb": -68.0,
+       "t": 1.835
+      },
+      {
+       "mark": ",",
+       "pauseS": 0.125,
+       "depthDb": -68.4,
+       "t": 3.51
+      }
+     ],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 5.91,
+      "peakDbfs": -1.53,
+      "clippedSamples": 0,
+      "dcOffset": -0.00036,
+      "leadingSilenceS": 0.04,
+      "trailingSilenceS": 0.09,
+      "longestInternalSilenceS": 0.31,
+      "pauses": [
+       [
+        1.62,
+        0.28
+       ],
+       [
+        3.3,
+        0.31
+       ]
+      ],
+      "speechSpanS": 5.78,
+      "f0MedianHz": 138.3,
+      "f0RangeSemitones": 8.0,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.32,
+      "burstDb": 6.3,
+      "burstAtS": 0.05,
+      "onsetBurstDb": 6.3,
+      "spikes": 0,
+      "hfShareDb": -29.4,
+      "words": 16,
+      "wpm": 162.4,
+      "speechWpm": 166.1,
+      "rawPeakDbfs": -4.83,
+      "phonemesPerS": 10.55
+     },
+     "asr": {
+      "hypothesis": "This is a positive resist, so wherever the light fell, the resist dissolves and washes away.",
+      "reference": "this is a positive resist so wherever the light fell the resist dissolves washes away",
+      "errors": 0,
+      "refWords": 15,
+      "wer": 0.0,
+      "diffs": []
+     },
+     "flags": []
+    },
+    {
+     "id": "lines",
+     "text": "What remains are resist lines, exactly where the chrome cast its shadow.",
+     "startMs": 8320,
+     "endMs": 13070,
+     "audioText": "What remains are [resist] lines, exactly where the chrome cast its shadow.",
+     "phonemes": "wˌɒt ɹɪmˈAnz ɑː ɹɪzˈɪst lˈInz, ɪɡzˈaktli wˌɛː ðə kɹˈQm kˈɑːst ɪts ʃˈadQ.",
+     "dictionary": [
+      "resist"
+     ],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 72,
+     "chunks": 1,
+     "synthS": 4.357,
+     "cached": false,
+     "modelLeadS": 0.27,
+     "modelTailS": 0.5,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.175,
+       "depthDb": -69.3,
+       "t": 2.27
+      }
+     ],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 4.75,
+      "peakDbfs": -4.0,
+      "clippedSamples": 0,
+      "dcOffset": -0.00029,
+      "leadingSilenceS": 0.05,
+      "trailingSilenceS": 0.1,
+      "longestInternalSilenceS": 0.35,
+      "pauses": [
+       [
+        2.02,
+        0.35
+       ]
+      ],
+      "speechSpanS": 4.6,
+      "f0MedianHz": 141.0,
+      "f0RangeSemitones": 10.0,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.352,
+      "burstDb": 4.7,
+      "burstAtS": 2.4,
+      "onsetBurstDb": 3.7,
+      "spikes": 0,
+      "hfShareDb": -29.1,
+      "words": 12,
+      "wpm": 151.6,
+      "speechWpm": 156.5,
+      "rawPeakDbfs": -7.3,
+      "phonemesPerS": 10.22
+     },
+     "asr": {
+      "hypothesis": "What remains a resist lines exactly where the chrome cast its shadow.",
+      "reference": "what remains are resist lines exactly where the chrome cast its shadow",
+      "errors": 1,
+      "refWords": 12,
+      "wer": 0.083,
+      "diffs": [
+       [
+        "are",
+        "a"
+       ]
+      ]
+     },
+     "flags": []
+    }
+   ]
+  },
+  {
+   "id": "adi",
+   "file": "adi.mp3",
+   "durationMs": 13270,
+   "loudness": {
+    "inputLufs": -21.3,
+    "inputTruePeakDb": -6.0,
+    "gainDb": 3.3,
+    "outputLufs": -18.0,
+    "outputTruePeakDb": -2.7
+   },
+   "encoded": {
+    "bytes": 106752,
+    "decodedSamples": 318480,
+    "sourceSamples": 318480,
+    "durationMs": 13270,
+    "lagSamples": 0,
+    "lengthMatches": true,
+    "gapless": {
+     "xingTag": true,
+     "tag": "Info",
+     "frames": 555,
+     "bytes": 106752,
+     "encoder": "Lavf lame",
+     "encoderDelaySamples": 576,
+     "paddingSamples": 624
+    },
+    "decodedPeakDbfs": -3.21
+   },
+   "decodedPeakDbfs": -3.21,
+   "flags": [],
+   "cues": [
+    {
+     "id": "measure",
+     "text": "An electron microscope measures the lines.",
+     "startMs": 200,
+     "endMs": 3250,
+     "audioText": "An electron microscope measures the lines.",
+     "phonemes": "ɐn ɪlˈɛktɹɒn mˈIkɹəskQp mˈɛʒəz ðə lˈInz.",
+     "dictionary": [],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 40,
+     "chunks": 1,
+     "synthS": 3.622,
+     "cached": false,
+     "modelLeadS": 0.27,
+     "modelTailS": 0.5,
+     "pauses": [],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 3.05,
+      "peakDbfs": -3.64,
+      "clippedSamples": 0,
+      "dcOffset": -0.00035,
+      "leadingSilenceS": 0.04,
+      "trailingSilenceS": 0.11,
+      "longestInternalSilenceS": 0.24,
+      "pauses": [
+       [
+        1.55,
+        0.24
+       ]
+      ],
+      "speechSpanS": 2.9,
+      "f0MedianHz": 143.7,
+      "f0RangeSemitones": 7.0,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.377,
+      "burstDb": 5.2,
+      "burstAtS": 1.8,
+      "onsetBurstDb": 4.2,
+      "spikes": 0,
+      "hfShareDb": -29.2,
+      "words": 6,
+      "wpm": 118.0,
+      "speechWpm": 124.1,
+      "rawPeakDbfs": -6.94,
+      "phonemesPerS": 10.34
+     },
+     "asr": {
+      "hypothesis": "An electron microscope measures the lines.",
+      "reference": "an electron microscope measures the lines",
+      "errors": 0,
+      "refWords": 6,
+      "wer": 0.0,
+      "diffs": []
+     },
+     "flags": []
+    },
+    {
+     "id": "rework",
+     "text": "If they're out of specification, the resist can still be stripped and the whole cycle repeated.",
+     "startMs": 3600,
+     "endMs": 9500,
+     "audioText": "If they're out of specification, the [resist] can still be stripped and the whole cycle repeated.",
+     "phonemes": "ˌɪf ðɛː ˈWt ɒv spˌɛsɪfɪkˈAʃᵊn, ðə ɹɪzˈɪst kan stˈɪl biː stɹˈɪpt and ðə hˈQl sˈIkᵊl ɹɪpˈiːtɪd.",
+     "dictionary": [
+      "resist"
+     ],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 93,
+     "chunks": 1,
+     "synthS": 7.96,
+     "cached": false,
+     "modelLeadS": 0.27,
+     "modelTailS": 0.525,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.125,
+       "depthDb": -68.2,
+       "t": 1.995
+      }
+     ],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 5.9,
+      "peakDbfs": -2.74,
+      "clippedSamples": 0,
+      "dcOffset": -0.00026,
+      "leadingSilenceS": 0.04,
+      "trailingSilenceS": 0.09,
+      "longestInternalSilenceS": 0.34,
+      "pauses": [
+       [
+        1.77,
+        0.32
+       ],
+       [
+        3.86,
+        0.34
+       ]
+      ],
+      "speechSpanS": 5.77,
+      "f0MedianHz": 143.1,
+      "f0RangeSemitones": 10.2,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.334,
+      "burstDb": 5.1,
+      "burstAtS": 2.15,
+      "onsetBurstDb": 5.0,
+      "spikes": 0,
+      "hfShareDb": -28.1,
+      "words": 16,
+      "wpm": 162.7,
+      "speechWpm": 166.4,
+      "rawPeakDbfs": -6.04,
+      "phonemesPerS": 10.92
+     },
+     "asr": {
+      "hypothesis": "If they're out of specification, the resist can still be stripped and the whole cycle repeated.",
+      "reference": "if theyre out of specification the resist can still be stripped the whole cycle repeated",
+      "errors": 0,
+      "refWords": 15,
+      "wer": 0.0,
+      "diffs": []
+     },
+     "flags": []
+    },
+    {
+     "id": "noreturn",
+     "text": "After the next step, there's no going back.",
+     "startMs": 9850,
+     "endMs": 12670,
+     "audioText": "After the next step, there's no going back.",
+     "phonemes": "ˈɑːftə ðə nˈɛkst stˈɛp, ðɛːz nˈQ ɡˈQɪŋ bˈak.",
+     "dictionary": [],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 44,
+     "chunks": 1,
+     "synthS": 3.288,
+     "cached": false,
+     "modelLeadS": 0.25,
+     "modelTailS": 0.425,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.125,
+       "depthDb": -69.7,
+       "t": 1.315
+      }
+     ],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 2.82,
+      "peakDbfs": -3.97,
+      "clippedSamples": 0,
+      "dcOffset": -0.00032,
+      "leadingSilenceS": 0.05,
+      "trailingSilenceS": 0.12,
+      "longestInternalSilenceS": 0.26,
+      "pauses": [
+       [
+        1.14,
+        0.26
+       ]
+      ],
+      "speechSpanS": 2.65,
+      "f0MedianHz": 151.5,
+      "f0RangeSemitones": 7.5,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.373,
+      "burstDb": 4.5,
+      "burstAtS": 1.6,
+      "onsetBurstDb": 2.7,
+      "spikes": 0,
+      "hfShareDb": -29.5,
+      "words": 8,
+      "wpm": 170.2,
+      "speechWpm": 181.1,
+      "rawPeakDbfs": -7.27,
+      "phonemesPerS": 10.19
+     },
+     "asr": {
+      "hypothesis": "After the next step, there's no going back.",
+      "reference": "after the next step theres no going back",
+      "errors": 0,
+      "refWords": 8,
+      "wer": 0.0,
+      "diffs": []
+     },
+     "flags": []
+    }
+   ]
+  },
+  {
+   "id": "gate-etch",
+   "file": "gate-etch.mp3",
+   "durationMs": 15220,
+   "loudness": {
+    "inputLufs": -21.6,
+    "inputTruePeakDb": -5.4,
+    "gainDb": 3.6,
+    "outputLufs": -18.0,
+    "outputTruePeakDb": -1.8
+   },
+   "encoded": {
+    "bytes": 122496,
+    "decodedSamples": 365280,
+    "sourceSamples": 365280,
+    "durationMs": 15220,
+    "lagSamples": 0,
+    "lengthMatches": true,
+    "gapless": {
+     "xingTag": true,
+     "tag": "Info",
+     "frames": 637,
+     "bytes": 122496,
+     "encoder": "Lavf lame",
+     "encoderDelaySamples": 576,
+     "paddingSamples": 1056
+    },
+    "decodedPeakDbfs": -2.28
+   },
+   "decodedPeakDbfs": -2.28,
+   "flags": [],
+   "cues": [
+    {
+     "id": "plasma",
+     "text": "In the etch chamber, a plasma sends ions straight down onto the wafer.",
+     "startMs": 200,
+     "endMs": 4770,
+     "audioText": "In the etch chamber, a [plasma] sends ions straight down onto the [wafer].",
+     "phonemes": "ɪn ði ˈɛʧ ʧˈAmbə, ɐ plˈazmə sˈɛndz ˈIənz stɹˈAt dˌWn ˈɒntuː ðə wˈAfə.",
+     "dictionary": [
+      "plasma",
+      "wafer"
+     ],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 69,
+     "chunks": 1,
+     "synthS": 4.401,
+     "cached": false,
+     "modelLeadS": 0.28,
+     "modelTailS": 0.52,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.2,
+       "depthDb": -69.5,
+       "t": 1.285
+      }
+     ],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 4.57,
+      "peakDbfs": -1.81,
+      "clippedSamples": 0,
+      "dcOffset": -0.0002,
+      "leadingSilenceS": 0.04,
+      "trailingSilenceS": 0.1,
+      "longestInternalSilenceS": 0.37,
+      "pauses": [
+       [
+        1.06,
+        0.37
+       ]
+      ],
+      "speechSpanS": 4.43,
+      "f0MedianHz": 136.1,
+      "f0RangeSemitones": 8.3,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.396,
+      "burstDb": 6.7,
+      "burstAtS": 0.1,
+      "onsetBurstDb": 6.7,
+      "spikes": 0,
+      "hfShareDb": -29.1,
+      "words": 13,
+      "wpm": 170.7,
+      "speechWpm": 176.1,
+      "rawPeakDbfs": -5.41,
+      "phonemesPerS": 10.16
+     },
+     "asr": {
+      "hypothesis": "In the edge chamber, a plasma sends iron straight down onto the wafer.",
+      "reference": "in the etch chamber a plasma sends ions straight down onto the wafer",
+      "errors": 2,
+      "refWords": 13,
+      "wer": 0.154,
+      "diffs": [
+       [
+        "etch",
+        "edge"
+       ],
+       [
+        "ions",
+        "iron"
+       ]
+      ]
+     },
+     "flags": []
+    },
+    {
+     "id": "carve",
+     "text": "They carve through the polysilicon wherever it's uncovered, and stop at the thin gate oxide.",
+     "startMs": 5120,
+     "endMs": 10840,
+     "audioText": "They carve through the [polysilicon] wherever it's uncovered, and stop at the thin gate oxide.",
+     "phonemes": "ðˌA kˈɑːv θɹuː ðə pˌɒlisˈɪlɪkᵊn wəɹˈɛvə ɪts ʌnkˈʌvəd, and stˈɒp at ðə θˈɪn ɡˈAt ˈɒksId.",
+     "dictionary": [
+      "polysilicon"
+     ],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 87,
+     "chunks": 1,
+     "synthS": 3.467,
+     "cached": false,
+     "modelLeadS": 0.28,
+     "modelTailS": 0.52,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.125,
+       "depthDb": -68.5,
+       "t": 3.46
+      }
+     ],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 5.72,
+      "peakDbfs": -2.84,
+      "clippedSamples": 0,
+      "dcOffset": -0.00018,
+      "leadingSilenceS": 0.04,
+      "trailingSilenceS": 0.1,
+      "longestInternalSilenceS": 0.39,
+      "pauses": [
+       [
+        3.15,
+        0.39
+       ]
+      ],
+      "speechSpanS": 5.58,
+      "f0MedianHz": 138.9,
+      "f0RangeSemitones": 6.8,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.373,
+      "burstDb": 5.4,
+      "burstAtS": 0.05,
+      "onsetBurstDb": 5.4,
+      "spikes": 0,
+      "hfShareDb": -27.9,
+      "words": 15,
+      "wpm": 157.3,
+      "speechWpm": 161.3,
+      "rawPeakDbfs": -6.44,
+      "phonemesPerS": 10.57
+     },
+     "asr": {
+      "hypothesis": "They carved through the poly silicon wherever it's uncovered and stop at the thin gate oxide.",
+      "reference": "they carve through the polysilicon wherever its uncovered stop at the thin gate oxide",
+      "errors": 1,
+      "refWords": 14,
+      "wer": 0.071,
+      "diffs": [
+       [
+        "carve",
+        "carved"
+       ]
+      ]
+     },
+     "flags": []
+    },
+    {
+     "id": "gates",
+     "text": "The resist lines have become polysilicon gates.",
+     "startMs": 11190,
+     "endMs": 14620,
+     "audioText": "The [resist] lines have become [polysilicon] gates.",
+     "phonemes": "ðə ɹɪzˈɪst lˈInz hav bɪkˈʌm pˌɒlisˈɪlɪkᵊn ɡˈAts.",
+     "dictionary": [
+      "resist",
+      "polysilicon"
+     ],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 48,
+     "chunks": 1,
+     "synthS": 1.577,
+     "cached": false,
+     "modelLeadS": 0.27,
+     "modelTailS": 0.47,
+     "pauses": [],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 3.43,
+      "peakDbfs": -2.91,
+      "clippedSamples": 0,
+      "dcOffset": -0.0003,
+      "leadingSilenceS": 0.05,
+      "trailingSilenceS": 0.12,
+      "longestInternalSilenceS": 0.26,
+      "pauses": [
+       [
+        1.1,
+        0.26
+       ]
+      ],
+      "speechSpanS": 3.26,
+      "f0MedianHz": 144.7,
+      "f0RangeSemitones": 7.6,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.391,
+      "burstDb": 4.8,
+      "burstAtS": 0.15,
+      "onsetBurstDb": 4.8,
+      "spikes": 0,
+      "hfShareDb": -28.4,
+      "words": 7,
+      "wpm": 122.4,
+      "speechWpm": 128.8,
+      "rawPeakDbfs": -6.51,
+      "phonemesPerS": 10.74
+     },
+     "asr": {
+      "hypothesis": "The resist lines have become polysilic in gates.",
+      "reference": "the resist lines have become polysilicon gates",
+      "errors": 2,
+      "refWords": 7,
+      "wer": 0.286,
+      "diffs": [
+       [
+        "polysilicon",
+        "polysilic in"
+       ]
+      ]
+     },
+     "flags": [
+      "asr-mismatch"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "strip",
+   "file": "strip.mp3",
+   "durationMs": 13060,
+   "loudness": {
+    "inputLufs": -21.6,
+    "inputTruePeakDb": -6.2,
+    "gainDb": 3.6,
+    "outputLufs": -18.0,
+    "outputTruePeakDb": -2.6
+   },
+   "encoded": {
+    "bytes": 105216,
+    "decodedSamples": 313440,
+    "sourceSamples": 313440,
+    "durationMs": 13060,
+    "lagSamples": 0,
+    "lengthMatches": true,
+    "gapless": {
+     "xingTag": true,
+     "tag": "Info",
+     "frames": 547,
+     "bytes": 105216,
+     "encoder": "Lavf lame",
+     "encoderDelaySamples": 576,
+     "paddingSamples": 1056
+    },
+    "decodedPeakDbfs": -3.07
+   },
+   "decodedPeakDbfs": -3.07,
+   "flags": [],
+   "cues": [
+    {
+     "id": "ash",
+     "text": "An oxygen plasma burns away the leftover resist.",
+     "startMs": 200,
+     "endMs": 3940,
+     "audioText": "An oxygen [plasma] burns away the leftover [resist].",
+     "phonemes": "ɐn ˈɒksɪʤᵊn plˈazmə bˈɜːnz əwˈA ðə lˈɛftQvə ɹɪzˈɪst.",
+     "dictionary": [
+      "plasma",
+      "resist"
+     ],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 52,
+     "chunks": 1,
+     "synthS": 1.881,
+     "cached": false,
+     "modelLeadS": 0.27,
+     "modelTailS": 0.51,
+     "pauses": [],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 3.74,
+      "peakDbfs": -2.83,
+      "clippedSamples": 0,
+      "dcOffset": -0.00038,
+      "leadingSilenceS": 0.04,
+      "trailingSilenceS": 0.1,
+      "longestInternalSilenceS": 0.26,
+      "pauses": [
+       [
+        1.37,
+        0.26
+       ]
+      ],
+      "speechSpanS": 3.6,
+      "f0MedianHz": 140.8,
+      "f0RangeSemitones": 6.5,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.402,
+      "burstDb": 5.5,
+      "burstAtS": 1.65,
+      "onsetBurstDb": 4.9,
+      "spikes": 0,
+      "hfShareDb": -28.4,
+      "words": 8,
+      "wpm": 128.3,
+      "speechWpm": 133.3,
+      "rawPeakDbfs": -6.43,
+      "phonemesPerS": 10.28
+     },
+     "asr": {
+      "hypothesis": "An oxygen plasma burns away the leftover resist.",
+      "reference": "an oxygen plasma burns away the leftover resist",
+      "errors": 0,
+      "refWords": 8,
+      "wer": 0.0,
+      "diffs": []
+     },
+     "flags": []
+    },
+    {
+     "id": "cycle",
+     "text": "That was one complete lithography cycle. Every patterned layer of a chip goes through the same loop, each with its own reticle.",
+     "startMs": 4290,
+     "endMs": 12260,
+     "audioText": "That was one complete [lithography] cycle. Every patterned layer of a chip goes through the same loop, each with its own [reticle].",
+     "phonemes": "ðˈat wɒz wˈʌn kəmplˈiːt lɪθˈɒɡɹəfi sˈIkᵊl. ˈɛvəɹi pˈatᵊnd lˈAə ɒv ɐ ʧˈɪp ɡˈQz θɹuː ðə sˈAm lˈuːp, ˈiːʧ wɪð ɪts ˈQn ɹˈɛtɪkᵊl.",
+     "dictionary": [
+      "lithography",
+      "reticle"
+     ],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 124,
+     "chunks": 1,
+     "synthS": 3.322,
+     "cached": false,
+     "modelLeadS": 0.28,
+     "modelTailS": 0.495,
+     "pauses": [
+      {
+       "mark": ".",
+       "pauseS": 0.175,
+       "depthDb": -69.8,
+       "t": 2.71
+      },
+      {
+       "mark": ",",
+       "pauseS": 0.15,
+       "depthDb": -68.8,
+       "t": 6.21
+      }
+     ],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 7.97,
+      "peakDbfs": -2.61,
+      "clippedSamples": 0,
+      "dcOffset": -0.00022,
+      "leadingSilenceS": 0.05,
+      "trailingSilenceS": 0.1,
+      "longestInternalSilenceS": 0.44,
+      "pauses": [
+       [
+        2.4,
+        0.44
+       ],
+       [
+        4.45,
+        0.21
+       ],
+       [
+        5.95,
+        0.37
+       ]
+      ],
+      "speechSpanS": 7.82,
+      "f0MedianHz": 141.6,
+      "f0RangeSemitones": 6.5,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.36,
+      "burstDb": 5.2,
+      "burstAtS": 0.2,
+      "onsetBurstDb": 5.2,
+      "spikes": 0,
+      "hfShareDb": -28.2,
+      "words": 22,
+      "wpm": 165.6,
+      "speechWpm": 168.8,
+      "rawPeakDbfs": -6.21,
+      "phonemesPerS": 10.36
+     },
+     "asr": {
+      "hypothesis": "That was one complete lethography cycle. Every patterned layer of a chip goes through the same loop, each with its own reticle.",
+      "reference": "that was one complete lithography cycle every patterned layer of a chip goes through the same loop each with its own reticle",
+      "errors": 1,
+      "refWords": 22,
+      "wer": 0.045,
+      "diffs": [
+       [
+        "lithography",
+        "lethography"
+       ]
+      ]
+     },
+     "flags": []
+    }
+   ]
+  },
+  {
+   "id": "sd",
+   "file": "sd.mp3",
+   "durationMs": 17410,
+   "loudness": {
+    "inputLufs": -21.7,
+    "inputTruePeakDb": -4.2,
+    "gainDb": 2.7,
+    "outputLufs": -19.0,
+    "outputTruePeakDb": -1.5
+   },
+   "encoded": {
+    "bytes": 139968,
+    "decodedSamples": 417840,
+    "sourceSamples": 417840,
+    "durationMs": 17410,
+    "lagSamples": 0,
+    "lengthMatches": true,
+    "gapless": {
+     "xingTag": true,
+     "tag": "Info",
+     "frames": 728,
+     "bytes": 139968,
+     "encoder": "Lavf lame",
+     "encoderDelaySamples": 576,
+     "paddingSamples": 912
+    },
+    "decodedPeakDbfs": -2.04
+   },
+   "decodedPeakDbfs": -2.04,
+   "flags": [],
+   "cues": [
+    {
+     "id": "repeat",
+     "text": "The loop runs twice more, to implant the sources and drains: arsenic for one transistor, boron for the other.",
+     "startMs": 200,
+     "endMs": 7350,
+     "audioText": "The loop runs twice more, to [implant] the sources and drains: arsenic for one transistor, boron for the other.",
+     "phonemes": "ðə lˈuːp ɹˈʌnz twˈIs mˈɔː, tʊ ɪmplˈɑːnt ðə sˈɔːsɪz and dɹˈAnz: ˈɑːsᵊnɪk fɔː wˈʌn tɹanzˈɪstə, bˈɔːɹɒn fɔː ði ˈʌðə.",
+     "dictionary": [
+      "implant"
+     ],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 113,
+     "chunks": 1,
+     "synthS": 3.134,
+     "cached": false,
+     "modelLeadS": 0.27,
+     "modelTailS": 0.525,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.125,
+       "depthDb": -68.6,
+       "t": 1.595
+      },
+      {
+       "mark": ":",
+       "pauseS": 0.175,
+       "depthDb": -69.0,
+       "t": 3.945
+      },
+      {
+       "mark": ",",
+       "pauseS": 0.175,
+       "depthDb": -68.7,
+       "t": 5.87
+      }
+     ],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 7.15,
+      "peakDbfs": -1.65,
+      "clippedSamples": 0,
+      "dcOffset": -0.0002,
+      "leadingSilenceS": 0.05,
+      "trailingSilenceS": 0.1,
+      "longestInternalSilenceS": 0.44,
+      "pauses": [
+       [
+        1.43,
+        0.25
+       ],
+       [
+        3.62,
+        0.44
+       ],
+       [
+        5.71,
+        0.27
+       ]
+      ],
+      "speechSpanS": 7.0,
+      "f0MedianHz": 141.7,
+      "f0RangeSemitones": 9.2,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.368,
+      "burstDb": 6.6,
+      "burstAtS": 0.15,
+      "onsetBurstDb": 6.6,
+      "spikes": 0,
+      "hfShareDb": -27.9,
+      "words": 19,
+      "wpm": 159.4,
+      "speechWpm": 162.9,
+      "rawPeakDbfs": -4.35,
+      "phonemesPerS": 10.14
+     },
+     "asr": {
+      "hypothesis": "The loop runs twice more to implant the sources and drains, arsenic for one transistor, boron for the other.",
+      "reference": "the loop runs twice more to implant the sources drains arsenic for one transistor boron for the other",
+      "errors": 0,
+      "refWords": 18,
+      "wer": 0.0,
+      "diffs": []
+     },
+     "flags": []
+    },
+    {
+     "id": "self",
+     "text": "The gates themselves block the ions, so every source and drain lines up perfectly with its gate.",
+     "startMs": 7700,
+     "endMs": 13870,
+     "audioText": "The gates themselves block the ions, so every source and drain lines up perfectly with its gate.",
+     "phonemes": "ðə ɡˈAts ðəmsˈɛlvz blˈɒk ði ˈIənz, sˌQ ˈɛvəɹi sˈɔːs and dɹˈAn lˈInz ˌʌp pˈɜːfɪktli wɪð ɪts ɡˈAt.",
+     "dictionary": [],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 96,
+     "chunks": 1,
+     "synthS": 4.071,
+     "cached": false,
+     "modelLeadS": 0.27,
+     "modelTailS": 0.53,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.15,
+       "depthDb": -68.6,
+       "t": 2.345
+      }
+     ],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 6.17,
+      "peakDbfs": -1.77,
+      "clippedSamples": 0,
+      "dcOffset": -0.00019,
+      "leadingSilenceS": 0.05,
+      "trailingSilenceS": 0.1,
+      "longestInternalSilenceS": 0.35,
+      "pauses": [
+       [
+        2.07,
+        0.35
+       ],
+       [
+        3.97,
+        0.18
+       ]
+      ],
+      "speechSpanS": 6.02,
+      "f0MedianHz": 139.7,
+      "f0RangeSemitones": 9.3,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.355,
+      "burstDb": 6.9,
+      "burstAtS": 2.5,
+      "onsetBurstDb": 5.8,
+      "spikes": 0,
+      "hfShareDb": -27.7,
+      "words": 17,
+      "wpm": 165.3,
+      "speechWpm": 169.4,
+      "rawPeakDbfs": -4.47,
+      "phonemesPerS": 10.63
+     },
+     "asr": {
+      "hypothesis": "The gates themselves block the irons, so every source and drain lines up perfectly with its gate.",
+      "reference": "the gates themselves block the ions so every source drain lines up perfectly with its gate",
+      "errors": 1,
+      "refWords": 16,
+      "wer": 0.062,
+      "diffs": [
+       [
+        "ions",
+        "irons"
+       ]
+      ]
+     },
+     "flags": []
+    },
+    {
+     "id": "done",
+     "text": "Our two transistors are complete.",
+     "startMs": 14220,
+     "endMs": 16810,
+     "audioText": "Our two transistors are complete.",
+     "phonemes": "ˌWə tˈuː tɹanzˈɪstəz ɑː kəmplˈiːt.",
+     "dictionary": [],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 34,
+     "chunks": 1,
+     "synthS": 2.09,
+     "cached": false,
+     "modelLeadS": 0.26,
+     "modelTailS": 0.47,
+     "pauses": [],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 2.59,
+      "peakDbfs": -3.0,
+      "clippedSamples": 0,
+      "dcOffset": -0.0003,
+      "leadingSilenceS": 0.04,
+      "trailingSilenceS": 0.1,
+      "longestInternalSilenceS": 0.22,
+      "pauses": [
+       [
+        1.38,
+        0.22
+       ]
+      ],
+      "speechSpanS": 2.45,
+      "f0MedianHz": 144.2,
+      "f0RangeSemitones": 9.2,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.332,
+      "burstDb": 4.2,
+      "burstAtS": 1.85,
+      "onsetBurstDb": 3.7,
+      "spikes": 0,
+      "hfShareDb": -29.6,
+      "words": 5,
+      "wpm": 115.8,
+      "speechWpm": 122.4,
+      "rawPeakDbfs": -5.7,
+      "phonemesPerS": 8.98
+     },
+     "asr": {
+      "hypothesis": "Our two transistors are complete.",
+      "reference": "our two transistors are complete",
+      "errors": 0,
+      "refWords": 5,
+      "wer": 0.0,
+      "diffs": []
+     },
+     "flags": [
+      "rate-outlier"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "pmd",
+   "file": "pmd.mp3",
+   "durationMs": 8510,
+   "loudness": {
+    "inputLufs": -21.5,
+    "inputTruePeakDb": -6.1,
+    "gainDb": 3.5,
+    "outputLufs": -18.0,
+    "outputTruePeakDb": -2.6
+   },
+   "encoded": {
+    "bytes": 68736,
+    "decodedSamples": 204240,
+    "sourceSamples": 204240,
+    "durationMs": 8510,
+    "lagSamples": 0,
+    "lengthMatches": true,
+    "gapless": {
+     "xingTag": true,
+     "tag": "Info",
+     "frames": 357,
+     "bytes": 68736,
+     "encoder": "Lavf lame",
+     "encoderDelaySamples": 576,
+     "paddingSamples": 816
+    },
+    "decodedPeakDbfs": -3.1
+   },
+   "decodedPeakDbfs": -3.1,
+   "flags": [],
+   "cues": [
+    {
+     "id": "wire",
+     "text": "Now they must be wired together.",
+     "startMs": 300,
+     "endMs": 2410,
+     "audioText": "Now they must be wired together.",
+     "phonemes": "nˈW ðA mˈʌst biː wˈIəd təɡˈɛðə.",
+     "dictionary": [],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 31,
+     "chunks": 1,
+     "synthS": 1.578,
+     "cached": false,
+     "modelLeadS": 0.26,
+     "modelTailS": 0.5,
+     "pauses": [],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 2.11,
+      "peakDbfs": -4.07,
+      "clippedSamples": 0,
+      "dcOffset": -0.00036,
+      "leadingSilenceS": 0.05,
+      "trailingSilenceS": 0.1,
+      "longestInternalSilenceS": 0.09,
+      "pauses": [],
+      "speechSpanS": 1.96,
+      "f0MedianHz": 146.5,
+      "f0RangeSemitones": 7.5,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.514,
+      "burstDb": 4.6,
+      "burstAtS": 0.05,
+      "onsetBurstDb": 4.6,
+      "spikes": 0,
+      "hfShareDb": -28.9,
+      "words": 6,
+      "wpm": 170.6,
+      "speechWpm": 183.7,
+      "rawPeakDbfs": -7.57,
+      "phonemesPerS": 10.2
+     },
+     "asr": {
+      "hypothesis": "Now they must be wired together.",
+      "reference": "now they must be wired together",
+      "errors": 0,
+      "refWords": 6,
+      "wer": 0.0,
+      "diffs": []
+     },
+     "flags": []
+    },
+    {
+     "id": "bury",
+     "text": "First, a thick layer of insulating oxide buries them, polished perfectly flat.",
+     "startMs": 2710,
+     "endMs": 7910,
+     "audioText": "First, a thick layer of insulating oxide buries them, polished perfectly flat.",
+     "phonemes": "fˈɜːst, ɐ θˈɪk lˈAə ɒv ˈɪnsjuːlˌAtɪŋ ˈɒksId bˈɛɹiz ðˌɛm, pˈɒlɪʃt pˈɜːfɪktli flˈat.",
+     "dictionary": [],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 82,
+     "chunks": 1,
+     "synthS": 3.216,
+     "cached": false,
+     "modelLeadS": 0.26,
+     "modelTailS": 0.51,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.1,
+       "depthDb": -20.7,
+       "t": 0.53
+      },
+      {
+       "mark": ",",
+       "pauseS": 0.125,
+       "depthDb": -68.5,
+       "t": 3.555
+      }
+     ],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 5.2,
+      "peakDbfs": -2.63,
+      "clippedSamples": 0,
+      "dcOffset": -0.00025,
+      "leadingSilenceS": 0.05,
+      "trailingSilenceS": 0.1,
+      "longestInternalSilenceS": 0.32,
+      "pauses": [
+       [
+        3.34,
+        0.32
+       ]
+      ],
+      "speechSpanS": 5.05,
+      "f0MedianHz": 139.4,
+      "f0RangeSemitones": 8.6,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.408,
+      "burstDb": 6.5,
+      "burstAtS": 0.1,
+      "onsetBurstDb": 6.5,
+      "spikes": 0,
+      "hfShareDb": -29.2,
+      "words": 12,
+      "wpm": 138.5,
+      "speechWpm": 142.6,
+      "rawPeakDbfs": -6.13,
+      "phonemesPerS": 10.69
+     },
+     "asr": {
+      "hypothesis": "First, a thick layer of insulating oxide berries them polished perfectly flat.",
+      "reference": "first a thick layer of insulating oxide buries them polished perfectly flat",
+      "errors": 1,
+      "refWords": 12,
+      "wer": 0.083,
+      "diffs": [
+       [
+        "buries",
+        "berries"
+       ]
+      ]
+     },
+     "flags": []
+    }
+   ]
+  },
+  {
+   "id": "contact-align",
+   "file": "contact-align.mp3",
+   "durationMs": 10690,
+   "loudness": {
+    "inputLufs": -21.6,
+    "inputTruePeakDb": -5.2,
+    "gainDb": 3.6,
+    "outputLufs": -18.0,
+    "outputTruePeakDb": -1.6
+   },
+   "encoded": {
+    "bytes": 86208,
+    "decodedSamples": 256560,
+    "sourceSamples": 256560,
+    "durationMs": 10690,
+    "lagSamples": 0,
+    "lengthMatches": true,
+    "gapless": {
+     "xingTag": true,
+     "tag": "Info",
+     "frames": 448,
+     "bytes": 86208,
+     "encoder": "Lavf lame",
+     "encoderDelaySamples": 576,
+     "paddingSamples": 912
+    },
+    "decodedPeakDbfs": -2.1
+   },
+   "decodedPeakDbfs": -2.1,
+   "flags": [],
+   "cues": [
+    {
+     "id": "align",
+     "text": "Another coat of resist, and the contact reticle is aligned to the gates beneath.",
+     "startMs": 200,
+     "endMs": 5510,
+     "audioText": "Another coat of [resist], and the contact [reticle] is aligned to the gates beneath.",
+     "phonemes": "ənˈʌðə kˈQt ɒv ɹɪzˈɪst, and ðə kˈɒntakt ɹˈɛtɪkᵊl ɪz əlˈInd tə ðə ɡˈAts bɪnˈiːθ.",
+     "dictionary": [
+      "resist",
+      "reticle"
+     ],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 79,
+     "chunks": 1,
+     "synthS": 2.717,
+     "cached": false,
+     "modelLeadS": 0.26,
+     "modelTailS": 0.475,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.125,
+       "depthDb": -68.8,
+       "t": 1.705
+      }
+     ],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 5.31,
+      "peakDbfs": -3.86,
+      "clippedSamples": 0,
+      "dcOffset": -0.0003,
+      "leadingSilenceS": 0.04,
+      "trailingSilenceS": 0.1,
+      "longestInternalSilenceS": 0.33,
+      "pauses": [
+       [
+        1.45,
+        0.33
+       ],
+       [
+        3.12,
+        0.26
+       ]
+      ],
+      "speechSpanS": 5.17,
+      "f0MedianHz": 139.9,
+      "f0RangeSemitones": 8.1,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.381,
+      "burstDb": 5.9,
+      "burstAtS": 0.1,
+      "onsetBurstDb": 5.9,
+      "spikes": 0,
+      "hfShareDb": -29.1,
+      "words": 14,
+      "wpm": 158.2,
+      "speechWpm": 162.5,
+      "rawPeakDbfs": -7.46,
+      "phonemesPerS": 10.64
+     },
+     "asr": {
+      "hypothesis": "Another coat of resist and the contact reticle is aligned to the gate's beneath.",
+      "reference": "another coat of resist the contact reticle is aligned to the gates beneath",
+      "errors": 0,
+      "refWords": 13,
+      "wer": 0.0,
+      "diffs": []
+     },
+     "flags": []
+    },
+    {
+     "id": "drift",
+     "text": "If it drifts too far, a contact could land on the wrong terminal.",
+     "startMs": 5860,
+     "endMs": 10090,
+     "audioText": "If it drifts too far, a contact could land on the wrong terminal.",
+     "phonemes": "ˌɪf ɪt dɹˈɪfts tˈuː fˈɑː, ɐ kˈɒntakt kʊd lˈand ˌɒn ðə ɹˈɒŋ tˈɜːmɪnᵊl.",
+     "dictionary": [],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 69,
+     "chunks": 1,
+     "synthS": 1.705,
+     "cached": false,
+     "modelLeadS": 0.27,
+     "modelTailS": 0.52,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.15,
+       "depthDb": -69.2,
+       "t": 1.595
+      }
+     ],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 4.23,
+      "peakDbfs": -1.66,
+      "clippedSamples": 0,
+      "dcOffset": -0.00028,
+      "leadingSilenceS": 0.04,
+      "trailingSilenceS": 0.1,
+      "longestInternalSilenceS": 0.33,
+      "pauses": [
+       [
+        1.37,
+        0.33
+       ]
+      ],
+      "speechSpanS": 4.09,
+      "f0MedianHz": 138.3,
+      "f0RangeSemitones": 8.7,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.381,
+      "burstDb": 5.9,
+      "burstAtS": 2.45,
+      "onsetBurstDb": 5.5,
+      "spikes": 0,
+      "hfShareDb": -29.3,
+      "words": 13,
+      "wpm": 184.4,
+      "speechWpm": 190.7,
+      "rawPeakDbfs": -5.26,
+      "phonemesPerS": 10.51
+     },
+     "asr": {
+      "hypothesis": "If it drifts too far, a contact could land on the wrong terminal.",
+      "reference": "if it drifts too far a contact could land on the wrong terminal",
+      "errors": 0,
+      "refWords": 13,
+      "wer": 0.0,
+      "diffs": []
+     },
+     "flags": []
+    }
+   ]
+  },
+  {
+   "id": "contact-print",
+   "file": "contact-print.mp3",
+   "durationMs": 7320,
+   "loudness": {
+    "inputLufs": -21.4,
+    "inputTruePeakDb": -5.6,
+    "gainDb": 3.4,
+    "outputLufs": -18.0,
+    "outputTruePeakDb": -2.2
+   },
+   "encoded": {
+    "bytes": 59136,
+    "decodedSamples": 175680,
+    "sourceSamples": 175680,
+    "durationMs": 7320,
+    "lagSamples": 0,
+    "lengthMatches": true,
+    "gapless": {
+     "xingTag": true,
+     "tag": "Info",
+     "frames": 307,
+     "bytes": 59136,
+     "encoder": "Lavf lame",
+     "encoderDelaySamples": 576,
+     "paddingSamples": 576
+    },
+    "decodedPeakDbfs": -2.64
+   },
+   "decodedPeakDbfs": -2.64,
+   "flags": [],
+   "cues": [
+    {
+     "id": "print",
+     "text": "The contact holes are printed into the resist, and their position is checked before anything is etched.",
+     "startMs": 200,
+     "endMs": 6520,
+     "audioText": "The contact holes are printed into the [resist], and their position is checked before anything is etched.",
+     "phonemes": "ðə kˈɒntakt hˈQlz ɑː pɹˈɪntɪd ˈɪntuː ðə ɹɪzˈɪst, and ðɛː pəzˈɪʃᵊn ɪz ʧˈɛkt bɪfˈɔː ˈɛnɪθɪŋ ɪz ˈɛʧt.",
+     "dictionary": [
+      "resist"
+     ],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 98,
+     "chunks": 1,
+     "synthS": 2.607,
+     "cached": false,
+     "modelLeadS": 0.27,
+     "modelTailS": 0.48,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.125,
+       "depthDb": -68.9,
+       "t": 2.995
+      }
+     ],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 6.32,
+      "peakDbfs": -2.17,
+      "clippedSamples": 0,
+      "dcOffset": -0.00028,
+      "leadingSilenceS": 0.05,
+      "trailingSilenceS": 0.11,
+      "longestInternalSilenceS": 0.41,
+      "pauses": [
+       [
+        2.66,
+        0.41
+       ],
+       [
+        4.5,
+        0.23
+       ]
+      ],
+      "speechSpanS": 6.16,
+      "f0MedianHz": 141.2,
+      "f0RangeSemitones": 7.5,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.337,
+      "burstDb": 6.6,
+      "burstAtS": 0.2,
+      "onsetBurstDb": 6.6,
+      "spikes": 0,
+      "hfShareDb": -29.8,
+      "words": 17,
+      "wpm": 161.4,
+      "speechWpm": 165.6,
+      "rawPeakDbfs": -5.57,
+      "phonemesPerS": 10.71
+     },
+     "asr": {
+      "hypothesis": "The contact holes are printed into the resist, and their position is checked before anything is etched.",
+      "reference": "the contact holes are printed into the resist their position is checked before anything is etched",
+      "errors": 0,
+      "refWords": 16,
+      "wer": 0.0,
+      "diffs": []
+     },
+     "flags": []
+    }
+   ]
+  },
+  {
+   "id": "contact-etch",
+   "file": "contact-etch.mp3",
+   "durationMs": 7670,
+   "loudness": {
+    "inputLufs": -21.8,
+    "inputTruePeakDb": -4.2,
+    "gainDb": 2.7,
+    "outputLufs": -19.1,
+    "outputTruePeakDb": -1.5
+   },
+   "encoded": {
+    "bytes": 62016,
+    "decodedSamples": 184080,
+    "sourceSamples": 184080,
+    "durationMs": 7670,
+    "lagSamples": 0,
+    "lengthMatches": true,
+    "gapless": {
+     "xingTag": true,
+     "tag": "Info",
+     "frames": 322,
+     "bytes": 62016,
+     "encoder": "Lavf lame",
+     "encoderDelaySamples": 576,
+     "paddingSamples": 816
+    },
+    "decodedPeakDbfs": -1.94
+   },
+   "decodedPeakDbfs": -1.94,
+   "flags": [],
+   "cues": [
+    {
+     "id": "etch",
+     "text": "Then the plasma cuts narrow holes down through the oxide, stopping on the silicon and polysilicon below.",
+     "startMs": 200,
+     "endMs": 6870,
+     "audioText": "Then the [plasma] cuts narrow holes down through the oxide, stopping on the silicon and [polysilicon] below.",
+     "phonemes": "ðˈɛn ðə plˈazmə kˈʌts nˈaɹQ hˈQlz dˌWn θɹuː ði ˈɒksId, stˈɒpɪŋ ˌɒn ðə sˈɪlɪkᵊn and pˌɒlisˈɪlɪkᵊn bɪlˈQ.",
+     "dictionary": [
+      "plasma",
+      "polysilicon"
+     ],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 103,
+     "chunks": 1,
+     "synthS": 2.795,
+     "cached": false,
+     "modelLeadS": 0.28,
+     "modelTailS": 0.52,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.175,
+       "depthDb": -68.9,
+       "t": 3.585
+      }
+     ],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 6.67,
+      "peakDbfs": -1.56,
+      "clippedSamples": 0,
+      "dcOffset": -0.00017,
+      "leadingSilenceS": 0.04,
+      "trailingSilenceS": 0.1,
+      "longestInternalSilenceS": 0.38,
+      "pauses": [
+       [
+        3.3,
+        0.38
+       ],
+       [
+        4.87,
+        0.27
+       ]
+      ],
+      "speechSpanS": 6.53,
+      "f0MedianHz": 139.3,
+      "f0RangeSemitones": 7.5,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.383,
+      "burstDb": 6.2,
+      "burstAtS": 0.05,
+      "onsetBurstDb": 6.2,
+      "spikes": 0,
+      "hfShareDb": -28.2,
+      "words": 17,
+      "wpm": 152.9,
+      "speechWpm": 156.2,
+      "rawPeakDbfs": -4.26,
+      "phonemesPerS": 10.87
+     },
+     "asr": {
+      "hypothesis": "Then the plasma cuts narrow holes down through the oxide, stopping on the silicon and polysilicon below.",
+      "reference": "then the plasma cuts narrow holes down through the oxide stopping on the silicon polysilicon below",
+      "errors": 0,
+      "refWords": 16,
+      "wer": 0.0,
+      "diffs": []
+     },
+     "flags": []
+    }
+   ]
+  },
+  {
+   "id": "contact-fill",
+   "file": "contact-fill.mp3",
+   "durationMs": 8600,
+   "loudness": {
+    "inputLufs": -21.5,
+    "inputTruePeakDb": -5.4,
+    "gainDb": 3.5,
+    "outputLufs": -18.0,
+    "outputTruePeakDb": -1.9
+   },
+   "encoded": {
+    "bytes": 69504,
+    "decodedSamples": 206400,
+    "sourceSamples": 206400,
+    "durationMs": 8600,
+    "lagSamples": 0,
+    "lengthMatches": true,
+    "gapless": {
+     "xingTag": true,
+     "tag": "Info",
+     "frames": 361,
+     "bytes": 69504,
+     "encoder": "Lavf lame",
+     "encoderDelaySamples": 576,
+     "paddingSamples": 960
+    },
+    "decodedPeakDbfs": -2.57
+   },
+   "decodedPeakDbfs": -2.57,
+   "flags": [],
+   "cues": [
+    {
+     "id": "tungsten",
+     "text": "Tungsten fills the holes.",
+     "startMs": 200,
+     "endMs": 2200,
+     "audioText": "Tungsten fills the holes.",
+     "phonemes": "tˈʌŋstən fˈɪlz ðə hˈQlz.",
+     "dictionary": [],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 24,
+     "chunks": 1,
+     "synthS": 1.051,
+     "cached": false,
+     "modelLeadS": 0.26,
+     "modelTailS": 0.485,
+     "pauses": [],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 2.0,
+      "peakDbfs": -2.18,
+      "clippedSamples": 0,
+      "dcOffset": -0.00021,
+      "leadingSilenceS": 0.04,
+      "trailingSilenceS": 0.1,
+      "longestInternalSilenceS": 0.08,
+      "pauses": [],
+      "speechSpanS": 1.86,
+      "f0MedianHz": 153.9,
+      "f0RangeSemitones": 8.2,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.365,
+      "burstDb": 5.1,
+      "burstAtS": 0.1,
+      "onsetBurstDb": 5.1,
+      "spikes": 0,
+      "hfShareDb": -29.7,
+      "words": 4,
+      "wpm": 120.0,
+      "speechWpm": 129.0,
+      "rawPeakDbfs": -5.68,
+      "phonemesPerS": 9.14
+     },
+     "asr": {
+      "hypothesis": "Tungsten fills the holes.",
+      "reference": "tungsten fills the holes",
+      "errors": 0,
+      "refWords": 4,
+      "wer": 0.0,
+      "diffs": []
+     },
+     "flags": []
+    },
+    {
+     "id": "plugs",
+     "text": "Polishing removes everything above the oxide, leaving a metal plug in each one.",
+     "startMs": 2550,
+     "endMs": 8000,
+     "audioText": "Polishing removes everything above the oxide, leaving a metal plug in each one.",
+     "phonemes": "pˈɒlɪʃɪŋ ɹɪmˈuːvz ˈɛvɹɪθɪŋ əbˈʌv ði ˈɒksId, lˈiːvɪŋ ɐ mˈɛtᵊl plˈʌɡ ɪn ˈiːʧ wˈʌn.",
+     "dictionary": [],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 80,
+     "chunks": 1,
+     "synthS": 2.275,
+     "cached": false,
+     "modelLeadS": 0.27,
+     "modelTailS": 0.5,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.15,
+       "depthDb": -68.8,
+       "t": 3.02
+      }
+     ],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 5.45,
+      "peakDbfs": -3.48,
+      "clippedSamples": 0,
+      "dcOffset": -0.00026,
+      "leadingSilenceS": 0.05,
+      "trailingSilenceS": 0.1,
+      "longestInternalSilenceS": 0.39,
+      "pauses": [
+       [
+        2.73,
+        0.39
+       ],
+       [
+        4.33,
+        0.21
+       ]
+      ],
+      "speechSpanS": 5.3,
+      "f0MedianHz": 144.2,
+      "f0RangeSemitones": 7.7,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.36,
+      "burstDb": 6.9,
+      "burstAtS": 3.15,
+      "onsetBurstDb": 4.7,
+      "spikes": 0,
+      "hfShareDb": -29.3,
+      "words": 13,
+      "wpm": 143.1,
+      "speechWpm": 147.2,
+      "rawPeakDbfs": -6.98,
+      "phonemesPerS": 10.0
+     },
+     "asr": {
+      "hypothesis": "Polishing removes everything above the oxide, leaving a metal plug in each one.",
+      "reference": "polishing removes everything above the oxide leaving a metal plug in each one",
+      "errors": 0,
+      "refWords": 13,
+      "wer": 0.0,
+      "diffs": []
+     },
+     "flags": []
+    }
+   ]
+  },
+  {
+   "id": "metal1",
+   "file": "metal1.mp3",
+   "durationMs": 16600,
+   "loudness": {
+    "inputLufs": -21.6,
+    "inputTruePeakDb": -3.6,
+    "gainDb": 2.1,
+    "outputLufs": -19.5,
+    "outputTruePeakDb": -1.5
+   },
+   "encoded": {
+    "bytes": 133440,
+    "decodedSamples": 398400,
+    "sourceSamples": 398400,
+    "durationMs": 16600,
+    "lagSamples": 0,
+    "lengthMatches": true,
+    "gapless": {
+     "xingTag": true,
+     "tag": "Info",
+     "frames": 694,
+     "bytes": 133440,
+     "encoder": "Lavf lame",
+     "encoderDelaySamples": 576,
+     "paddingSamples": 768
+    },
+    "decodedPeakDbfs": -2.03
+   },
+   "decodedPeakDbfs": -2.03,
+   "flags": [],
+   "cues": [
+    {
+     "id": "same",
+     "text": "The first level of copper wiring is built the same way.",
+     "startMs": 200,
+     "endMs": 3720,
+     "audioText": "The first level of copper wiring is built the same way.",
+     "phonemes": "ðə fˈɜːst lˈɛvᵊl ɒv kˈɒpə wˈIəɹɪŋ ɪz bˈɪlt ðə sˈAm wˈA.",
+     "dictionary": [],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 55,
+     "chunks": 1,
+     "synthS": 1.547,
+     "cached": false,
+     "modelLeadS": 0.27,
+     "modelTailS": 0.48,
+     "pauses": [],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 3.52,
+      "peakDbfs": -3.94,
+      "clippedSamples": 0,
+      "dcOffset": -0.0002,
+      "leadingSilenceS": 0.04,
+      "trailingSilenceS": 0.11,
+      "longestInternalSilenceS": 0.27,
+      "pauses": [
+       [
+        1.8,
+        0.27
+       ]
+      ],
+      "speechSpanS": 3.37,
+      "f0MedianHz": 139.8,
+      "f0RangeSemitones": 10.1,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.335,
+      "burstDb": 5.1,
+      "burstAtS": 2.1,
+      "onsetBurstDb": 4.9,
+      "spikes": 0,
+      "hfShareDb": -27.6,
+      "words": 11,
+      "wpm": 187.5,
+      "speechWpm": 195.8,
+      "rawPeakDbfs": -6.04,
+      "phonemesPerS": 10.68
+     },
+     "asr": {
+      "hypothesis": "The first level of copper wiring is built the same way.",
+      "reference": "the first level of copper wiring is built the same way",
+      "errors": 0,
+      "refWords": 11,
+      "wer": 0.0,
+      "diffs": []
+     },
+     "flags": []
+    },
+    {
+     "id": "damascene",
+     "text": "Trenches are etched into a fresh insulating layer, filled with copper and polished flat.",
+     "startMs": 4070,
+     "endMs": 9880,
+     "audioText": "Trenches are etched into a fresh insulating layer, filled with copper and polished flat.",
+     "phonemes": "tɹˈɛnʧɪz ɑː ˈɛʧt ˈɪntuː ɐ fɹˈɛʃ ˈɪnsjuːlˌAtɪŋ lˈAə, fˈɪld wɪð kˈɒpə and pˈɒlɪʃt flˈat.",
+     "dictionary": [],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 86,
+     "chunks": 1,
+     "synthS": 2.456,
+     "cached": false,
+     "modelLeadS": 0.26,
+     "modelTailS": 0.5,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.175,
+       "depthDb": -68.6,
+       "t": 3.28
+      }
+     ],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 5.81,
+      "peakDbfs": -1.57,
+      "clippedSamples": 0,
+      "dcOffset": -0.00021,
+      "leadingSilenceS": 0.04,
+      "trailingSilenceS": 0.12,
+      "longestInternalSilenceS": 0.35,
+      "pauses": [
+       [
+        3.04,
+        0.35
+       ],
+       [
+        4.36,
+        0.27
+       ]
+      ],
+      "speechSpanS": 5.65,
+      "f0MedianHz": 142.5,
+      "f0RangeSemitones": 7.1,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.339,
+      "burstDb": 6.5,
+      "burstAtS": 0.1,
+      "onsetBurstDb": 6.5,
+      "spikes": 0,
+      "hfShareDb": -30.4,
+      "words": 14,
+      "wpm": 144.6,
+      "speechWpm": 148.7,
+      "rawPeakDbfs": -3.67,
+      "phonemesPerS": 10.09
+     },
+     "asr": {
+      "hypothesis": "Trenches are etched into a fresh insulating layer, filled with copper and polished flat.",
+      "reference": "trenches are etched into a fresh insulating layer filled with copper polished flat",
+      "errors": 0,
+      "refWords": 13,
+      "wer": 0.0,
+      "diffs": []
+     },
+     "flags": []
+    },
+    {
+     "id": "join",
+     "text": "These wires join the two transistors into one circuit, and bring in power and ground.",
+     "startMs": 10230,
+     "endMs": 16000,
+     "audioText": "These wires join the two transistors into one circuit, and bring in power and ground.",
+     "phonemes": "ðˌiːz wˈIəz ʤˈYn ðə tˈuː tɹanzˈɪstəz ˈɪntuː wˈʌn sˈɜːkɪt, and bɹˈɪŋ ɪn pˈWə and ɡɹˈWnd.",
+     "dictionary": [],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 87,
+     "chunks": 1,
+     "synthS": 2.611,
+     "cached": false,
+     "modelLeadS": 0.28,
+     "modelTailS": 0.545,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.125,
+       "depthDb": -69.2,
+       "t": 3.71
+      }
+     ],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 5.77,
+      "peakDbfs": -3.48,
+      "clippedSamples": 0,
+      "dcOffset": -0.00028,
+      "leadingSilenceS": 0.05,
+      "trailingSilenceS": 0.1,
+      "longestInternalSilenceS": 0.39,
+      "pauses": [
+       [
+        3.4,
+        0.39
+       ],
+       [
+        4.81,
+        0.15
+       ]
+      ],
+      "speechSpanS": 5.62,
+      "f0MedianHz": 141.3,
+      "f0RangeSemitones": 6.9,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.401,
+      "burstDb": 6.1,
+      "burstAtS": 0.05,
+      "onsetBurstDb": 6.1,
+      "spikes": 0,
+      "hfShareDb": -28.4,
+      "words": 15,
+      "wpm": 156.0,
+      "speechWpm": 160.1,
+      "rawPeakDbfs": -5.58,
+      "phonemesPerS": 9.96
+     },
+     "asr": {
+      "hypothesis": "These wires join the two transistors into one circuit and bring in power and ground.",
+      "reference": "these wires join the two transistors into one circuit bring in power ground",
+      "errors": 0,
+      "refWords": 13,
+      "wer": 0.0,
+      "diffs": []
+     },
+     "flags": []
+    }
+   ]
+  },
+  {
+   "id": "metal2",
+   "file": "metal2.mp3",
+   "durationMs": 9920,
+   "loudness": {
+    "inputLufs": -21.2,
+    "inputTruePeakDb": -4.5,
+    "gainDb": 3.0,
+    "outputLufs": -18.2,
+    "outputTruePeakDb": -1.5
+   },
+   "encoded": {
+    "bytes": 80064,
+    "decodedSamples": 238080,
+    "sourceSamples": 238080,
+    "durationMs": 9920,
+    "lagSamples": 0,
+    "lengthMatches": true,
+    "gapless": {
+     "xingTag": true,
+     "tag": "Info",
+     "frames": 416,
+     "bytes": 80064,
+     "encoder": "Lavf lame",
+     "encoderDelaySamples": 576,
+     "paddingSamples": 960
+    },
+    "decodedPeakDbfs": -1.87
+   },
+   "decodedPeakDbfs": -1.87,
+   "flags": [],
+   "cues": [
+    {
+     "id": "second",
+     "text": "A second level goes on top, connected to the first through small vias.",
+     "startMs": 200,
+     "endMs": 4920,
+     "audioText": "A second level goes on top, connected to the first through small vias.",
+     "phonemes": "ɐ sˈɛkᵊnd lˈɛvᵊl ɡˈQz ˌɒn tˈɒp, kənˈɛktɪd tə ðə fˈɜːst θɹuː smˈɔːl vˈIəz.",
+     "dictionary": [],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 73,
+     "chunks": 1,
+     "synthS": 1.93,
+     "cached": false,
+     "modelLeadS": 0.25,
+     "modelTailS": 0.5,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.125,
+       "depthDb": -69.0,
+       "t": 1.965
+      }
+     ],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 4.72,
+      "peakDbfs": -1.49,
+      "clippedSamples": 0,
+      "dcOffset": -0.00023,
+      "leadingSilenceS": 0.05,
+      "trailingSilenceS": 0.11,
+      "longestInternalSilenceS": 0.31,
+      "pauses": [
+       [
+        1.74,
+        0.31
+       ],
+       [
+        3.25,
+        0.19
+       ]
+      ],
+      "speechSpanS": 4.56,
+      "f0MedianHz": 143.2,
+      "f0RangeSemitones": 6.6,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.371,
+      "burstDb": 6.8,
+      "burstAtS": 2.1,
+      "onsetBurstDb": 2.6,
+      "spikes": 0,
+      "hfShareDb": -28.2,
+      "words": 13,
+      "wpm": 165.3,
+      "speechWpm": 171.1,
+      "rawPeakDbfs": -4.49,
+      "phonemesPerS": 10.31
+     },
+     "asr": {
+      "hypothesis": "A second level goes on top, connected to the first through small values.",
+      "reference": "a second level goes on top connected to the first through small vias",
+      "errors": 1,
+      "refWords": 13,
+      "wer": 0.077,
+      "diffs": [
+       [
+        "vias",
+        "values"
+       ]
+      ]
+     },
+     "flags": []
+    },
+    {
+     "id": "many",
+     "text": "Real chips stack many more levels; our inverter needs just two.",
+     "startMs": 5270,
+     "endMs": 9320,
+     "audioText": "Real chips stack many more levels; our [inverter] needs just two.",
+     "phonemes": "ɹˈɪəl ʧˈɪps stˈak mˈɛni mˈɔː lˈɛvᵊlz; ˌWə ɪnvˈɜːtə nˈiːdz ʤˈʌst tˈuː.",
+     "dictionary": [
+      "inverter"
+     ],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 69,
+     "chunks": 1,
+     "synthS": 1.754,
+     "cached": false,
+     "modelLeadS": 0.27,
+     "modelTailS": 0.5,
+     "pauses": [
+      {
+       "mark": ";",
+       "pauseS": 0.125,
+       "depthDb": -68.5,
+       "t": 2.195
+      }
+     ],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 4.05,
+      "peakDbfs": -1.54,
+      "clippedSamples": 0,
+      "dcOffset": -0.00028,
+      "leadingSilenceS": 0.04,
+      "trailingSilenceS": 0.1,
+      "longestInternalSilenceS": 0.31,
+      "pauses": [
+       [
+        1.97,
+        0.31
+       ]
+      ],
+      "speechSpanS": 3.91,
+      "f0MedianHz": 147.7,
+      "f0RangeSemitones": 9.6,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.361,
+      "burstDb": 6.2,
+      "burstAtS": 3.6,
+      "onsetBurstDb": 6.2,
+      "spikes": 0,
+      "hfShareDb": -29.3,
+      "words": 11,
+      "wpm": 163.0,
+      "speechWpm": 168.8,
+      "rawPeakDbfs": -4.54,
+      "phonemesPerS": 10.74
+     },
+     "asr": {
+      "hypothesis": "Real chips stack many more levels are inverter needs just too.",
+      "reference": "real chips stack many more levels our inverter needs just two",
+      "errors": 2,
+      "refWords": 11,
+      "wer": 0.182,
+      "diffs": [
+       [
+        "our",
+        "are"
+       ],
+       [
+        "two",
+        "too"
+       ]
+      ]
+     },
+     "flags": []
+    }
+   ]
+  },
+  {
+   "id": "passivate",
+   "file": "passivate.mp3",
+   "durationMs": 8950,
+   "loudness": {
+    "inputLufs": -21.8,
+    "inputTruePeakDb": -5.4,
+    "gainDb": 3.8,
+    "outputLufs": -18.0,
+    "outputTruePeakDb": -1.6
+   },
+   "encoded": {
+    "bytes": 72192,
+    "decodedSamples": 214800,
+    "sourceSamples": 214800,
+    "durationMs": 8950,
+    "lagSamples": 0,
+    "lengthMatches": true,
+    "gapless": {
+     "xingTag": true,
+     "tag": "Info",
+     "frames": 375,
+     "bytes": 72192,
+     "encoder": "Lavf lame",
+     "encoderDelaySamples": 576,
+     "paddingSamples": 624
+    },
+    "decodedPeakDbfs": -2.03
+   },
+   "decodedPeakDbfs": -2.03,
+   "flags": [],
+   "cues": [
+    {
+     "id": "seal",
+     "text": "Finally, a tough passivation layer seals the chip against moisture and scratches, with windows left open over the pads.",
+     "startMs": 200,
+     "endMs": 8150,
+     "audioText": "Finally, a tough passivation layer seals the chip against moisture and scratches, with windows left open over the pads.",
+     "phonemes": "fˈInəli, ɐ tˈʌf pˌasɪvˈAʃᵊn lˈAə sˈiːlz ðə ʧˈɪp əɡˈɛnst mˈYsʧə and skɹˈaʧɪz, wɪð wˈɪndQz lˈɛft ˈQpᵊn ˈQvə ðə pˈadz.",
+     "dictionary": [],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 115,
+     "chunks": 1,
+     "synthS": 3.518,
+     "cached": false,
+     "modelLeadS": 0.27,
+     "modelTailS": 0.525,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.1,
+       "depthDb": -50.6,
+       "t": 0.595
+      },
+      {
+       "mark": ",",
+       "pauseS": 0.125,
+       "depthDb": -68.9,
+       "t": 5.445
+      }
+     ],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 7.95,
+      "peakDbfs": -1.65,
+      "clippedSamples": 0,
+      "dcOffset": -0.00024,
+      "leadingSilenceS": 0.05,
+      "trailingSilenceS": 0.09,
+      "longestInternalSilenceS": 0.42,
+      "pauses": [
+       [
+        3.05,
+        0.29
+       ],
+       [
+        5.12,
+        0.42
+       ]
+      ],
+      "speechSpanS": 7.81,
+      "f0MedianHz": 139.2,
+      "f0RangeSemitones": 6.4,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.361,
+      "burstDb": 5.9,
+      "burstAtS": 0.1,
+      "onsetBurstDb": 5.9,
+      "spikes": 0,
+      "hfShareDb": -28.4,
+      "words": 19,
+      "wpm": 143.4,
+      "speechWpm": 146.0,
+      "rawPeakDbfs": -5.45,
+      "phonemesPerS": 9.99
+     },
+     "asr": {
+      "hypothesis": "Finally, a tough pacivation layer seals the chip against moisture and scratches, with windows left open over the pads.",
+      "reference": "finally a tough passivation layer seals the chip against moisture scratches with windows left open over the pads",
+      "errors": 1,
+      "refWords": 18,
+      "wer": 0.056,
+      "diffs": [
+       [
+        "passivation",
+        "pacivation"
+       ]
+      ]
+     },
+     "flags": []
+    }
+   ]
+  },
+  {
+   "id": "inspect",
+   "file": "inspect.mp3",
+   "durationMs": 8300,
+   "loudness": {
+    "inputLufs": -21.9,
+    "inputTruePeakDb": -5.6,
+    "gainDb": 3.9,
+    "outputLufs": -18.0,
+    "outputTruePeakDb": -1.7
+   },
+   "encoded": {
+    "bytes": 67008,
+    "decodedSamples": 199200,
+    "sourceSamples": 199200,
+    "durationMs": 8300,
+    "lagSamples": 0,
+    "lengthMatches": true,
+    "gapless": {
+     "xingTag": true,
+     "tag": "Info",
+     "frames": 348,
+     "bytes": 67008,
+     "encoder": "Lavf lame",
+     "encoderDelaySamples": 576,
+     "paddingSamples": 672
+    },
+    "decodedPeakDbfs": -2.2
+   },
+   "decodedPeakDbfs": -2.2,
+   "flags": [],
+   "cues": [
+    {
+     "id": "last",
+     "text": "The finished wafer is scanned one last time, and the results of every inspection along the way are reviewed together.",
+     "startMs": 300,
+     "endMs": 7700,
+     "audioText": "The finished [wafer] is scanned one last time, and the results of every inspection along the way are reviewed together.",
+     "phonemes": "ðə fˈɪnɪʃt wˈAfə ɪz skˈand wˈʌn lˈɑːst tˈIm, and ðə ɹɪzˈʌlts ɒv ˈɛvəɹi ɪnspˈɛkʃᵊn əlˈɒŋ ðə wˈA ɑː ɹɪvjˈuːd təɡˈɛðə.",
+     "dictionary": [
+      "wafer"
+     ],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 115,
+     "chunks": 1,
+     "synthS": 3.548,
+     "cached": false,
+     "modelLeadS": 0.27,
+     "modelTailS": 0.525,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.125,
+       "depthDb": -67.9,
+       "t": 3.245
+      }
+     ],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 7.4,
+      "peakDbfs": -1.73,
+      "clippedSamples": 0,
+      "dcOffset": -0.00025,
+      "leadingSilenceS": 0.05,
+      "trailingSilenceS": 0.1,
+      "longestInternalSilenceS": 0.41,
+      "pauses": [
+       [
+        1.07,
+        0.23
+       ],
+       [
+        2.92,
+        0.41
+       ],
+       [
+        6.02,
+        0.28
+       ]
+      ],
+      "speechSpanS": 7.25,
+      "f0MedianHz": 139.8,
+      "f0RangeSemitones": 7.8,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.396,
+      "burstDb": 5.7,
+      "burstAtS": 0.2,
+      "onsetBurstDb": 5.7,
+      "spikes": 0,
+      "hfShareDb": -27.4,
+      "words": 20,
+      "wpm": 162.2,
+      "speechWpm": 165.5,
+      "rawPeakDbfs": -5.63,
+      "phonemesPerS": 10.76
+     },
+     "asr": {
+      "hypothesis": "The finished wafer is scanned one last time, and the results of every inspection along the way are reviewed together.",
+      "reference": "the finished wafer is scanned one last time the results of every inspection along the way are reviewed together",
+      "errors": 0,
+      "refWords": 19,
+      "wer": 0.0,
+      "diffs": []
+     },
+     "flags": []
+    }
+   ]
+  },
+  {
+   "id": "probe",
+   "file": "probe.mp3",
+   "durationMs": 11250,
+   "loudness": {
+    "inputLufs": -21.4,
+    "inputTruePeakDb": -5.6,
+    "gainDb": 3.4,
+    "outputLufs": -18.0,
+    "outputTruePeakDb": -2.2
+   },
+   "encoded": {
+    "bytes": 90624,
+    "decodedSamples": 270000,
+    "sourceSamples": 270000,
+    "durationMs": 11250,
+    "lagSamples": 0,
+    "lengthMatches": true,
+    "gapless": {
+     "xingTag": true,
+     "tag": "Info",
+     "frames": 471,
+     "bytes": 90624,
+     "encoder": "Lavf lame",
+     "encoderDelaySamples": 576,
+     "paddingSamples": 720
+    },
+    "decodedPeakDbfs": -2.64
+   },
+   "decodedPeakDbfs": -2.64,
+   "flags": [],
+   "cues": [
+    {
+     "id": "test",
+     "text": "Now the test. A probe card touches the pads of each die in turn, and runs the inverter through its paces.",
+     "startMs": 200,
+     "endMs": 7220,
+     "audioText": "Now the test. A probe card touches the pads of each [die] in turn, and runs the [inverter] through its paces.",
+     "phonemes": "nˈW ðə tˈɛst. ɐ pɹˈQb kˈɑːd tˈʌʧɪz ðə pˈadz ɒv ˈiːʧ dˈI ɪn tˈɜːn, and ɹˈʌnz ði ɪnvˈɜːtə θɹuː ɪts pˈAsɪz.",
+     "dictionary": [
+      "die",
+      "inverter"
+     ],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 104,
+     "chunks": 1,
+     "synthS": 2.86,
+     "cached": false,
+     "modelLeadS": 0.27,
+     "modelTailS": 0.505,
+     "pauses": [
+      {
+       "mark": ".",
+       "pauseS": 0.175,
+       "depthDb": -69.7,
+       "t": 1.17
+      },
+      {
+       "mark": ",",
+       "pauseS": 0.125,
+       "depthDb": -67.4,
+       "t": 4.62
+      }
+     ],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 7.02,
+      "peakDbfs": -2.25,
+      "clippedSamples": 0,
+      "dcOffset": -0.00026,
+      "leadingSilenceS": 0.05,
+      "trailingSilenceS": 0.11,
+      "longestInternalSilenceS": 0.43,
+      "pauses": [
+       [
+        0.86,
+        0.43
+       ],
+       [
+        4.39,
+        0.3
+       ]
+      ],
+      "speechSpanS": 6.86,
+      "f0MedianHz": 142.4,
+      "f0RangeSemitones": 7.8,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.375,
+      "burstDb": 6.1,
+      "burstAtS": 4.75,
+      "onsetBurstDb": 5.4,
+      "spikes": 0,
+      "hfShareDb": -28.7,
+      "words": 21,
+      "wpm": 179.5,
+      "speechWpm": 183.7,
+      "rawPeakDbfs": -5.65,
+      "phonemesPerS": 9.33
+     },
+     "asr": {
+      "hypothesis": "Now the test, a probe card touches the pads of each Dian turn and runs the inverter through its paces.",
+      "reference": "now the test a probe card touches the pads of each die in turn runs the inverter through its paces",
+      "errors": 2,
+      "refWords": 20,
+      "wer": 0.1,
+      "diffs": [
+       [
+        "die in",
+        "dian"
+       ]
+      ]
+     },
+     "flags": []
+    },
+    {
+     "id": "map",
+     "text": "Each result is marked on the wafer map.",
+     "startMs": 7570,
+     "endMs": 10450,
+     "audioText": "Each result is marked on the [wafer] map.",
+     "phonemes": "ˈiːʧ ɹɪzˈʌlt ɪz mˈɑːkt ˌɒn ðə wˈAfə mˈap.",
+     "dictionary": [
+      "wafer"
+     ],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 41,
+     "chunks": 1,
+     "synthS": 1.211,
+     "cached": false,
+     "modelLeadS": 0.27,
+     "modelTailS": 0.445,
+     "pauses": [],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 2.88,
+      "peakDbfs": -5.21,
+      "clippedSamples": 0,
+      "dcOffset": -0.00037,
+      "leadingSilenceS": 0.04,
+      "trailingSilenceS": 0.1,
+      "longestInternalSilenceS": 0.19,
+      "pauses": [
+       [
+        1.64,
+        0.19
+       ]
+      ],
+      "speechSpanS": 2.74,
+      "f0MedianHz": 150.0,
+      "f0RangeSemitones": 9.3,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.347,
+      "burstDb": 4.9,
+      "burstAtS": 0.05,
+      "onsetBurstDb": 4.9,
+      "spikes": 0,
+      "hfShareDb": -29.7,
+      "words": 8,
+      "wpm": 166.7,
+      "speechWpm": 175.2,
+      "rawPeakDbfs": -8.61,
+      "phonemesPerS": 9.12
+     },
+     "asr": {
+      "hypothesis": "Each result is marked on the wafer map.",
+      "reference": "each result is marked on the wafer map",
+      "errors": 0,
+      "refWords": 8,
+      "wer": 0.0,
+      "diffs": []
+     },
+     "flags": []
+    }
+   ]
+  },
+  {
+   "id": "dice",
+   "file": "dice.mp3",
+   "durationMs": 6180,
+   "loudness": {
+    "inputLufs": -21.7,
+    "inputTruePeakDb": -6.8,
+    "gainDb": 3.7,
+    "outputLufs": -18.0,
+    "outputTruePeakDb": -3.1
+   },
+   "encoded": {
+    "bytes": 50112,
+    "decodedSamples": 148320,
+    "sourceSamples": 148320,
+    "durationMs": 6180,
+    "lagSamples": 0,
+    "lengthMatches": true,
+    "gapless": {
+     "xingTag": true,
+     "tag": "Info",
+     "frames": 260,
+     "bytes": 50112,
+     "encoder": "Lavf lame",
+     "encoderDelaySamples": 576,
+     "paddingSamples": 864
+    },
+    "decodedPeakDbfs": -3.64
+   },
+   "decodedPeakDbfs": -3.64,
+   "flags": [],
+   "cues": [
+    {
+     "id": "saw",
+     "text": "The wafer is mounted on tape, and sawn along the narrow streets between the dies.",
+     "startMs": 200,
+     "endMs": 5380,
+     "audioText": "The [wafer] is mounted on tape, and sawn along the narrow streets between the [dies].",
+     "phonemes": "ðə wˈAfə ɪz mˈWntɪd ˌɒn tˈAp, and sˈɔːn əlˈɒŋ ðə nˈaɹQ stɹˈiːts bɪtwˈiːn ðə dˈIz.",
+     "dictionary": [
+      "wafer",
+      "dies"
+     ],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 81,
+     "chunks": 1,
+     "synthS": 3.591,
+     "cached": false,
+     "modelLeadS": 0.27,
+     "modelTailS": 0.52,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.125,
+       "depthDb": -69.1,
+       "t": 2.22
+      }
+     ],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 5.18,
+      "peakDbfs": -3.1,
+      "clippedSamples": 0,
+      "dcOffset": -0.00027,
+      "leadingSilenceS": 0.05,
+      "trailingSilenceS": 0.1,
+      "longestInternalSilenceS": 0.35,
+      "pauses": [
+       [
+        1.26,
+        0.15
+       ],
+       [
+        1.95,
+        0.35
+       ]
+      ],
+      "speechSpanS": 5.03,
+      "f0MedianHz": 141.6,
+      "f0RangeSemitones": 6.9,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.375,
+      "burstDb": 5.1,
+      "burstAtS": 0.1,
+      "onsetBurstDb": 5.1,
+      "spikes": 0,
+      "hfShareDb": -27.7,
+      "words": 15,
+      "wpm": 173.7,
+      "speechWpm": 178.9,
+      "rawPeakDbfs": -6.8,
+      "phonemesPerS": 10.34
+     },
+     "asr": {
+      "hypothesis": "The wafer is mounted on tape and sawn along the narrow streets between the dies.",
+      "reference": "the wafer is mounted on tape sawn along the narrow streets between the dies",
+      "errors": 0,
+      "refWords": 14,
+      "wer": 0.0,
+      "diffs": []
+     },
+     "flags": []
+    }
+   ]
+  },
+  {
+   "id": "attach",
+   "file": "attach.mp3",
+   "durationMs": 4700,
+   "loudness": {
+    "inputLufs": -21.6,
+    "inputTruePeakDb": -7.0,
+    "gainDb": 3.6,
+    "outputLufs": -18.0,
+    "outputTruePeakDb": -3.4
+   },
+   "encoded": {
+    "bytes": 38208,
+    "decodedSamples": 112800,
+    "sourceSamples": 112800,
+    "durationMs": 4700,
+    "lagSamples": 0,
+    "lengthMatches": true,
+    "gapless": {
+     "xingTag": true,
+     "tag": "Info",
+     "frames": 198,
+     "bytes": 38208,
+     "encoder": "Lavf lame",
+     "encoderDelaySamples": 576,
+     "paddingSamples": 672
+    },
+    "decodedPeakDbfs": -3.95
+   },
+   "decodedPeakDbfs": -3.95,
+   "flags": [],
+   "cues": [
+    {
+     "id": "pick",
+     "text": "A good die is picked from the tape and bonded into a package.",
+     "startMs": 200,
+     "endMs": 4100,
+     "audioText": "A good [die] is picked from the tape and bonded into a package.",
+     "phonemes": "ɐ ɡˈʊd dˈI ɪz pˈɪkt fɹɒm ðə tˈAp and bˈɒndɪd ˈɪntuː ɐ pˈakɪʤ.",
+     "dictionary": [
+      "die"
+     ],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 61,
+     "chunks": 1,
+     "synthS": 2.337,
+     "cached": false,
+     "modelLeadS": 0.25,
+     "modelTailS": 0.495,
+     "pauses": [],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 3.9,
+      "peakDbfs": -3.46,
+      "clippedSamples": 0,
+      "dcOffset": -0.0003,
+      "leadingSilenceS": 0.04,
+      "trailingSilenceS": 0.1,
+      "longestInternalSilenceS": 0.3,
+      "pauses": [
+       [
+        1.86,
+        0.3
+       ]
+      ],
+      "speechSpanS": 3.76,
+      "f0MedianHz": 143.0,
+      "f0RangeSemitones": 8.7,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.377,
+      "burstDb": 5.1,
+      "burstAtS": 2.25,
+      "onsetBurstDb": 4.8,
+      "spikes": 0,
+      "hfShareDb": -29.1,
+      "words": 13,
+      "wpm": 200.0,
+      "speechWpm": 207.4,
+      "rawPeakDbfs": -7.06,
+      "phonemesPerS": 10.64
+     },
+     "asr": {
+      "hypothesis": "A good die is picked from the tape and bonded into a package.",
+      "reference": "a good die is picked from the tape bonded into a package",
+      "errors": 0,
+      "refWords": 12,
+      "wer": 0.0,
+      "diffs": []
+     },
+     "flags": []
+    }
+   ]
+  },
+  {
+   "id": "bond",
+   "file": "bond.mp3",
+   "durationMs": 8780,
+   "loudness": {
+    "inputLufs": -21.7,
+    "inputTruePeakDb": -5.1,
+    "gainDb": 3.6,
+    "outputLufs": -18.1,
+    "outputTruePeakDb": -1.5
+   },
+   "encoded": {
+    "bytes": 70848,
+    "decodedSamples": 210720,
+    "sourceSamples": 210720,
+    "durationMs": 8780,
+    "lagSamples": 0,
+    "lengthMatches": true,
+    "gapless": {
+     "xingTag": true,
+     "tag": "Info",
+     "frames": 368,
+     "bytes": 70848,
+     "encoder": "Lavf lame",
+     "encoderDelaySamples": 576,
+     "paddingSamples": 672
+    },
+    "decodedPeakDbfs": -1.77
+   },
+   "decodedPeakDbfs": -1.77,
+   "flags": [],
+   "cues": [
+    {
+     "id": "wires",
+     "text": "Gold wires, finer than a hair, link its pads to the package leads.",
+     "startMs": 200,
+     "endMs": 4550,
+     "audioText": "Gold wires, finer than a hair, link its pads to the package leads.",
+     "phonemes": "ɡˈQld wˈIəz, fˈInə ðən ɐ hˈɛː, lˈɪŋk ɪts pˈadz tə ðə pˈakɪʤ lˈiːdz.",
+     "dictionary": [],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 67,
+     "chunks": 1,
+     "synthS": 2.679,
+     "cached": false,
+     "modelLeadS": 0.29,
+     "modelTailS": 0.505,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.15,
+       "depthDb": -60.8,
+       "t": 0.975
+      },
+      {
+       "mark": ",",
+       "pauseS": 0.125,
+       "depthDb": -69.5,
+       "t": 2.25
+      }
+     ],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 4.35,
+      "peakDbfs": -1.67,
+      "clippedSamples": 0,
+      "dcOffset": -0.0004,
+      "leadingSilenceS": 0.04,
+      "trailingSilenceS": 0.1,
+      "longestInternalSilenceS": 0.29,
+      "pauses": [
+       [
+        2.04,
+        0.29
+       ]
+      ],
+      "speechSpanS": 4.21,
+      "f0MedianHz": 148.1,
+      "f0RangeSemitones": 7.7,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.389,
+      "burstDb": 6.2,
+      "burstAtS": 2.35,
+      "onsetBurstDb": 5.7,
+      "spikes": 0,
+      "hfShareDb": -28.7,
+      "words": 13,
+      "wpm": 179.3,
+      "speechWpm": 185.3,
+      "rawPeakDbfs": -5.27,
+      "phonemesPerS": 9.98
+     },
+     "asr": {
+      "hypothesis": "Gold wires, finer than a hair, link its pads to the package leads.",
+      "reference": "gold wires finer than a hair link its pads to the package leads",
+      "errors": 0,
+      "refWords": 13,
+      "wer": 0.0,
+      "diffs": []
+     },
+     "flags": []
+    },
+    {
+     "id": "mould",
+     "text": "Then the whole assembly is sealed in epoxy.",
+     "startMs": 4900,
+     "endMs": 7980,
+     "audioText": "Then the whole assembly is sealed in epoxy.",
+     "phonemes": "ðˈɛn ðə hˈQl əsˈɛmbli ɪz sˈiːld ɪn ɪpˈɒksi.",
+     "dictionary": [],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 43,
+     "chunks": 1,
+     "synthS": 1.788,
+     "cached": false,
+     "modelLeadS": 0.26,
+     "modelTailS": 0.48,
+     "pauses": [],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 3.08,
+      "peakDbfs": -2.13,
+      "clippedSamples": 0,
+      "dcOffset": -0.0003,
+      "leadingSilenceS": 0.05,
+      "trailingSilenceS": 0.1,
+      "longestInternalSilenceS": 0.2,
+      "pauses": [
+       [
+        1.22,
+        0.2
+       ]
+      ],
+      "speechSpanS": 2.93,
+      "f0MedianHz": 141.8,
+      "f0RangeSemitones": 7.6,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.361,
+      "burstDb": 4.2,
+      "burstAtS": 1.45,
+      "onsetBurstDb": 4.1,
+      "spikes": 0,
+      "hfShareDb": -27.3,
+      "words": 8,
+      "wpm": 155.8,
+      "speechWpm": 163.8,
+      "rawPeakDbfs": -5.73,
+      "phonemesPerS": 9.9
+     },
+     "asr": {
+      "hypothesis": "Then the whole assembly is sealed in epoxy.",
+      "reference": "then the whole assembly is sealed in epoxy",
+      "errors": 0,
+      "refWords": 8,
+      "wer": 0.0,
+      "diffs": []
+     },
+     "flags": []
+    }
+   ]
+  },
+  {
+   "id": "final",
+   "file": "final.mp3",
+   "durationMs": 19690,
+   "loudness": {
+    "inputLufs": -21.5,
+    "inputTruePeakDb": -5.5,
+    "gainDb": 3.5,
+    "outputLufs": -18.0,
+    "outputTruePeakDb": -2.0
+   },
+   "encoded": {
+    "bytes": 158208,
+    "decodedSamples": 472560,
+    "sourceSamples": 472560,
+    "durationMs": 19690,
+    "lagSamples": 0,
+    "lengthMatches": true,
+    "gapless": {
+     "xingTag": true,
+     "tag": "Info",
+     "frames": 823,
+     "bytes": 158208,
+     "encoder": "Lavf lame",
+     "encoderDelaySamples": 576,
+     "paddingSamples": 912
+    },
+    "decodedPeakDbfs": -2.55
+   },
+   "decodedPeakDbfs": -2.55,
+   "flags": [],
+   "cues": [
+    {
+     "id": "here",
+     "text": "And here is our inverter.",
+     "startMs": 300,
+     "endMs": 2660,
+     "audioText": "And here is our [inverter].",
+     "phonemes": "ˌand hˈɪə ɪz ˌWə ɪnvˈɜːtə.",
+     "dictionary": [
+      "inverter"
+     ],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 26,
+     "chunks": 1,
+     "synthS": 1.36,
+     "cached": false,
+     "modelLeadS": 0.26,
+     "modelTailS": 0.5,
+     "pauses": [],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 2.36,
+      "peakDbfs": -4.59,
+      "clippedSamples": 0,
+      "dcOffset": -0.00052,
+      "leadingSilenceS": 0.04,
+      "trailingSilenceS": 0.1,
+      "longestInternalSilenceS": 0.18,
+      "pauses": [
+       [
+        0.87,
+        0.18
+       ]
+      ],
+      "speechSpanS": 2.22,
+      "f0MedianHz": 150.8,
+      "f0RangeSemitones": 8.7,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.416,
+      "burstDb": 4.7,
+      "burstAtS": 0.25,
+      "onsetBurstDb": 4.7,
+      "spikes": 0,
+      "hfShareDb": -30.7,
+      "words": 5,
+      "wpm": 127.1,
+      "speechWpm": 135.1,
+      "rawPeakDbfs": -8.09,
+      "phonemesPerS": 7.21
+     },
+     "asr": {
+      "hypothesis": "And here is our inverter.",
+      "reference": "here is our inverter",
+      "errors": 0,
+      "refWords": 4,
+      "wer": 0.0,
+      "diffs": []
+     },
+     "flags": [
+      "rate-outlier"
+     ]
+    },
+    {
+     "id": "low",
+     "text": "With the input low, the PMOS transistor conducts, and the output goes high.",
+     "startMs": 3060,
+     "endMs": 8090,
+     "audioText": "With the input low, the [PMOS] transistor conducts, and the output goes high.",
+     "phonemes": "wˌɪð ði ˈɪnpʊt lˈQ, ðə pˈiːmɒs tɹanzˈɪstə kˈɒndʌkts, and ði ˈWtpʊt ɡˈQz hˈI.",
+     "dictionary": [
+      "PMOS"
+     ],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 76,
+     "chunks": 1,
+     "synthS": 2.33,
+     "cached": false,
+     "modelLeadS": 0.27,
+     "modelTailS": 0.495,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.15,
+       "depthDb": -68.2,
+       "t": 1.27
+      },
+      {
+       "mark": ",",
+       "pauseS": 0.125,
+       "depthDb": -68.2,
+       "t": 3.395
+      }
+     ],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 5.03,
+      "peakDbfs": -3.01,
+      "clippedSamples": 0,
+      "dcOffset": -0.00029,
+      "leadingSilenceS": 0.04,
+      "trailingSilenceS": 0.1,
+      "longestInternalSilenceS": 0.29,
+      "pauses": [
+       [
+        1.15,
+        0.24
+       ],
+       [
+        3.18,
+        0.29
+       ]
+      ],
+      "speechSpanS": 4.89,
+      "f0MedianHz": 141.6,
+      "f0RangeSemitones": 8.0,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.374,
+      "burstDb": 7.0,
+      "burstAtS": 0.05,
+      "onsetBurstDb": 7.0,
+      "spikes": 0,
+      "hfShareDb": -29.0,
+      "words": 13,
+      "wpm": 155.1,
+      "speechWpm": 159.5,
+      "rawPeakDbfs": -6.51,
+      "phonemesPerS": 10.43
+     },
+     "asr": {
+      "hypothesis": "With the input low, the PMOS transistor conducts and the output goes high.",
+      "reference": "with the input low the pmos transistor conducts the output goes high",
+      "errors": 0,
+      "refWords": 12,
+      "wer": 0.0,
+      "diffs": []
+     },
+     "flags": []
+    },
+    {
+     "id": "high",
+     "text": "With the input high, the NMOS transistor takes over, and the output goes low.",
+     "startMs": 8440,
+     "endMs": 13640,
+     "audioText": "With the input high, the [NMOS] transistor takes over, and the output goes low.",
+     "phonemes": "wˌɪð ði ˈɪnpʊt hˈI, ði ˈɛnmɒs tɹanzˈɪstə tˈAks ˈQvə, and ði ˈWtpʊt ɡˈQz lˈQ.",
+     "dictionary": [
+      "NMOS"
+     ],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 76,
+     "chunks": 1,
+     "synthS": 2.199,
+     "cached": false,
+     "modelLeadS": 0.27,
+     "modelTailS": 0.5,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.15,
+       "depthDb": -68.2,
+       "t": 1.245
+      },
+      {
+       "mark": ",",
+       "pauseS": 0.15,
+       "depthDb": -68.7,
+       "t": 3.545
+      }
+     ],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 5.2,
+      "peakDbfs": -2.76,
+      "clippedSamples": 0,
+      "dcOffset": -0.00022,
+      "leadingSilenceS": 0.04,
+      "trailingSilenceS": 0.09,
+      "longestInternalSilenceS": 0.34,
+      "pauses": [
+       [
+        1.11,
+        0.27
+       ],
+       [
+        3.31,
+        0.34
+       ]
+      ],
+      "speechSpanS": 5.07,
+      "f0MedianHz": 139.7,
+      "f0RangeSemitones": 7.4,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.366,
+      "burstDb": 7.2,
+      "burstAtS": 0.05,
+      "onsetBurstDb": 7.2,
+      "spikes": 0,
+      "hfShareDb": -29.5,
+      "words": 14,
+      "wpm": 161.5,
+      "speechWpm": 165.7,
+      "rawPeakDbfs": -6.26,
+      "phonemesPerS": 9.86
+     },
+     "asr": {
+      "hypothesis": "With the input high, the N-moss transistor takes over, and the output goes low.",
+      "reference": "with the input high the nmos transistor takes over the output goes low",
+      "errors": 0,
+      "refWords": 13,
+      "wer": 0.0,
+      "diffs": []
+     },
+     "flags": []
+    },
+    {
+     "id": "gate",
+     "text": "A working logic gate: one of the building blocks of every digital chip.",
+     "startMs": 13990,
+     "endMs": 18690,
+     "audioText": "A working logic gate: one of the building blocks of every digital chip.",
+     "phonemes": "ɐ wˈɜːkɪŋ lˈɒʤɪk ɡˈAt: wˈʌn ɒv ðə bˈɪldɪŋ blˈɒks ɒv ˈɛvəɹi dˈɪʤɪtᵊl ʧˈɪp.",
+     "dictionary": [],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 73,
+     "chunks": 1,
+     "synthS": 2.044,
+     "cached": false,
+     "modelLeadS": 0.27,
+     "modelTailS": 0.475,
+     "pauses": [
+      {
+       "mark": ":",
+       "pauseS": 0.125,
+       "depthDb": -69.4,
+       "t": 1.82
+      }
+     ],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 4.7,
+      "peakDbfs": -1.99,
+      "clippedSamples": 0,
+      "dcOffset": -0.00041,
+      "leadingSilenceS": 0.04,
+      "trailingSilenceS": 0.11,
+      "longestInternalSilenceS": 0.37,
+      "pauses": [
+       [
+        1.55,
+        0.37
+       ]
+      ],
+      "speechSpanS": 4.55,
+      "f0MedianHz": 143.2,
+      "f0RangeSemitones": 7.5,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.39,
+      "burstDb": 4.2,
+      "burstAtS": 0.1,
+      "onsetBurstDb": 4.2,
+      "spikes": 0,
+      "hfShareDb": -28.9,
+      "words": 13,
+      "wpm": 166.0,
+      "speechWpm": 171.4,
+      "rawPeakDbfs": -5.49,
+      "phonemesPerS": 10.77
+     },
+     "asr": {
+      "hypothesis": "A working logic gate, one of the building blocks of every digital chip.",
+      "reference": "a working logic gate one of the building blocks of every digital chip",
+      "errors": 0,
+      "refWords": 13,
+      "wer": 0.0,
+      "diffs": []
+     },
+     "flags": []
+    }
+   ]
+  },
+  {
+   "id": "outro",
+   "file": "outro.mp3",
+   "durationMs": 19420,
+   "loudness": {
+    "inputLufs": -21.6,
+    "inputTruePeakDb": -4.2,
+    "gainDb": 2.7,
+    "outputLufs": -18.9,
+    "outputTruePeakDb": -1.5
+   },
+   "encoded": {
+    "bytes": 156096,
+    "decodedSamples": 466080,
+    "sourceSamples": 466080,
+    "durationMs": 19420,
+    "lagSamples": 0,
+    "lengthMatches": true,
+    "gapless": {
+     "xingTag": true,
+     "tag": "Info",
+     "frames": 812,
+     "bytes": 156096,
+     "encoder": "Lavf lame",
+     "encoderDelaySamples": 576,
+     "paddingSamples": 1056
+    },
+    "decodedPeakDbfs": -2.1
+   },
+   "decodedPeakDbfs": -2.1,
+   "flags": [],
+   "cues": [
+    {
+     "id": "journey",
+     "text": "That's the journey: one wafer, dozens of steps, and one idea repeated again and again.",
+     "startMs": 400,
+     "endMs": 6290,
+     "audioText": "That's the journey: one [wafer], dozens of steps, and one idea repeated again and again.",
+     "phonemes": "ðˌats ðə ʤˈɜːni: wˈʌn wˈAfə, dˈʌzᵊnz ɒv stˈɛps, and wˈʌn Idˈɪə ɹɪpˈiːtɪd əɡˈɛn and əɡˈɛn.",
+     "dictionary": [
+      "wafer"
+     ],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 89,
+     "chunks": 1,
+     "synthS": 2.337,
+     "cached": false,
+     "modelLeadS": 0.28,
+     "modelTailS": 0.5,
+     "pauses": [
+      {
+       "mark": ":",
+       "pauseS": 0.175,
+       "depthDb": -69.5,
+       "t": 1.16
+      },
+      {
+       "mark": ",",
+       "pauseS": 0.125,
+       "depthDb": -69.5,
+       "t": 2.085
+      },
+      {
+       "mark": ",",
+       "pauseS": 0.125,
+       "depthDb": -67.7,
+       "t": 3.385
+      }
+     ],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 5.89,
+      "peakDbfs": -3.44,
+      "clippedSamples": 0,
+      "dcOffset": -0.00025,
+      "leadingSilenceS": 0.04,
+      "trailingSilenceS": 0.11,
+      "longestInternalSilenceS": 0.32,
+      "pauses": [
+       [
+        0.95,
+        0.32
+       ],
+       [
+        2.02,
+        0.17
+       ],
+       [
+        3.18,
+        0.28
+       ]
+      ],
+      "speechSpanS": 5.74,
+      "f0MedianHz": 138.6,
+      "f0RangeSemitones": 7.5,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.355,
+      "burstDb": 6.1,
+      "burstAtS": 3.5,
+      "onsetBurstDb": 4.2,
+      "spikes": 0,
+      "hfShareDb": -27.1,
+      "words": 15,
+      "wpm": 152.8,
+      "speechWpm": 156.8,
+      "rawPeakDbfs": -6.14,
+      "phonemesPerS": 10.1
+     },
+     "asr": {
+      "hypothesis": "That's the journey, one wafer, dozens of steps, and one idea repeated again and again.",
+      "reference": "thats the journey one wafer dozens of steps one idea repeated again again",
+      "errors": 0,
+      "refWords": 13,
+      "wer": 0.0,
+      "diffs": []
+     },
+     "flags": []
+    },
+    {
+     "id": "idea",
+     "text": "Lithography draws a pattern in light, and every other process makes it permanent.",
+     "startMs": 6640,
+     "endMs": 11810,
+     "audioText": "[lithography] draws a pattern in light, and every other process makes it permanent.",
+     "phonemes": "lɪθˈɒɡɹəfi dɹˈɔːz ɐ pˈatᵊn ɪn lˈIt, and ˈɛvəɹi ˈʌðə pɹˈQsɛs mˌAks ɪt pˈɜːmənənt.",
+     "dictionary": [
+      "lithography"
+     ],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 80,
+     "chunks": 1,
+     "synthS": 2.048,
+     "cached": false,
+     "modelLeadS": 0.27,
+     "modelTailS": 0.505,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.125,
+       "depthDb": -68.4,
+       "t": 2.57
+      }
+     ],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 5.17,
+      "peakDbfs": -2.37,
+      "clippedSamples": 0,
+      "dcOffset": -0.00018,
+      "leadingSilenceS": 0.05,
+      "trailingSilenceS": 0.09,
+      "longestInternalSilenceS": 0.36,
+      "pauses": [
+       [
+        2.29,
+        0.36
+       ]
+      ],
+      "speechSpanS": 5.03,
+      "f0MedianHz": 144.6,
+      "f0RangeSemitones": 7.2,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.37,
+      "burstDb": 6.9,
+      "burstAtS": 0.1,
+      "onsetBurstDb": 6.9,
+      "spikes": 0,
+      "hfShareDb": -29.0,
+      "words": 13,
+      "wpm": 150.9,
+      "speechWpm": 155.1,
+      "rawPeakDbfs": -5.07,
+      "phonemesPerS": 10.93
+     },
+     "asr": {
+      "hypothesis": "Lithography draws a pattern in light and every other process makes it permanent.",
+      "reference": "lithography draws a pattern in light every other process makes it permanent",
+      "errors": 0,
+      "refWords": 12,
+      "wer": 0.0,
+      "diffs": []
+     },
+     "flags": []
+    },
+    {
+     "id": "scale",
+     "text": "A modern chip repeats that loop dozens of times, to build billions of transistors.",
+     "startMs": 12160,
+     "endMs": 17820,
+     "audioText": "A modern chip repeats that loop dozens of times, to build billions of transistors.",
+     "phonemes": "ɐ mˈɒdᵊn ʧˈɪp ɹɪpˈiːts ðˈat lˈuːp dˈʌzᵊnz ɒv tˈImz, tə bˈɪld bˈɪljənz ɒv tɹanzˈɪstəz.",
+     "dictionary": [],
+     "espeakWords": [],
+     "g2pWarnings": [],
+     "tokens": 85,
+     "chunks": 1,
+     "synthS": 2.514,
+     "cached": false,
+     "modelLeadS": 0.26,
+     "modelTailS": 0.5,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.125,
+       "depthDb": -67.9,
+       "t": 3.555
+      }
+     ],
+     "unpunctuatedGaps": [],
+     "qa": {
+      "durationS": 5.66,
+      "peakDbfs": -1.51,
+      "clippedSamples": 0,
+      "dcOffset": -0.00028,
+      "leadingSilenceS": 0.04,
+      "trailingSilenceS": 0.11,
+      "longestInternalSilenceS": 0.36,
+      "pauses": [
+       [
+        0.89,
+        0.3
+       ],
+       [
+        3.28,
+        0.36
+       ]
+      ],
+      "speechSpanS": 5.51,
+      "f0MedianHz": 141.5,
+      "f0RangeSemitones": 8.6,
+      "pitchJumpsPerMin": 0.0,
+      "voicedShare": 0.359,
+      "burstDb": 6.3,
+      "burstAtS": 0.1,
+      "onsetBurstDb": 6.3,
+      "spikes": 0,
+      "hfShareDb": -28.5,
+      "words": 14,
+      "wpm": 148.4,
+      "speechWpm": 152.5,
+      "rawPeakDbfs": -4.21,
+      "phonemesPerS": 10.53
+     },
+     "asr": {
+      "hypothesis": "A modern chip repeats that loop dozens of times to build billions of transistors.",
+      "reference": "a modern chip repeats that loop dozens of times to build billions of transistors",
+      "errors": 0,
+      "refWords": 14,
+      "wer": 0.0,
+      "diffs": []
+     },
+     "flags": []
+    }
+   ]
+  }
+ ]
+}

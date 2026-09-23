@@ -9,15 +9,17 @@
  *    direction the table turns 90° and the other streets are cut.
  * The cuts drawn here grow with the blade until the process model marks the wafer diced
  * (p = 0.5); from then on the wafer texture shows every cut. The first cuts run at a
- * readable pace, the rest fast-forward. Motion is a pure function of progress p (water
- * droplets use wall-clock time as idle motion).
+ * readable pace, the rest fast-forward. Motion is a pure function of progress p (the blade's
+ * spin uses wall-clock time, at a rate set by p).
+ * In the bay the scene stands inside its bay model (Fab.tsx, dicingSaw): the cabinet opens
+ * above the drain pan, in front of the chamber's back wall.
  */
 import { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { WAFER } from '../../sim/dies';
 import { useSimState } from '../../state/sim';
 import { lerp, seg, smooth, useProgressFrame } from '../anim';
-import { Box, CleanFloor, Cyl, LightTower, mat } from '../kit/parts';
+import { Box, CleanFloor, Cyl, LightTower, mat, StandaloneOnly } from '../kit/parts';
 import { MAT, type MatKey } from '../materials';
 import { Wafer } from '../wafer/Wafer';
 import type { ToolProps } from './index';
@@ -25,6 +27,7 @@ import type { ToolProps } from './index';
 // ───────────────────────────── geometry (metres) ─────────────────────────────
 
 const PAN_Y = 0.8; // drain pan (chamber floor)
+const ROOF_Y = 1.735; // just under the cabinet's roof
 const CHUCK_TOP = 0.915;
 const TAPE_T = 0.0002;
 const TAPE_Y = CHUCK_TOP; // tape underside
@@ -209,7 +212,6 @@ const bladeEdgeMat = new THREE.MeshStandardMaterial({ color: '#5d6168', roughnes
 const kerfMat = new THREE.MeshStandardMaterial({ color: '#25272b', roughness: 0.5, metalness: 0.2 });
 const bellowsMat = new THREE.MeshStandardMaterial({ color: '#3b3e44', roughness: 0.8, metalness: 0.1 });
 const sprayMat = new THREE.MeshBasicMaterial({ color: '#e9f5ff', transparent: true, opacity: 0.32, depthWrite: false });
-const dropMat = new THREE.MeshBasicMaterial({ color: '#f2f9ff', transparent: true, opacity: 0.7, depthWrite: false });
 
 /** Accordion (bellows) cover over the X axis on one side of the table. */
 function Bellows({ side, groupRef }: { side: -1 | 1; groupRef: React.RefObject<THREE.Group | null> }) {
@@ -250,13 +252,10 @@ function Tube({ a, b, r, m }: { a: [number, number, number]; b: [number, number,
 
 // ───────────────────────────── spindle ─────────────────────────────
 
-const N_DROPS = 36;
-
-function Spindle({ groupRef, bladeRef, waterRef, dropsRef }: {
+function Spindle({ groupRef, bladeRef, waterRef }: {
   groupRef: React.RefObject<THREE.Group | null>;
   bladeRef: React.RefObject<THREE.Group | null>;
   waterRef: React.RefObject<THREE.Group | null>;
-  dropsRef: React.RefObject<THREE.InstancedMesh | null>;
 }) {
   // blade cover: back plate and a curved hood over the top, open toward the viewer
   const hood = useMemo(() => {
@@ -320,9 +319,6 @@ function Spindle({ groupRef, bladeRef, waterRef, dropsRef }: {
           <coneGeometry args={[0.012, 0.04, 16, 1, true]} />
         </mesh>
       </group>
-      <instancedMesh ref={dropsRef} args={[undefined, undefined, N_DROPS]} material={dropMat} frustumCulled={false}>
-        <sphereGeometry args={[0.0011, 6, 4]} />
-      </instancedMesh>
     </group>
   );
 }
@@ -339,7 +335,6 @@ export default function Dicing({ variant }: ToolProps) {
   const spindle = useRef<THREE.Group>(null);
   const blade = useRef<THREE.Group>(null);
   const water = useRef<THREE.Group>(null);
-  const drops = useRef<THREE.InstancedMesh>(null);
   const kerf = useRef<THREE.InstancedMesh>(null);
   const bellowsL = useRef<THREE.Group>(null);
   const bellowsR = useRef<THREE.Group>(null);
@@ -398,30 +393,6 @@ export default function Dicing({ variant }: ToolProps) {
       k.count = n;
       k.instanceMatrix.needsUpdate = true;
     }
-    // droplets thrown off where the blade leaves the cut (idle motion by wall-clock time)
-    const d = drops.current;
-    if (d) {
-      d.visible = s.cutting && s.coolant;
-      if (d.visible) {
-        for (let i = 0; i < N_DROPS; i++) {
-          const life = 0.35 + (i % 5) * 0.05;
-          const tau = (t * 1.3 + i * 0.137) % life;
-          const ang = 0.25 + ((i * 7) % 11) * 0.06;
-          const sp = 0.5 + ((i * 3) % 7) * 0.06;
-          const side = i % 2 === 0 ? -1 : 1;
-          tmp.p.set(
-            -0.012 - Math.cos(ang) * sp * tau,
-            -BLADE_R + 0.002 + Math.sin(ang) * sp * tau - 4.9 * tau * tau,
-            side * (0.002 + ((i * 5) % 9) * 0.0012) * (1 + tau * 6),
-          );
-          tmp.q.identity();
-          tmp.s.setScalar(1 - tau / life);
-          tmp.m.compose(tmp.p, tmp.q, tmp.s);
-          d.setMatrixAt(i, tmp.m);
-        }
-        d.instanceMatrix.needsUpdate = true;
-      }
-    }
   });
 
   return (
@@ -434,10 +405,11 @@ export default function Dicing({ variant }: ToolProps) {
       <Box size={[1.3, 0.022, 0.022]} position={[0, PAN_Y - 0.01, 0.49]} m="black" radius={0.004} castShadow={false} />
       {/* drain pan / chamber floor */}
       <Box size={[1.24, 0.02, 0.94]} position={[0, PAN_Y + 0.01, 0]} m="steelSatin" radius={0.006} />
-      {/* chamber: back wall, left wall and a roof strip at the back; front and right cut away */}
-      <Box size={[1.3, 0.7, 0.03]} position={[0, PAN_Y + 0.35, -0.485]} m="panel" radius={0.008} />
-      <Box size={[0.03, 0.7, 1.0]} position={[-0.635, PAN_Y + 0.35, 0]} m="panel" radius={0.008} />
-      <Box size={[1.3, 0.03, 0.34]} position={[0, PAN_Y + 0.7, -0.33]} m="panel" radius={0.008} />
+      {/* chamber: back wall, left wall and a roof strip at the back, up to the cabinet's roof;
+          front and right cut away (in the bay, the cabinet's own walls stand around them) */}
+      <Box size={[1.3, ROOF_Y - PAN_Y, 0.03]} position={[0, (ROOF_Y + PAN_Y) / 2, -0.485]} m="panel" radius={0.008} />
+      <Box size={[0.03, ROOF_Y - PAN_Y, 1.0]} position={[-0.635, (ROOF_Y + PAN_Y) / 2, 0]} m="panel" radius={0.008} />
+      <Box size={[1.3, 0.03, 0.34]} position={[0, ROOF_Y - 0.015, -0.33]} m="panel" radius={0.008} />
       <Box size={[0.5, 0.18, 0.012]} position={[-0.3, PAN_Y + 0.44, -0.468]} m="glassDark" radius={0.004} castShadow={false} />
       {/* overhead beam carrying the spindle (Y axis along z), fixed to the back wall */}
       <Box size={[0.13, 0.07, 0.52]} position={[0, BLADE_CUT_Y + 0.33, -0.23]} m="panel" radius={0.012} />
@@ -474,21 +446,21 @@ export default function Dicing({ variant }: ToolProps) {
         </group>
       </group>
       {/* ── spindle ── */}
-      <Spindle groupRef={spindle} bladeRef={blade} waterRef={water} dropsRef={drops} />
+      <Spindle groupRef={spindle} bladeRef={blade} waterRef={water} />
       {/* spinner (clean / dry) station at the left, lid closed */}
       <group position={[-0.47, 0, -0.3]}>
         <Cyl r={0.1} h={0.07} position={[0, PAN_Y + 0.055, 0]} m="steelSatin" seg={64} />
         <Cyl r={0.104} h={0.01} position={[0, PAN_Y + 0.095, 0]} m="polycarbonate" seg={64} />
       </group>
-      {/* operator panel on an arm */}
-      <group position={[0.78, 0, 0.36]}>
-        <Box size={[0.04, 0.5, 0.04]} position={[0, PAN_Y + 0.25, 0]} m="steelSatin" radius={0.01} />
-        <group position={[0, PAN_Y + 0.56, 0]} rotation={[-0.2, -0.5, 0]}>
-          <Box size={[0.32, 0.22, 0.03]} m="panelDark" radius={0.01} />
-          <Box size={[0.28, 0.18, 0.004]} position={[0, 0, 0.016]} m="screen" radius={0.003} castShadow={false} />
-        </group>
+      {/* operator panel on its arm at the front (where the bay model has it) */}
+      <group position={[0.53, 1.45, 0.585]}>
+        <Box size={[0.036, 0.036, 0.2]} position={[0, -0.05, 0.11]} m="steelDark" radius={0.008} />
+        <Box size={[0.41, 0.27, 0.034]} position={[0, 0.08, 0.24]} m="panelDark" radius={0.01} />
+        <Box size={[0.37, 0.23, 0.006]} position={[0, 0.08, 0.26]} m="screen" radius={0.003} castShadow={false} />
       </group>
-      <LightTower position={[-0.52, PAN_Y + 0.7, -0.38]} on="violet" />
+      <StandaloneOnly>
+        <LightTower position={[-0.52, ROOF_Y, -0.38]} on="violet" />
+      </StandaloneOnly>
     </group>
   );
 }

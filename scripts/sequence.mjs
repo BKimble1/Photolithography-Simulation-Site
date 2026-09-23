@@ -63,18 +63,18 @@ for (const st of spec.steps) {
     mkdirSync(`${outDir}/${name}`, { recursive: true });
     for (let i = 0; i < count; i++) {
       await advance(step);
-      await page.screenshot({ path: `${outDir}/${name}/${String(i).padStart(4, '0')}.png` });
+      await page.screenshot({ path: `${outDir}/${name}/${String(i).padStart(4, '0')}.png`, timeout: 120000 });
     }
     log.push(`${stamp()} film ${name} (${count} frames)`);
   }
   if (st.shot) {
-    await page.screenshot({ path: `${outDir}/${st.shot}.png` });
+    await page.screenshot({ path: `${outDir}/${st.shot}.png`, timeout: 120000 });
     log.push(`${stamp()} shot ${st.shot}`);
   }
   if (st.frames) {
     const { name, count, every } = st.frames;
     for (let i = 0; i < count; i++) {
-      await page.screenshot({ path: `${outDir}/${name}-${String(i).padStart(2, '0')}.png` });
+      await page.screenshot({ path: `${outDir}/${name}-${String(i).padStart(2, '0')}.png`, timeout: 120000 });
       log.push(`${stamp()} frame ${name}-${i}`);
       if (every) await page.waitForTimeout(every);
     }

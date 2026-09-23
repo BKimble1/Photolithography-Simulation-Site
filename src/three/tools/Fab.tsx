@@ -290,84 +290,162 @@ function screenArm(K: Kit, x: number, y: number, zFront: number) {
 
 // ───────────────────────────── tools (local frame, front = +z) ─────────────────────────────
 
-function stocker(K: Kit, w = 2.6, h = 3.8, d = 1.8) {
-  const zf = d / 2;
-  // frame around a glazed recess that shows the shelves
-  K.box('gray', w - 0.05, 0.1, d - 0.05, 0, 0.05, 0);
-  K.box('white', w, h - 0.1, d - 0.5, 0, 0.1 + (h - 0.1) / 2, -0.25, 0.035);
-  K.box('white', 0.25, h - 0.1, 0.5, -w / 2 + 0.125, 0.1 + (h - 0.1) / 2, zf - 0.25, 0.03);
-  K.box('white', 0.25, h - 0.1, 0.5, w / 2 - 0.125, 0.1 + (h - 0.1) / 2, zf - 0.25, 0.03);
-  K.box('white', w - 0.5, 1.15, 0.5, 0, 0.1 + 0.575, zf - 0.25, 0.03);
-  K.box('white', w - 0.5, 0.35, 0.5, 0, h - 0.175, zf - 0.25, 0.03);
-  K.box('recess', w - 0.5, h - 1.6, 0.02, 0, 1.25 + (h - 1.6) / 2, zf - 0.49);
-  for (let r = 0; r < 4; r++) {
-    const y = 1.32 + r * 0.52;
-    K.box('satin', w - 0.52, 0.025, 0.46, 0, y, zf - 0.26);
-    for (let c = 0; c < 5; c++) if ((r * 5 + c) % 7 !== 3) foup(K, -w / 2 + 0.52 + c * 0.39, y + 0.013, zf - 0.27);
+/**
+ * Wafer sorter (the load-port and wafer-handling station): an equipment front end with two
+ * load ports under the overhead rail, a glazed mini-environment under a fan-filter unit, and a
+ * controller cabinet behind. It is the enclosure of the detailed scene (Foup.tsx, mounted by
+ * poses/foup.ts): walls are separate panels so the cutaway shows the robot and pre-aligner
+ * inside, and the port stages match the detailed ones (slightly inset, so they hide inside
+ * them below the cut). Port A holds a closed pod; port B waits for ours.
+ */
+function sorter(K: Kit) {
+  // the EFEM box of the detailed scene (Foup.tsx EF), moved by the mount offset
+  const [ox, oz] = TOOL_POSES.foup.mount?.offset ?? [0, 0];
+  const x0 = ox - 0.72;
+  const x1 = ox + 0.6;
+  const z0 = oz - 0.98;
+  const zf = oz;
+  const top = 2.02;
+  const w = x1 - x0;
+  const d = zf - z0;
+  const xc = (x0 + x1) / 2;
+  const zc = (z0 + zf) / 2;
+  // walls, and the fan-filter unit with its fan housing and controller on the roof
+  K.box('white', w, top, 0.03, xc, top / 2, zf - 0.015);
+  K.box('white', w, top, 0.03, xc, top / 2, z0 + 0.015);
+  K.box('white', 0.03, top, d - 0.06, x0 + 0.015, top / 2, zc);
+  K.box('white', 0.03, top, d - 0.06, x1 - 0.015, top / 2, zc);
+  // grey interior lining (reads against the white robot when the enclosure is opened)
+  K.box('gray', w - 0.07, top - 0.52, 0.006, xc, 0.52 + (top - 0.52) / 2, z0 + 0.033);
+  for (const x of [x0 + 0.033, x1 - 0.033]) K.box('gray', 0.006, top - 0.52, d - 0.07, x, 0.52 + (top - 0.52) / 2, zc);
+  K.box('white', w + 0.02, 0.16, d + 0.02, xc, top + 0.08, zc);
+  K.box('gray', w + 0.03, 0.02, d + 0.03, xc, top + 0.01, zc);
+  K.cyl('satin', 0.2, 0.05, xc - 0.2, top + 0.185, z0 + 0.32, 20);
+  K.box('gray', 0.26, 0.07, 0.18, xc + 0.32, top + 0.195, z0 + 0.24, 0.01);
+  // front: port plates, window band over the robot, sill, a small operator screen
+  for (const px of [ox - 0.3, ox + 0.3]) K.box('gray', 0.5, 0.78, 0.012, px, 1.01, zf + 0.004, 0.004);
+  K.box('window', w - 0.04, 0.48, 0.012, xc, 1.685, zf + 0.004, 0.004);
+  K.box('gray', 0.03, 0.5, 0.02, ox, 1.685, zf + 0.012);
+  K.box('gray', w, 0.05, 0.03, xc, 1.425, zf + 0.012);
+  K.box('screen', 0.12, 0.09, 0.01, x0 + 0.085, 1.22, zf + 0.006);
+  // side window of the mini-environment
+  K.box('window', 0.012, 0.48, d - 0.2, x1 + 0.004, 1.685, zc, 0.004);
+  // load ports: lower cover, stage housing and stage (as Foup.tsx LoadPort)
+  for (const px of [ox - 0.3, ox + 0.3]) {
+    K.box('white', 0.45, 0.595, 0.094, px, 0.2975, zf + 0.05);
+    K.box('white', 0.45, 0.29, 0.29, px, 0.735, zf + 0.15);
+    K.box('gray', 0.43, 0.025, 0.46, px, 0.8825, zf + 0.25);
   }
-  K.box('glass', w - 0.5, h - 1.6, 0.012, 0, 1.25 + (h - 1.6) / 2, zf - 0.02);
-  reveal(K, w - 0.5, 1.2, zf);
-  loadPorts(K, [-0.55, 0.55], zf, [0]);
-  K.tower(w / 2 - 0.2, h, -d / 2 + 0.2);
-  K.foot(w, d);
+  foup(K, ox - 0.3, 0.912, zf + 0.212);
+  // controller cabinet behind the EFEM
+  K.box('gray', w - 0.14, 0.08, 0.44, xc, 0.04, z0 - 0.24);
+  K.box('warm', w - 0.1, 1.64, 0.48, xc, 0.9, z0 - 0.24, 0.03);
+  for (let i = 0; i < 6; i++) K.box('black', 0.01, 0.012, 0.34, x1 - 0.046, 1.28 + i * 0.05, z0 - 0.24);
+  K.tower(x0 + 0.12, top + 0.16, z0 + 0.14);
+  K.foot(w + 0.08, zf + 0.485 - (z0 - 0.48), xc, (zf + 0.485 + z0 - 0.48) / 2);
 }
 
+/**
+ * Optical wafer inspection: a front end with two load ports (and its wafer robot) and, behind a
+ * partition, the inspection module (granite stage, optical head) under a higher roof. It is
+ * the housing of the detailed scene (Inspect.tsx, mounted by poses/inspect.ts); the cutaway
+ * opens both above the pods. The operator screen hangs on an arm rooted below the cut, so the
+ * detailed scene can take it over with the live defect map.
+ */
 function inspection(K: Kit) {
   const w = 2.0;
   const d = 2.4;
+  const zf = d / 2;
   body(K, w, 2.1, d - 0.8, 0, -0.4);
-  body(K, w, 2.0, 0.8, 0, d / 2 - 0.4, 'warm');
-  K.box('window', 1.2, 0.34, 0.012, -0.2, 1.62, d / 2 + 0.004);
-  reveal(K, w, 1.35, d / 2);
-  loadPorts(K, [-0.5, 0.35], d / 2, [1]);
-  seams(K, -w / 2, w / 2, 0.12, 1.3, d / 2, 1.0);
-  screenArm(K, 0.78, 1.45, d / 2);
+  // the front end stops 1 cm short of the module: its back reads as the partition when opened
+  body(K, w, 2.0, 0.79, 0, zf - 0.395, 'warm');
+  K.box('window', 1.2, 0.34, 0.012, -0.2, 1.62, zf + 0.004);
+  reveal(K, w, 1.35, zf);
+  loadPorts(K, [-0.5, 0.35], zf, [1]);
+  seams(K, -w / 2, w / 2, 0.12, 1.22, zf, 1.0);
+  // operator screen (Inspect.tsx BAY_SCREEN)
+  K.box('steelDark', 0.05, 0.05, 0.14, 0.72, 1.12, zf + 0.07, 0.01);
+  K.box('steelDark', 0.04, 0.34, 0.04, 0.72, 1.27, zf + 0.14);
+  K.box('dark', 0.52, 0.35, 0.03, 0.72, 1.55, zf + 0.17, 0.01);
+  K.box('screen', 0.48, 0.3, 0.01, 0.72, 1.555, zf + 0.186, 0.004);
   K.box('window', 0.012, 0.5, 1.0, w / 2 + 0.004, 1.5, -0.5);
   K.cyl('satin', 0.12, 0.35, 0.5, 2.27, -0.8, 16);
   K.tower(w / 2 - 0.15, 2.1, -d / 2 + 0.2);
   K.foot(w, d);
 }
 
+/**
+ * Single-wafer wet clean: a front end with two load ports at the west end and three spin-clean
+ * chambers in the upper tier behind windows, chemical cabinets below. The middle chamber is
+ * ours: the detailed scene (WetClean.tsx, mounted by poses/wetclean.ts) fills its cell, which
+ * the body leaves open behind a front panel standing just proud of the housing. The cutaway
+ * takes only that panel (station z > 1.312), so the other chambers and the front end stay shut.
+ */
 function wetClean(K: Kit) {
   const w = 4.6;
   const d = 2.6;
   const h = 2.6;
-  body(K, w, h, d);
-  // process chambers behind a row of windows, EFEM with load ports at the left end
-  for (let i = 0; i < 4; i++) K.box('window', 0.62, 0.42, 0.012, -0.55 + i * 0.78, 1.72, d / 2 + 0.004, 0.004);
-  reveal(K, w, 1.38, d / 2);
-  reveal(K, w, 2.1, d / 2);
-  for (let i = 0; i < 5; i++) K.box('warm', 0.84, 1.0, 0.012, -1.84 + i * 0.92, 0.72, d / 2 + 0.004, 0.006);
-  loadPorts(K, [-1.9, -1.35], d / 2, [0]);
+  const zf = d / 2;
+  // our chamber's cell (WetClean.tsx CH: ±0.52 wide, 0.92 deep, deck 1.3 m, top 2.16 m)
+  const cx = TOOL_POSES.wetclean.mount?.offset[0] ?? 0.6;
+  const c0 = cx - 0.52;
+  const c1 = cx + 0.52;
+  const y0 = 1.3;
+  const y1 = 2.2;
+  const zb = zf - 0.93;
+  const block = (xa: number, xb: number, ya: number, yb: number, za: number, zc: number) =>
+    K.box('white', xb - xa, yb - ya, zc - za, (xa + xb) / 2, (ya + yb) / 2, (za + zc) / 2, 0.035);
+  K.box('gray', w - 0.05, 0.1, d - 0.05, 0, 0.05, 0);
+  block(-w / 2, c0, 0.1, h, -zf, zf);
+  block(c1, w / 2, 0.1, h, -zf, zf);
+  block(c0, c1, 0.1, y0 - 0.02, -zf, zf); // floor of the cell sits inside the chamber deck
+  block(c0, c1, y1, h, -zf, zf);
+  block(c0, c1, y0, y1, -zf, zb);
+  // our chamber's front panel (window and reveals as on the others)
+  K.box('white', c1 - c0, y1 - y0, 0.015, cx, (y0 + y1) / 2, zf + 0.0205);
+  K.box('window', 0.62, 0.42, 0.012, cx, 1.72, zf + 0.032, 0.004);
+  for (const y of [1.38, 2.1]) K.box('black', c1 - c0, 0.014, 0.012, cx, y, zf + 0.03);
+  // the other chambers, and the front end, behind windows
+  for (const x of [cx - 1.13, cx + 1.13]) K.box('window', 0.62, 0.42, 0.012, x, 1.72, zf + 0.004, 0.004);
+  K.box('window', 0.9, 0.42, 0.012, -1.62, 1.72, zf + 0.004, 0.004);
+  for (const y of [1.38, 2.1]) {
+    reveal(K, c0 + w / 2, y, zf, (c0 - w / 2) / 2);
+    reveal(K, w / 2 - c1, y, zf, (c1 + w / 2) / 2);
+  }
+  for (let i = 0; i < 5; i++) K.box('warm', 0.84, 1.0, 0.012, -1.84 + i * 0.92, 0.72, zf + 0.004, 0.006);
+  loadPorts(K, [-1.9, -1.35], zf, [0]);
   K.cyl('satin', 0.16, w - 0.4, 0, h + 0.2, -0.6, 20, 'x');
   K.box('satin', 0.3, 0.2, 0.3, 1.6, h + 0.1, -0.6, 0.02);
   K.box('gray', 0.9, 0.5, d - 0.3, w / 2 - 0.55, h + 0.25, 0.0, 0.03);
-  screenArm(K, 1.9, 1.5, d / 2);
-  seams(K, -w / 2, w / 2, 1.4, 2.08, d / 2, 0.78);
+  // operator screen below the chamber tier (clear of the cutaway)
+  screenArm(K, 1.95, 1.0, zf);
   K.tower(-w / 2 + 0.2, h, -d / 2 + 0.2);
   K.foot(w, d);
 }
 
-function furnaces(K: Kit) {
-  const n = 3;
+/**
+ * Vertical furnace: a tall back tower (heater above, boat load area below) and a lower FOUP
+ * stocker in front with the load port. Three stand in a bank: the middle one is the station's
+ * (the detailed Furnace.tsx fills its tower, mounted by poses/furnace.ts), the two beside it
+ * are closed neighbours placed outside the station (buildTools), so the cutaway, which opens
+ * the tower front and the stocker above the load port, only ever opens ours.
+ */
+function furnace(K: Kit, withFoup = true) {
   const uw = 1.25;
-  const d = 3.0;
-  for (let i = 0; i < n; i++) {
-    const x = (i - 1) * (uw + 0.06);
-    // heater tower at the back, lower loading module at the front
-    K.box('gray', uw - 0.05, 0.1, 1.5, x, 0.05, -0.75);
-    K.box('white', uw, 3.95, 1.5, x, 0.1 + 3.95 / 2, -0.75, 0.035);
-    K.box('satin', uw - 0.3, 0.3, 1.0, x, 4.2, -0.75, 0.03);
-    K.box('window', 0.14, 2.3, 0.012, x - uw / 2 + 0.2, 2.35, 0.004, 0.003);
-    reveal(K, uw, 3.3, 0, x);
-    body(K, uw, 2.25, 1.5, x, 0.75, 'white');
-    K.cyl('satin', 0.09, 0.3, x + 0.3, 4.5, -1.0, 12);
-    K.box('window', 0.7, 0.3, 0.012, x - 0.15, 1.75, 1.504, 0.004);
-    reveal(K, uw, 1.45, 1.5, x);
-    loadPorts(K, [x + 0.28], 1.5, i === 1 ? [0] : []);
-    K.tower(x + uw / 2 - 0.16, 4.05, -1.3);
-  }
-  K.foot(n * uw + 0.12, d);
+  K.box('gray', uw - 0.05, 0.1, 1.5, 0, 0.05, -0.75);
+  K.box('white', uw, 3.95, 1.5, 0, 0.1 + 3.95 / 2, -0.75, 0.035);
+  K.box('satin', uw - 0.3, 0.3, 1.0, 0, 4.2, -0.75, 0.03);
+  K.box('window', 0.14, 2.3, 0.012, -uw / 2 + 0.2, 2.35, 0.004, 0.003);
+  reveal(K, uw, 3.3, 0);
+  // stocker 1 cm clear of the tower; its lid at the cut height closes it when the tower opens
+  body(K, uw, 2.25, 1.49, 0, 0.755, 'white');
+  K.box('white', uw - 0.08, 0.02, 1.41, 0, 1.28, 0.755);
+  K.cyl('satin', 0.09, 0.3, 0.3, 4.5, -1.0, 12);
+  K.box('window', 0.7, 0.3, 0.012, -0.15, 1.75, 1.504, 0.004);
+  reveal(K, uw, 1.45, 1.5);
+  loadPorts(K, [0.28], 1.5, withFoup ? [0] : []);
+  K.tower(uw / 2 - 0.16, 4.05, -1.3);
+  K.foot(uw, 3.0);
 }
 
 /** Cluster tool: EFEM + transfer chamber + process chambers; `kind` changes the chambers. */
@@ -412,6 +490,73 @@ function cluster(K: Kit, kind: 'etch' | 'depo') {
   K.foot(w, d);
 }
 
+/**
+ * Plasma etch cluster, laid out like its detailed scene (Etch.tsx) so the cutaway opens onto
+ * the same machine: EFEM with three load ports across the front, the load lock behind it, a
+ * square vacuum transfer chamber (lid on), process chambers to the right (etch), behind (etch)
+ * and to the left (resist strip, with its quartz source), and the gas and RF cabinet at the
+ * back. Parts above the cut are drawn just outside the detailed ones (the opening wipe uncovers
+ * them); the pumps and legs below it just inside (the detailed ones show once it is open).
+ */
+function etchCluster(K: Kit) {
+  const zf = 1.8;
+  const hz = -0.16; // transfer-chamber hub
+  const R = 0.912; // hub → chamber axis
+  // EFEM across the front, fan-filter unit on top
+  body(K, 3.0, 2.15, 0.9, 0, zf - 0.45);
+  K.box('gray', 2.9, 0.1, 0.8, 0, 2.2, zf - 0.45, 0.02);
+  K.box('window', 1.8, 0.5, 0.012, 0, 1.72, zf + 0.004, 0.004);
+  reveal(K, 3.0, 1.38, zf);
+  loadPorts(K, [-0.9, 0, 0.9], zf, [0, 2]);
+  seams(K, -1.5, 1.5, 0.12, 1.3, zf, 0.75);
+  // mainframe plinth, transfer chamber with its lid, load lock
+  K.box('gray', 1.16, 0.08, 1.6, 0, 0.04, hz + 0.23);
+  K.box('gray', 1.18, 0.85, 1.64, 0, 0.465, hz + 0.23, 0.02);
+  K.box('satin', 1.14, 0.2, 1.14, 0, 1.03, hz, 0.012);
+  K.box('steel', 1.1, 0.035, 1.1, 0, 1.1475, hz, 0.01);
+  K.box('alu', 0.52, 0.185, 0.52, 0, 1.0275, hz + 0.8, 0.012);
+  // process chambers: the slit (chamber-local −x) faces the hub
+  const slots = [
+    { x: R, z: hz, rot: 0, top: 'icp' },
+    { x: 0, z: hz - R, rot: 1, top: 'icp' },
+    { x: -R, z: hz, rot: 2, top: 'ash' },
+  ] as const;
+  for (const s of slots) {
+    // chamber-local (lx, lz) → station; rot 1 turns a quarter (back), rot 2 mirrors (left)
+    const at = (lx: number, lz: number): [number, number] => (s.rot === 1 ? [s.x + lz, s.z - lx] : [s.x + (s.rot === 2 ? -lx : lx), s.z + lz]);
+    const box = (k: FabMat, w: number, h: number, d: number, lx: number, y: number, lz: number, r = 0) => {
+      const [x, z] = at(lx, lz);
+      if (s.rot === 1) K.box(k, d, h, w, x, y, z, r);
+      else K.box(k, w, h, d, x, y, z, r);
+    };
+    const cyl = (k: FabMat, r: number, h: number, lx: number, y: number, lz: number, seg = 24) => {
+      const [x, z] = at(lx, lz);
+      K.cyl(k, r, h, x, y, z, seg);
+    };
+    for (const [lx, lz] of [[0.27, 0.27], [-0.27, 0.27], [0.27, -0.27], [-0.27, -0.27]]) box('satin', 0.036, 0.78, 0.036, lx, 0.39, lz);
+    cyl('steel', 0.13, 0.36, 0, 0.52, 0);
+    box('alu', 0.49, 0.06, 0.35, -0.07, 0.76, -0.02);
+    box('alu', 0.1, 0.13, 0.47, -0.31, 1.015, 0);
+    // (the kit draws r ≤ 0.3 with 12 sides, larger with 20: radii allow for the flats)
+    cyl('alu', 0.305, 0.405, 0, 1.0025, 0, 28);
+    if (s.top === 'icp') {
+      cyl('alu', 0.302, 0.22, 0, 1.315, 0, 28);
+      box('white', 0.31, 0.16, 0.27, 0, 1.495, -0.02, 0.012);
+    } else {
+      cyl('alu', 0.305, 0.045, 0, 1.2225, 0, 28);
+      cyl('gray', 0.125, 0.235, 0, 1.3625, 0, 20);
+      for (const a of [0.6, 2.2, 3.8, 5.4]) cyl('satin', 0.011, 0.28, Math.sin(a) * 0.19, 1.385, Math.cos(a) * 0.19, 8);
+      cyl('steel', 0.21, 0.017, 0, 1.5225, 0, 28);
+      box('white', 0.23, 0.15, 0.19, 0.02, 1.32, -0.3, 0.012);
+    }
+  }
+  // gas and RF cabinet at the back
+  body(K, 2.6, 2.3, 0.55, 0, -1.725, 'warm');
+  roof(K, 2.6, 2.3, 0.55, 0, -1.725);
+  K.tower(1.1, 2.3, -1.9);
+  K.foot(3.0, 3.8, 0, -0.1);
+}
+
 function track(K: Kit) {
   const w = 6.0;
   const d = 2.2;
@@ -433,6 +578,14 @@ function track(K: Kit) {
   K.foot(w, d);
 }
 
+/**
+ * DUV immersion scanner: white end modules (wafer handling from the track on the left, the
+ * reticle library on the right) around a brushed-steel centre section with the projection
+ * optics behind dark glazing, the illuminator housing raised on the roof, and the excimer laser
+ * behind with its beam-delivery duct. Built as a hollow shell (one body, skins for the colour
+ * breaks) so that when its front and top are cut away the detailed interior (Scanner.tsx)
+ * stands in an open enclosure, with no inner floors or partitions across it.
+ */
 function scanner(K: Kit) {
   const w = 5.4;
   const d = 3.2;
@@ -440,29 +593,30 @@ function scanner(K: Kit) {
   const zf = d / 2;
   const mw = w - 1.45; // main (steel) section width
   const mx = 0.22;
-  // plinth; white lower band; brushed-steel upper enclosure; white end modules
-  K.box('gray', w - 0.06, 0.12, d - 0.06, 0, 0.06, 0);
-  K.box('white', mw, 0.9, d, mx, 0.12 + 0.45, 0, 0.035);
-  K.box('clad', mw, h - 1.02, d, mx, 1.02 + (h - 1.02) / 2, 0, 0.045);
-  K.box('white', 0.9, h - 0.42, d, -w / 2 + 0.45, 0.12 + (h - 0.54) / 2, 0, 0.04);
-  K.box('white', 0.55, h - 0.12, d, w / 2 - 0.29, 0.12 + (h - 0.12) / 2, 0, 0.04);
-  // raised illuminator / reticle-handling housing on top
+  const bx = 0.3; // beam delivery, on the lens axis
+  // plinth; one white body (the left module is lower), a brushed-steel skin on the centre section
+  K.box('gray', w - 0.06, 0.118, d - 0.06, 0, 0.059, 0);
+  K.box('white', w, 2.6 - 0.12, d, 0, 0.12 + (2.6 - 0.12) / 2, 0, 0.04);
+  K.box('white', w - 0.9, h - 2.6, d, 0.45, 2.6 + (h - 2.6) / 2, 0, 0.03);
+  K.box('clad', mw, h - 1.02, 0.012, mx, 1.02 + (h - 1.02) / 2, zf + 0.006);
+  K.box('clad', mw, 0.012, d, mx, h + 0.006, 0);
+  // raised illuminator housing on the roof; the beam-delivery entry module behind it
   K.box('clad', 2.4, 0.44, d - 0.6, mx + 0.15, h + 0.21, -0.12, 0.05);
-  K.box('alu', 1.2, 0.32, 1.2, mx + 0.15, h + 0.58, -0.35, 0.04);
+  K.box('alu', 1.0, 0.28, 0.55, mx + 0.15, h + 0.57, -1.13, 0.04);
   // front: dark glazing with slim mullions, reveals, a restrained violet status line
-  K.box('window', 2.9, 0.86, 0.014, mx - 0.1, 1.86, zf + 0.004, 0.006);
-  for (let i = 1; i < 4; i++) K.box('satin', 0.018, 0.86, 0.02, mx - 0.1 - 1.45 + i * 0.725, 1.86, zf + 0.012);
+  K.box('window', 2.9, 0.86, 0.014, mx - 0.1, 1.86, zf + 0.016, 0.006);
+  for (let i = 1; i < 4; i++) K.box('satin', 0.018, 0.86, 0.02, mx - 0.1 - 1.45 + i * 0.725, 1.86, zf + 0.024);
   reveal(K, mw, 1.02, zf, mx);
-  reveal(K, mw, 2.46, zf, mx);
-  K.box('violet', 1.2, 0.012, 0.01, mx + 0.75, 1.3, zf + 0.012);
-  for (let i = 0; i < 5; i++) K.box('satin', 0.012, h - 1.1, 0.012, mx - mw / 2 + 0.4 + i * 0.78, 1.02 + (h - 1.02) / 2, zf + 0.006);
+  reveal(K, mw, 2.46, zf + 0.012, mx);
+  K.box('violet', 1.2, 0.012, 0.01, mx + 0.75, 1.3, zf + 0.024);
+  for (let i = 0; i < 5; i++) K.box('satin', 0.012, h - 1.1, 0.012, mx - mw / 2 + 0.4 + i * 0.78, 1.02 + (h - 1.02) / 2, zf + 0.018);
   for (let i = 0; i < 4; i++) K.box('warm', 0.86, 0.72, 0.012, mx - 1.3 + i * 0.95, 0.56, zf + 0.004, 0.006);
   screenArm(K, w / 2 - 0.3, 1.45, zf);
-  // excimer laser unit behind, with the beam-delivery duct
+  // excimer laser unit behind, with the beam-delivery duct up and into the illuminator housing
   body(K, 3.0, 1.9, 1.1, 0.6, -d / 2 - 1.05, 'warm');
   K.box('window', 1.4, 0.26, 0.012, 0.2, 1.45, -d / 2 - 0.5 + 0.004, 0.004);
-  K.box('satin', 0.32, 0.32, 1.0, -0.6, 2.35, -d / 2 - 0.45, 0.04);
-  K.box('satin', 0.32, 0.9, 0.32, -0.6, 2.0, -d / 2 - 0.95, 0.04);
+  K.box('satin', 0.32, 1.26, 0.32, bx, 2.53, -d / 2 - 0.95, 0.04);
+  K.box('satin', 0.32, 0.32, 1.3, bx, 3.0, -d / 2 - 0.47, 0.04);
   K.tower(w / 2 - 0.25, h, -d / 2 + 0.25);
   K.foot(w, d);
   K.foot(3.0, 1.1, 0.6, -d / 2 - 1.05);
@@ -517,36 +671,85 @@ function implanter(K: Kit) {
   K.foot(6.4, d);
 }
 
+/**
+ * CD-SEM: a cabinet holding the vacuum chamber and its stage, the electron column rising
+ * through the roof, a small front end with two load ports, an electronics rack and the
+ * operator's monitor on an arm — laid out like the detailed scene (Metrology.tsx), which the
+ * cutaway opens onto (the column top and the monitor are drawn just outside the detailed ones).
+ */
 function metrology(K: Kit) {
-  const w = 2.2;
+  const w = 2.9;
   const d = 2.0;
-  body(K, w, 1.95, d);
-  seams(K, -w / 2, w / 2, 0.12, 1.28, d / 2, 1.1);
-  // electron column on top (CD-SEM style)
-  K.cyl('satin', 0.22, 0.5, -0.3, 2.2, -0.3, 24);
-  K.cyl('steel', 0.26, 0.06, -0.3, 1.99, -0.3, 24);
-  K.cyl('dark', 0.16, 0.14, -0.3, 2.52, -0.3, 24);
-  K.box('window', 1.0, 0.32, 0.012, -0.3, 1.58, d / 2 + 0.004, 0.004);
-  reveal(K, w, 1.32, d / 2);
-  loadPorts(K, [-0.55, 0.3], d / 2, [0]);
-  screenArm(K, 0.85, 1.4, d / 2);
-  K.tower(w / 2 - 0.15, 1.95, -d / 2 + 0.2);
+  const h = 1.95;
+  const zf = d / 2;
+  const cx = 0.28; // electron column axis
+  const cz = -0.17;
+  body(K, w, h, d);
+  seams(K, -w / 2, w / 2, 0.12, 1.28, zf, 0.97);
+  // electron column above the roof: flange, lens section, gun
+  K.cyl('steel', 0.13, 0.02, cx, h + 0.01, cz, 24);
+  K.cyl('white', 0.115, 0.175, cx, h + 0.1075, cz, 24);
+  K.cyl('white', 0.12, 0.095, cx, h + 0.2425, cz, 24, 'y', 0.06);
+  K.box('window', 0.9, 0.3, 0.012, 0.25, 1.58, zf + 0.004, 0.004);
+  reveal(K, w, 1.32, zf);
+  loadPorts(K, [-0.95, -0.35], zf, [0]);
+  // operator's monitor on its arm (the live SEM image when the cabinet is opened)
+  K.box('steelDark', 0.04, 0.04, 0.23, 1.0, 1.43, zf + 0.115, 0.01);
+  K.box('dark', 0.62, 0.4, 0.04, 1.0, 1.53, zf + 0.25, 0.012);
+  K.box('screen', 0.58, 0.36, 0.01, 1.0, 1.53, zf + 0.275, 0.004);
+  K.tower(w / 2 - 0.15, h, -d / 2 + 0.2);
   K.foot(w, d);
 }
 
+/** A box turned about y around (x, z), with a local offset (lx, lz) applied before turning. */
+function turnedBox(K: Kit, k: FabMat, w: number, h: number, d: number, x: number, y: number, z: number, ry: number, lx = 0, lz = 0) {
+  const g = new THREE.BoxGeometry(w, h, d);
+  g.translate(lx, 0, lz);
+  g.rotateY(ry);
+  g.translate(x, y, z);
+  K.add(k, g);
+}
+
+/**
+ * Wafer prober: chassis with the stage chamber under the head plate, the dark test head docked
+ * on it and held by its manipulator behind, a loader with a load port on the left, and the
+ * tester mainframe behind to the right, turned toward the head — laid out like the detailed
+ * scene (Prober.tsx), whose parts sit just inside these.
+ */
 function prober(K: Kit) {
-  // prober with a docked test head (dark), manipulator, tester cabinet beside
-  body(K, 1.5, 1.05, 1.3, -0.35, 0);
-  K.box('window', 0.9, 0.2, 0.012, -0.35, 0.82, 0.654, 0.004);
-  K.box('dark', 1.0, 0.36, 0.8, -0.35, 1.3, -0.05, 0.03);
-  K.box('steelDark', 0.3, 0.12, 0.3, -0.35, 1.08, 0.1, 0.02);
-  K.box('gray', 0.28, 1.6, 0.28, -0.35, 0.8, -0.75, 0.02);
-  body(K, 0.85, 1.75, 0.85, 0.95, -0.15, 'white');
-  K.box('window', 0.55, 0.8, 0.012, 0.95, 1.0, 0.28, 0.004);
-  K.box('black', 0.5, 0.12, 0.3, 0.35, 1.25, -0.4, 0.05);
-  loadPorts(K, [-0.75], 0.65, [0]);
-  K.tower(1.25, 1.75, -0.45);
-  K.foot(2.4, 1.6);
+  const z0 = 0.35; // the probe point (the detailed scene's origin)
+  const turned = (k: FabMat, w: number, h: number, d: number, x: number, y: number, z: number, ry: number, lx = 0, lz = 0) => turnedBox(K, k, w, h, d, x, y, z, ry, lx, lz);
+  // chassis with its stage chamber, head plate on top
+  K.box('gray', 1.2, 0.08, 1.1, 0, 0.04, z0);
+  K.box('white', 1.21, 0.92, 1.11, 0, 0.54, z0, 0.02);
+  reveal(K, 1.21, 0.69, z0 + 0.555);
+  K.box('white', 1.21, 0.04, 0.56, 0, 1.02, z0 - 0.275, 0.01);
+  // test head docked on the probe card, cradle arms and beam, manipulator column behind
+  K.box('dark', 0.8, 0.33, 0.62, 0.01, 1.265, z0 - 0.22, 0.03);
+  for (const s of [-1, 1]) K.box('satin', 0.035, 0.14, 0.47, 0.01 + s * 0.42, 1.27, z0 - 0.36, 0.01);
+  K.box('satin', 0.93, 0.13, 0.09, 0.01, 1.27, z0 - 0.6, 0.01);
+  K.box('gray', 0.5, 0.08, 0.5, 0, 0.04, z0 - 0.76);
+  K.box('white', 0.27, 1.51, 0.27, 0, 0.835, z0 - 0.76, 0.02);
+  K.box('satin', 0.21, 0.21, 0.21, 0, 1.27, z0 - 0.66, 0.02);
+  // loader with its load port and pod
+  K.box('gray', 0.66, 0.08, 1.1, -0.95, 0.04, z0);
+  K.box('white', 0.67, 1.21, 1.11, -0.95, 0.685, z0, 0.02);
+  K.box('window', 0.5, 0.2, 0.012, -0.95, 1.06, z0 + 0.556, 0.004);
+  K.box('gray', 0.49, 0.055, 0.37, -0.95, 0.88, z0 + 0.72, 0.01);
+  K.box('gray', 0.53, 0.51, 0.045, -0.95, 1.0, z0 + 0.56, 0.01);
+  K.box('foup', 0.4, 0.31, 0.34, -0.95, 1.055, z0 + 0.73, 0.03);
+  K.box('gray', 0.21, 0.025, 0.15, -0.95, 1.22, z0 + 0.73, 0.006);
+  // tester mainframe
+  const tx = 1.4;
+  const tz = z0 - 1.5;
+  turned('gray', 0.78, 0.08, 0.74, tx, 0.04, tz, -0.45);
+  turned('white', 0.79, 1.4, 0.75, tx, 0.78, tz, -0.45);
+  turned('window', 0.5, 0.74, 0.012, tx, 0.8, tz, -0.45, -0.04, 0.378);
+  turned('black', 0.6, 0.1, 0.012, tx, 1.345, tz, -0.45, 0, 0.378);
+  turned('screen', 0.12, 0.08, 0.012, tx, 0.8, tz, -0.45, 0.29, 0.38);
+  K.tower(tx + 0.365, 1.48, tz - 0.112);
+  K.foot(2.0, 2.0, -0.34, 0.3);
+  K.foot(0.9, 0.9, tx, tz);
 }
 
 /** A generic single-wafer tool (inspection / metrology style) used to fill out the rows. */
@@ -570,39 +773,56 @@ function rack(K: Kit, w = 1.6, h = 1.9, d = 0.6) {
   K.foot(w, d);
 }
 
+/**
+ * Dicing saw: a cabinet with the cutting chamber behind its front window and the operator
+ * panel on an arm; the detailed saw (Dicing.tsx) stands inside it and is shown when the
+ * cabinet opens above the drain pan, in front of the chamber's back wall.
+ */
 function dicingSaw(K: Kit) {
-  body(K, 1.3, 1.75, 1.15);
-  K.box('window', 0.9, 0.5, 0.012, -0.05, 1.12, 0.579, 0.004);
-  reveal(K, 1.3, 0.82, 0.575);
-  screenArm(K, 0.45, 1.45, 0.575);
-  K.tower(0.5, 1.75, -0.4);
-  K.foot(1.3, 1.15);
+  const d = 1.17;
+  body(K, 1.32, 1.75, d);
+  K.box('window', 0.9, 0.5, 0.012, -0.05, 1.12, d / 2 + 0.004, 0.004);
+  reveal(K, 1.32, 0.82, d / 2);
+  screenArm(K, 0.53, 1.45, d / 2);
+  K.tower(0.5, 1.75, -0.53);
+  K.foot(1.32, d);
 }
 
+/**
+ * Die attach and wire bond: a die bonder and a wire bonder on two benches. Their fronts open
+ * above the work holders to show the detailed work (Package.tsx), done at millimetre scale.
+ */
 function bondBenches(K: Kit) {
   for (const x of [-0.75, 0.75]) {
     K.box('warm', 1.3, 0.04, 0.8, x, 0.88, 0, 0.01);
     for (const sx of [-0.6, 0.6]) for (const sz of [-0.34, 0.34]) K.box('satin', 0.04, 0.86, 0.04, x + sx, 0.43, sz, 0.008);
   }
-  // die bonder and wire bonder on the benches
-  K.box('white', 0.8, 0.5, 0.62, -0.75, 1.15, 0, 0.03);
+  // die bonder and wire bonder on the benches (clear of the bench tops they stand on)
+  K.box('white', 0.8, 0.495, 0.62, -0.75, 1.1525, 0, 0.03);
   K.box('window', 0.5, 0.2, 0.012, -0.75, 1.2, 0.314, 0.004);
-  K.box('gray', 0.72, 0.42, 0.56, 0.75, 1.11, 0, 0.03);
+  K.box('gray', 0.72, 0.415, 0.56, 0.75, 1.1125, 0, 0.03);
   K.cyl('satin', 0.05, 0.28, 0.75, 1.46, 0.05, 16);
   K.box('dark', 0.16, 0.1, 0.16, 0.75, 1.63, 0.05, 0.02);
   K.tower(1.3, 0.9, -0.3);
   K.foot(2.9, 0.8);
 }
 
+/**
+ * Final test: a tester cabinet and a test bench with its ESD mat, the load board and a small
+ * bench tester — the same pieces and places as the detailed scene (TestBench.tsx, mounted
+ * with the bench centre at x = 0.8), which replaces this model close up.
+ */
 function finalTest(K: Kit) {
+  const bx = 0.8;
   body(K, 1.3, 1.85, 1.1, -0.6, 0);
   K.box('window', 0.8, 0.5, 0.012, -0.6, 1.25, 0.554, 0.004);
   reveal(K, 1.3, 0.95, 0.55, -0.6);
-  K.box('warm', 1.2, 0.04, 0.75, 0.8, 0.88, 0, 0.01);
-  for (const sx of [-0.55, 0.55]) for (const sz of [-0.32, 0.32]) K.box('satin', 0.04, 0.86, 0.04, 0.8 + sx, 0.43, sz, 0.008);
-  K.box('dark', 0.36, 0.14, 0.3, 1.0, 0.97, -0.1, 0.01);
-  K.box('screen', 0.14, 0.07, 0.01, 0.95, 0.98, 0.054, 0.003);
-  K.box('dark', 0.24, 0.02, 0.18, 0.55, 0.91, 0.1, 0.004);
+  K.box('warm', 1.5, 0.04, 0.8, bx, 0.876, -0.05, 0.01);
+  for (const sx of [-0.7, 0.7]) K.box('satin', 0.05, 0.856, 0.7, bx + sx, 0.428, -0.05, 0.01);
+  K.box('dark', 1.2, 0.004, 0.66, bx, 0.898, -0.05);
+  K.box('dark', 0.22, 0.014, 0.16, bx, 0.907, 0);
+  turnedBox(K, 'white', 0.21, 0.085, 0.18, bx + 0.25, 0.9425, -0.29, -0.3);
+  turnedBox(K, 'dark', 0.2, 0.076, 0.006, bx + 0.25, 0.943, -0.29, -0.3, 0, 0.09);
   K.tower(-0.1, 1.85, -0.4);
   K.foot(2.8, 1.1);
 }
@@ -704,11 +924,13 @@ function buildTools(kitFor: (id?: SceneId) => Kit) {
   };
   const st = (id: SceneId) => STATIONS[id]!;
   const north = (id: SceneId, fn: (k: Kit) => void) => place(id, st(id)[0], st(id)[1], facing(id) > 0, fn);
-  north('foup', (k) => stocker(k));
+  north('foup', sorter);
   north('inspect', inspection);
   north('wetclean', wetClean);
-  north('furnace', furnaces);
-  north('etch', (k) => cluster(k, 'etch'));
+  north('furnace', (k) => furnace(k));
+  // the bank's other two furnaces are closed neighbours outside the station: the cutaway never opens them
+  for (const dx of [-1.31, 1.31]) place(undefined, st('furnace')[0] + dx, st('furnace')[1], true, (k) => furnace(k, false));
+  north('etch', etchCluster);
   north('track', track);
   north('scanner', scanner);
   north('implant', implanter);
@@ -885,6 +1107,9 @@ export const proxyHidden = new Set<SceneId>();
 /** Housed stations whose enclosure is opened (cut away) to show the detailed interior. */
 export const cutOpen = new Set<SceneId>();
 
+/** Housings that should jump to their target state this frame instead of animating. */
+export const cutInstant = new Set<SceneId>();
+
 /** How far each housing's cutaway has opened (0 closed … 1 open); animated by the bay. */
 const cutT = new Map<SceneId, number>();
 export const cutAmount = (id: SceneId) => cutT.get(id) ?? 0;
@@ -1003,7 +1228,9 @@ export function FabScene({ highlight, hero, picking }: { highlight?: SceneId; he
       if (!spec) return;
       const want = cutOpen.has(id) ? 1 : 0;
       const t0 = cutT.get(id) ?? 0;
-      const t = reduced ? want : want > t0 ? Math.min(1, t0 + dt / CUT_TIME) : Math.max(0, t0 - dt / CUT_TIME);
+      const jump = reduced || cutInstant.has(id);
+      cutInstant.delete(id);
+      const t = jump ? want : want > t0 ? Math.min(1, t0 + dt / CUT_TIME) : Math.max(0, t0 - dt / CUT_TIME);
       if (t === t0 && (t === 0 || cuts.current.has(id))) {
         if (t === 0 && cuts.current.has(id)) restore(g, id);
         return;

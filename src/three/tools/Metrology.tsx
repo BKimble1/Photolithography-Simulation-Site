@@ -1,8 +1,10 @@
 /**
- * CD-SEM metrology (illustrative, no manufacturer's design): a stainless vacuum chamber (front
- * cut away) with an XY stage and electrostatic chuck, a tall electron column of stacked lens
- * sections with its gun, high-voltage cable and ion pumps, a load lock with a magnetically
- * coupled transfer arm, and a monitor with the live SEM image.
+ * CD-SEM metrology (illustrative, no manufacturer's design), drawn as the inside of its bay
+ * model (Fab.tsx, metrology) with the front and top cut away: a stainless vacuum chamber (its
+ * own front cut away too) with an XY stage and electrostatic chuck, a tall electron column of
+ * stacked lens sections rising through the roof with its gun, high-voltage cable and ion pumps,
+ * a load lock with a magnetically coupled transfer arm, a small front end with two load ports
+ * and a robot, an electronics rack, and the operator's monitor with the live SEM image.
  *
  * The stage carries the wafer to five measurement sites and pauses at each while the image
  * builds up. The image is computed from the simulated developed resist (bright edges on a dark
@@ -19,7 +21,7 @@ import { mulberry32 } from '../../sim/rng';
 import { engine, useSimState } from '../../state/sim';
 import { lerp, seg, smooth, useProgressBucket, useProgressFrame } from '../anim';
 import { MAT } from '../materials';
-import { Box, CleanFloor, Cyl, Lathe, LightTower } from '../kit/parts';
+import { Box, CleanFloor, Cyl, Lathe, LightTower, ScaraRobot, StandaloneOnly } from '../kit/parts';
 import { Wafer } from '../wafer/Wafer';
 import type { ToolProps } from './index';
 import { useOverlay, useRunChoices } from '../../state/presentation';
@@ -27,6 +29,18 @@ import { useOverlay, useRunChoices } from '../../state/presentation';
 type V3 = [number, number, number];
 
 // ───────────────────────────── layout (metres) ─────────────────────────────
+//
+// Tool frame: the chamber at the origin; in the bay it stands 0.2 m right of and 0.15 m behind
+// the housing's centre (poses/metrology.ts), so the housing's front (load ports, monitor arm) is
+// at z = FRONT_Z and its cut plane, with the rear bulkhead, at z = BULKHEAD_Z.
+
+const FRONT_Z = 1.15;
+const BULKHEAD_Z = -0.6;
+const PORT_X = [-1.15, -0.55];
+const MONITOR: V3 = [0.8, 1.53, FRONT_Z + 0.25];
+/** Scale of the column's section heights and radii: the gun rises through the housing's roof. */
+const COL_S = 1.45;
+const COL_R = 1.15;
 
 const FLOOR_Y = 0.88; // chamber floor (inside)
 const CHUCK_Y = 1.0; // wafer seat
@@ -318,9 +332,9 @@ function SemScreen({ position, rotation }: { position: V3; rotation: V3 }) {
   }, [canvas, tex, grid, map, site, moving, done, rg, residue]);
   return (
     <group position={position} rotation={rotation}>
-      <Box size={[0.52, 0.34, 0.03]} m="black" radius={0.01} />
+      <Box size={[0.61, 0.39, 0.03]} m="black" radius={0.01} />
       <mesh position={[0, 0, 0.0152]}>
-        <planeGeometry args={[0.49, 0.306]} />
+        <planeGeometry args={[0.576, 0.36]} />
         <meshBasicMaterial map={tex} toneMapped={false} />
       </mesh>
     </group>
@@ -399,42 +413,48 @@ function Column() {
     [0.1, TOP_Y],
     [0.0, TOP_Y],
   ];
+  const y1 = TOP_Y + 0.035;
+  // stacked sections (centre offset above y1, height, radius), scaled by COL_S / COL_R
+  const s = (o: number) => y1 + o * COL_S;
+  const r = (v: number) => v * COL_R;
+  const gunY = s(0.612);
   const gunDome: [number, number][] = [];
   for (let i = 0; i <= 10; i++) {
     const a = (i / 10) * (Math.PI / 2);
-    gunDome.push([Math.cos(a) * 0.085, 1.86 + Math.sin(a) * 0.06]);
+    gunDome.push([Math.cos(a) * r(0.085), gunY + Math.sin(a) * 0.06 * COL_S]);
   }
-  gunDome.push([0, 1.92]);
-  const y1 = TOP_Y + 0.035;
+  gunDome.push([0, gunY + 0.06 * COL_S]);
+  const top = gunY + 0.06 * COL_S;
   return (
     <group position={[COL[0], 0, COL[1]]}>
       <Lathe profile={objective} m="steelSatin" seg={64} />
-      <Cyl r={0.125} h={0.02} position={[0, y1 + 0.01, 0]} m="steel" />
-      <Cyl r={0.095} h={0.13} position={[0, y1 + 0.085, 0]} m="steelSatin" />
-      <Cyl r={0.108} h={0.014} position={[0, y1 + 0.157, 0]} m="chrome" />
-      <Cyl r={0.088} h={0.14} position={[0, y1 + 0.234, 0]} m="steelSatin" />
-      <Cyl r={0.1} h={0.014} position={[0, y1 + 0.311, 0]} m="chrome" />
-      <Cyl r={0.078} h={0.16} position={[0, y1 + 0.398, 0]} m="steelSatin" />
-      <Cyl r={0.092} h={0.014} position={[0, y1 + 0.485, 0]} m="chrome" />
-      <Cyl r={0.085} h={0.12} position={[0, y1 + 0.552, 0]} m="panel" />
-      <Lathe profile={gunDome.map(([r, y]) => [r, y - 1.86 + y1 + 0.612] as [number, number])} m="panel" seg={48} />
+      <Cyl r={r(0.125)} h={0.02} position={[0, y1 + 0.01, 0]} m="steel" />
+      <Cyl r={r(0.095)} h={0.13 * COL_S} position={[0, s(0.085), 0]} m="steelSatin" />
+      <Cyl r={r(0.108)} h={0.014} position={[0, s(0.157), 0]} m="chrome" />
+      <Cyl r={r(0.088)} h={0.14 * COL_S} position={[0, s(0.234), 0]} m="steelSatin" />
+      <Cyl r={r(0.1)} h={0.014} position={[0, s(0.311), 0]} m="chrome" />
+      <Cyl r={r(0.078)} h={0.16 * COL_S} position={[0, s(0.398), 0]} m="steelSatin" />
+      <Cyl r={r(0.092)} h={0.014} position={[0, s(0.485), 0]} m="chrome" />
+      <Cyl r={r(0.085)} h={0.12 * COL_S} position={[0, s(0.552), 0]} m="panel" />
+      <Lathe profile={gunDome} m="panel" seg={48} />
       {/* ion pumps on the column */}
-      {[-1, 1].map((s) => (
-        <group key={s} position={[s * 0.15, y1 + 0.36, 0]}>
+      {[-1, 1].map((k) => (
+        <group key={k} position={[k * 0.16, s(0.36), 0]}>
           <Box size={[0.11, 0.16, 0.12]} m="black" radius={0.008} />
-          <Cyl r={0.022} h={0.06} position={[-s * 0.07, 0, 0]} rotation={[0, 0, Math.PI / 2]} m="steel" />
+          <Cyl r={0.022} h={0.06} position={[-k * 0.07, 0, 0]} rotation={[0, 0, Math.PI / 2]} m="steel" />
         </group>
       ))}
-      {/* high-voltage cable from the gun */}
+      {/* high-voltage cable from the gun, back down through the roof to the supply */}
       <mesh position={[0, 0, 0]}>
         <tubeGeometry
           args={[
             new THREE.CatmullRomCurve3([
-              new THREE.Vector3(0, y1 + 0.672, 0),
-              new THREE.Vector3(0, y1 + 0.76, -0.05),
-              new THREE.Vector3(0, y1 + 0.7, -0.35),
-              new THREE.Vector3(0.05, y1 + 0.3, -0.52),
-              new THREE.Vector3(0.1, 0.9, -0.6),
+              new THREE.Vector3(0, top - 0.005, 0),
+              new THREE.Vector3(0, top + 0.05, -0.06),
+              new THREE.Vector3(0, top - 0.02, -0.2),
+              new THREE.Vector3(0.02, 1.85, -0.3),
+              new THREE.Vector3(0.05, 1.3, -0.45),
+              new THREE.Vector3(0.1, 0.9, -0.55),
             ]),
             48,
             0.014,
@@ -573,15 +593,46 @@ export default function Metrology({ variant }: ToolProps) {
       <mesh ref={beam} position={[COL[0], (TIP_Y + CHUCK_Y + WT) / 2, COL[1]]} material={MAT.beam} visible={false}>
         <cylinderGeometry args={[0.004, 0.0004, TIP_Y - CHUCK_Y - WT, 16, 1, true]} />
       </mesh>
-      {/* electronics rack and operator monitor */}
-      <Box size={[0.5, 1.7, 0.6]} position={[0.95, 0.85, -0.35]} m="panelWarm" radius={0.02} />
-      <Box size={[0.36, 0.5, 0.012]} position={[0.95, 1.2, -0.044]} m="glassDark" radius={0.004} castShadow={false} />
-      <LightTower position={[1.1, 1.7, -0.5]} on="green" />
-      <SemScreen position={[0.78, 1.42, 0.34]} rotation={[-0.06, -0.3, 0]} />
-      <Box size={[0.04, 0.55, 0.04]} position={[0.78, 1.0, 0.3]} m="steelSatin" radius={0.006} />
+      {/* electronics rack beside the chamber */}
+      <Box size={[0.5, 1.7, 0.6]} position={[0.95, 0.85, -0.25]} m="panelWarm" radius={0.02} />
+      <Box size={[0.36, 0.5, 0.012]} position={[0.95, 1.2, 0.056]} m="glassDark" radius={0.004} castShadow={false} />
+      {/* front end: load ports with a pod, and the robot that feeds the load lock */}
+      {PORT_X.map((x, i) => (
+        <LoadPort key={x} x={x} pod={i === 0} />
+      ))}
+      <Box size={[0.3, 0.74, 0.3]} position={[LL_X - 0.05, 0.37, 0.62]} m="panelGray" radius={0.012} />
+      <ScaraRobot position={[LL_X - 0.05, 0.74, 0.62]} base={2.17} elbow={-1.8} wrist={1.2} />
+      {/* rear bulkhead at the housing's cut */}
+      <Box size={[2.86, 1.82, 0.03]} position={[-0.2, 0.12 + 0.91, BULKHEAD_Z]} m="panelGray" radius={0.01} />
+      {/* the operator's monitor on its arm, where the bay model has it: the live SEM image */}
+      <Box size={[0.036, 0.036, 0.23]} position={[MONITOR[0], MONITOR[1] - 0.1, FRONT_Z + 0.115]} m="steelDark" radius={0.008} />
+      <SemScreen position={MONITOR} rotation={[0, 0, 0]} />
+      <StandaloneOnly>
+        <LightTower position={[1.1, 1.7, -0.45]} on="green" />
+      </StandaloneOnly>
       <group ref={wafer} position={[LL_X, PIN_UP, 0]}>
         <Wafer anchor look={{ summary: state.wafer, showParticles: true }} size={768} />
       </group>
+    </group>
+  );
+}
+
+const podMat = new THREE.MeshStandardMaterial({ color: '#b4bcc5', metalness: 0.05, roughness: 0.45 });
+
+/** A load port on the housing's front, just inside the bay model's (which it replaces when opened). */
+function LoadPort({ x, pod }: { x: number; pod: boolean }) {
+  const zf = FRONT_Z;
+  return (
+    <group>
+      <Box size={[0.49, 0.61, 0.033]} position={[x, 1.06, zf + 0.018]} m="steelSatin" radius={0.01} />
+      <Box size={[0.496, 0.056, 0.436]} position={[x, 0.87, zf + 0.22]} m="panelGray" radius={0.01} />
+      <Box size={[0.416, 0.796, 0.056]} position={[x, 0.43, zf + 0.1]} m="panelGray" radius={0.01} />
+      {pod && (
+        <group position={[x, 0.9, zf + 0.24]}>
+          <Box size={[0.386, 0.306, 0.416]} position={[0, 0.155, 0]} m={podMat} radius={0.035} />
+          <Box size={[0.216, 0.026, 0.146]} position={[0, 0.325, 0]} m="panelGray" radius={0.008} />
+        </group>
+      )}
     </group>
   );
 }

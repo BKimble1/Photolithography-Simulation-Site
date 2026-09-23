@@ -19,7 +19,6 @@ import { CameraControls } from '@react-three/drei';
 import { useFrame, useThree } from '@react-three/fiber';
 import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
-import { create } from 'zustand';
 import { DEMO_STEP, machineOfStep } from '../../content/machines';
 import { trackFor, trackForIndex } from '../../content/shots';
 import { STEPS } from '../../content/steps';
@@ -27,48 +26,18 @@ import { FLOW } from '../../sim/flow';
 import { useDemo } from '../../state/demo';
 import type { MachineId } from '../../state/nav';
 import { cameraBridge, useApp, useClock, type CamPose as StoredPose, type ScaleId } from '../../state/store';
-import { labelStations, projectLabels } from '../labels';
+import { labelStations, projectLabels } from '../labelProjection';
 import { BAY, BACKEND } from '../tools/poses/fab';
 import { TOOL_POSES } from '../poses';
-import { cutAmount, cutOpen, fabLod, proxyHidden } from '../tools/Fab';
+import { cutAmount, cutInstant, cutOpen, fabLod, proxyHidden } from '../tools/Fab';
 import { readyStations, stationCentre, stationGroups } from './anchors';
 import { filmSample, filmBridge } from './filmBridge';
+import { directorCommands, publish, stageFocus } from './info';
 import { stageTime } from './time';
-import { copyPose, deviceToWorld, evalTrack, lerpPose, machinePose, makePose, makeSample, resolve, worldToDevice, type CamPose, type CamSample, type Space } from './tracks';
-
-// ───────────────────────────── published stage info (for the DOM UI) ─────────────────────────────
-
-export interface StageInfo {
-  scale: ScaleId;
-  space: Space;
-  /** The learner has taken the camera; offer a way back to the guided view. */
-  freeLook: boolean;
-  /** The camera is travelling (or waiting for its destination to load). */
-  flying: boolean;
-}
-
-export const useStageInfo = create<StageInfo>(() => ({ scale: 'fab', space: 'world', freeLook: false, flying: false }));
-
-function publish(p: StageInfo) {
-  const cur = useStageInfo.getState();
-  if (cur.scale !== p.scale || cur.space !== p.space || cur.freeLook !== p.freeLook || cur.flying !== p.flying) useStageInfo.setState(p);
-}
-
-/** Commands the DOM UI can give the director. */
-export const directorCommands = {
-  /** Hand the camera back to the guided view (Learn, Explore demo) or reset the view (Explore). */
-  recentre: () => {},
-};
-
-/** The machine the story is at (lighting and shadows follow it). */
-export const stageFocus: { station: MachineId | null } = { station: null };
+import { planTransition, type Leg } from './flights';
+import { copyPose, evalTrack, evalTrackStill, makePose, makeSample, resolve, type CamPose, type CamSample, type Space } from './tracks';
 
 // ───────────────────────────── flights ─────────────────────────────
-
-interface Leg {
-  dur: number;
-  eval: (u: number, out: CamSample) => void;
-}
 
 interface Flight {
   legs: Leg[];
@@ -81,112 +50,19 @@ interface Flight {
   thenFree: boolean;
 }
 
-const smooth = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
-
-
-/** Inside a tool row rather than in the central aisle (the aisle is |z| < 1.8 m). */
-const deep = (p: THREE.Vector3) => Math.abs(p.z) > 1.6;
-const aisleZ = (z: number) => Math.max(-0.5, Math.min(0.5, z)) * 0.5;
-
-/**
- * A world move from `from` to a live target. Between machines the camera steps back into the
- * central aisle (clear of equipment, through the doorway to the back-end room), travels along
- * it looking ahead, and turns in to the next machine; short moves are direct.
- */
-function worldLeg(from: CamPose, target: () => CamPose): Leg {
-  const f = copyPose(makePose(), from);
-  const probe = copyPose(makePose(), target());
-  const dx = Math.abs(probe.pos.x - f.pos.x);
-  const dist = f.pos.distanceTo(probe.pos);
-  // High overview shots fly directly; ground-level moves between machines use the aisle.
-  const overview = f.pos.y > 6 || probe.pos.y > 6;
-  const viaAisle = !overview && dx > 2.5 && (dist > 6 || deep(f.pos) || deep(probe.pos));
-  if (!viaAisle) {
-    const dur = overview ? clamp(1.2 + dist / 30, 1.4, 2.6) : clamp(0.6 + dist * 0.35, 0.6, 1.3);
-    return {
-      dur,
-      eval: (u, out) => {
-        out.mix = 0;
-        lerpPose(f, target(), smooth(u), out.a);
-      },
-    };
-  }
-  const dirX = Math.sign(probe.pos.x - f.pos.x) || 1;
-  const y = clamp((f.pos.y + probe.pos.y) / 2, 1.7, 2.15);
-  const lead = Math.min(2.2, dx * 0.18);
-  const p1 = new THREE.Vector3(f.pos.x + dirX * lead, y, aisleZ(f.pos.z));
-  const p2 = new THREE.Vector3(probe.pos.x - dirX * Math.min(2.6, dx * 0.2), y, aisleZ(probe.pos.z));
-  const path = new THREE.CatmullRomCurve3([f.pos.clone(), p1, p2, probe.pos.clone()], false, 'centripetal');
-  // look ahead along the aisle while travelling, then onto the next machine
-  const t1 = p1.clone().add(new THREE.Vector3(dirX * 6, -0.35, 0));
-  const t2 = p2.clone().add(new THREE.Vector3(dirX * 3, -0.3, 0)).lerp(probe.target, 0.55);
-  const look = new THREE.CatmullRomCurve3([f.target.clone(), t1, t2, probe.target.clone()], false, 'centripetal');
-  const len = path.getLength();
-  const dur = clamp(1.3 + len / 16, 1.6, 3.0);
-  const drift = new THREE.Vector3();
-  return {
-    dur,
-    eval: (u, out) => {
-      const k = smooth(u);
-      const t = path.getUtoTmapping(k, 0);
-      out.mix = 0;
-      out.a.space = 'world';
-      path.getPoint(t, out.a.pos);
-      look.getPoint(t, out.a.target);
-      // follow a destination that moves while we travel (blended in towards the end)
-      const to = target();
-      const w = k * k;
-      out.a.pos.addScaledVector(drift.subVectors(to.pos, probe.pos), w);
-      out.a.target.addScaledVector(drift.subVectors(to.target, probe.target), w);
-    },
-  };
-}
-
-/** Reduced motion: hold both compositions still and cross-fade between them. */
-function fadeLeg(from: CamPose, target: () => CamPose): Leg {
-  const f = copyPose(makePose(), from);
-  return {
-    dur: 0.35,
-    eval: (u, out) => {
-      copyPose(out.a, f);
-      copyPose(out.b, target());
-      out.mix = u;
-    },
-  };
-}
-
-/** Hold a framing for a moment (the establishing beat on arriving at a new machine). */
-function holdLeg(pose: CamPose, dur: number): Leg & { pose: CamPose } {
-  return {
-    pose,
-    dur,
-    eval: (_, out) => {
-      out.mix = 0;
-      copyPose(out.a, pose);
-    },
-  };
-}
-
-/** The establishing pose held in a flight so far, if any (the next leg starts from it). */
-function establishPose(legs: Leg[]): CamPose | null {
-  for (let i = legs.length - 1; i >= 0; i--) {
-    const l = legs[i] as Leg & { pose?: CamPose };
-    if (l.pose) return l.pose;
-  }
-  return null;
-}
 
 // ───────────────────────────── hero (home) ─────────────────────────────
 
 const HERO_WIDE = { pos: new THREE.Vector3(18.8, 2.3, 1.6), target: new THREE.Vector3(-4, 1.45, -1.9), fov: 34 };
 const HERO_TALL = { pos: new THREE.Vector3(19.4, 3.6, 2.4), target: new THREE.Vector3(0, -1.6, -1.2), fov: 58 };
 
-function heroPose(t: number, aspect: number, reduced: boolean, out: CamSample): number {
+export function heroPose(t: number, aspect: number, reduced: boolean, out: CamSample): number {
   const k = THREE.MathUtils.clamp((1.25 - aspect) / 0.75, 0, 1);
   const tt = reduced ? 0 : t;
   out.mix = 0;
   out.a.space = 'world';
+  out.a.scale = 'fab';
   out.a.pos.lerpVectors(HERO_WIDE.pos, HERO_TALL.pos, k);
   out.a.target.lerpVectors(HERO_WIDE.target, HERO_TALL.target, k);
   out.a.pos.x += Math.sin(tt * 0.045) * 0.35;
@@ -201,9 +77,10 @@ function heroPose(t: number, aspect: number, reduced: boolean, out: CamSample): 
 const OV_WIDE = { pos: new THREE.Vector3(22, 26, 26), target: new THREE.Vector3(-7, 0, -1.5) };
 const OV_TALL = { pos: new THREE.Vector3(30, 36, 6), target: new THREE.Vector3(-9, -2, 0) };
 
-function overviewPose(aspect: number, out: CamPose) {
+export function overviewPose(aspect: number, out: CamPose) {
   const k = THREE.MathUtils.clamp((1.4 - aspect) / 0.7, 0, 1);
   out.space = 'world';
+  out.scale = 'fab';
   out.pos.lerpVectors(OV_WIDE.pos, OV_TALL.pos, k);
   out.target.lerpVectors(OV_WIDE.target, OV_TALL.target, k);
 }
@@ -294,6 +171,9 @@ export function Director({ deviceScene, controlsRef }: { deviceScene: THREE.Scen
     restore: null as CamPose | null,
     /** The machine the camera was last settled at (a retrace starts from its wafer). */
     lastStation: null as MachineId | null,
+    /** Stations that were ready last frame (a machine that loads while the camera is already
+     * there opens at once: there was no approach to reveal it on). */
+    readyPrev: new Set<MachineId>(),
   });
 
   const fitRef = useRef(1);
@@ -323,14 +203,14 @@ export function Director({ deviceScene, controlsRef }: { deviceScene: THREE.Scen
         else if (ov === 'wafer') resolve({ kind: 'wafer', framing: 'top' }, ctx, out.a);
         else if (ov === 'tool') resolve({ kind: 'shot', name: content.variant ?? 'establish' }, ctx, out.a);
         else if (ov === 'fab') resolve({ kind: 'fab' }, ctx, out.a);
-        else evalTrack(trackForIndex(a.step), useClock.getState().progress, ctx, out);
+        else (a.reducedMotion ? evalTrackStill : evalTrack)(trackForIndex(a.step), useClock.getState().progress, ctx, out);
         break;
       }
       case 'explore': {
         if (a.machine && a.demo) {
           const d = useDemo.getState();
           const id = DEMO_STEP[a.machine];
-          evalTrack(trackFor(id), d.progress, { station: a.machine, variant: STEPS[id].variant }, out);
+          (a.reducedMotion ? evalTrackStill : evalTrack)(trackFor(id), d.progress, { station: a.machine, variant: STEPS[id].variant }, out);
         } else if (a.machine) resolve({ kind: 'machine', station: a.machine }, { station: a.machine }, out.a);
         else {
           overviewPose(size.width / Math.max(1, size.height), out.a);
@@ -339,8 +219,8 @@ export function Director({ deviceScene, controlsRef }: { deviceScene: THREE.Scen
         break;
       }
       case 'watch':
-        if (!filmSample(out)) resolve({ kind: 'fab', station: 'overview' }, { station: null }, out.a);
-        fov = filmBridge.fov ?? BASE_FOV;
+        if (!filmSample(out)) overviewPose(size.width / Math.max(1, size.height), out.a);
+        else if (filmBridge.fov) return filmBridge.fov; // framings that are already composed for this viewport
         break;
     }
     fitPose(out.a, fitRef.current);
@@ -352,49 +232,16 @@ export function Director({ deviceScene, controlsRef }: { deviceScene: THREE.Scen
   const planFlight = (target: () => CamPose, reduced: boolean, thenFree = false): Flight => {
     const s = st.current;
     const a = useApp.getState();
-    const startPose = copyPose(makePose(), shown(s.live));
-    const probe = target();
-    const legs: Leg[] = [];
     const station = focusStation();
     const from = s.lastStation;
-    // Arriving at a different machine in a lesson: establish the whole machine first.
-    const establish = a.mode === 'learn' && !!station && from !== station;
-
-    /** World to world, via the new machine's establishing shot when changing machine. */
-    const worldPath = (start: CamPose) => {
-      if (establish && station) {
-        const est = machinePose(station, makePose());
-        fitPose(est, fitRef.current);
-        legs.push(worldLeg(start, () => est));
-        legs.push(holdLeg(est, 0.35));
-        legs.push(worldLeg(est, target));
-      } else legs.push(worldLeg(start, target));
-    };
-
-    if (reduced) {
-      legs.push(fadeLeg(startPose, target));
-    } else if (startPose.space === 'world' && probe.space === 'world') {
-      worldPath(startPose);
-    } else if (startPose.space === 'device' && probe.space === 'device') {
-      legs.push({ dur: 0.8, eval: (u, out) => ((out.mix = 0), lerpPose(startPose, target(), smooth(u), out.a)) });
-    } else if (startPose.space === 'device') {
-      // Retrace: out of the cross-section onto the wafer it came from, then on to the new framing.
-      const origin = from ?? station;
-      const onWafer = makePose();
-      resolve({ kind: 'wafer', framing: 'die' }, { station: origin }, onWafer);
-      fitPose(onWafer, fitRef.current);
-      legs.push({ dur: 1.1, eval: (u, out) => deviceToWorld(startPose, onWafer, u, origin, out) });
-      worldPath(onWafer);
-    } else {
-      // Down to the wafer, pick out your die, then reveal the cross-section.
-      const onDie = makePose();
-      resolve({ kind: 'wafer', framing: 'die' }, { station }, onDie);
-      fitPose(onDie, fitRef.current);
-      worldPath(startPose);
-      legs.pop();
-      legs.push(worldLeg(legs.length ? (establishPose(legs) ?? startPose) : startPose, () => onDie));
-      legs.push({ dur: 1.2, eval: (u, out) => worldToDevice(onDie, target(), u, station, out) });
-    }
+    const legs = planTransition(shown(s.live), target, {
+      from,
+      to: station,
+      // arriving at a different machine in a lesson: establish the whole machine first
+      establish: a.mode === 'learn' && !!station && from !== station,
+      reduced,
+      fit: (p) => fitPose(p, fitRef.current),
+    });
     const total = legs.reduce((t, l) => t + l.dur, 0);
     return { legs, total, start: stageTime.now(), to: station, from, thenFree };
   };
@@ -461,6 +308,7 @@ export function Director({ deviceScene, controlsRef }: { deviceScene: THREE.Scen
     const controls = controlsRef.current;
     const reduced = a.reducedMotion;
 
+    filmBridge.aspect = size.width / Math.max(1, size.height);
     // ── what should we be looking at? ──
     const fov = guidedNow(s.guided, stageTime.virtual ? stageTime.t : state.clock.elapsedTime);
     const key = keyFor();
@@ -502,7 +350,8 @@ export function Director({ deviceScene, controlsRef }: { deviceScene: THREE.Scen
     const free = s.freeLook && (a.mode === 'learn' || a.mode === 'explore');
     if (s.flight) {
       const f = s.flight;
-      let t = (now - f.start) / 1000;
+      // (a flight planned during this frame starts a fraction of a millisecond after `now`)
+      let t = Math.max(0, (now - f.start) / 1000);
       let done = true;
       for (const leg of f.legs) {
         if (t < leg.dur) {
@@ -512,7 +361,7 @@ export function Director({ deviceScene, controlsRef }: { deviceScene: THREE.Scen
         }
         t -= leg.dur;
       }
-      stageFocus.station = (now - f.start) / 1000 > f.total / 2 ? f.to : (f.from ?? f.to);
+      stageFocus.station = Math.max(0, (now - f.start) / 1000) > f.total / 2 ? f.to : (f.from ?? f.to);
       if (done) {
         f.legs[f.legs.length - 1].eval(1, s.live);
         s.flight = null;
@@ -593,6 +442,9 @@ export function Director({ deviceScene, controlsRef }: { deviceScene: THREE.Scen
         } else proxyHidden.add(id);
       }
     }
+    for (const id of readyStations) if (!s.readyPrev.has(id) && !s.flight) cutInstant.add(id);
+    s.readyPrev = new Set(readyStations);
+    if (a.reducedMotion) cutOpen.forEach((id) => cutInstant.add(id));
     fabLod.apply();
     stationGroups.forEach((g, id) => (g.visible = proxyHidden.has(id) || cutAmount(id) > 0.001 || cutOpen.has(id)));
 

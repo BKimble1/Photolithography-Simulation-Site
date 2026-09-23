@@ -1,0 +1,9 @@
+{ "name": "explore-return", "w": 960, "h": 540, "url": "http://127.0.0.1:5173/?step=coat&virt=1",
+  "setup": [ {"wait": 3000}, {"advance": 150}, {"eval": "window.__fabStores.useClock.getState().pause()"}, {"advance": 2} ],
+  "during": [
+    {"frame": 15, "eval": "window.__fabStores.useApp.getState().navigate({mode:'explore'})"},
+    {"frame": 120, "eval": "window.__fabStores.useApp.getState().navigate({mode:'explore', machine:'etch'})"},
+    {"frame": 230, "eval": "window.__fabStores.useApp.getState().navigate({mode:'explore', machine:'etch', demo:true})"},
+    {"frame": 420, "eval": "window.__fabStores.useApp.getState().navigate({mode:'learn'})"}
+  ],
+  "frames": 540, "out": "docs/recordings/03-explore-and-return.mp4" }

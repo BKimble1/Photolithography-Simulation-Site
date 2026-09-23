@@ -11,6 +11,7 @@ import { STEPS } from '../content/steps';
 import { MACHINE_INFO } from '../content/machines';
 import { CHAPTERS, FLOW } from '../sim/flow';
 import { useApp } from '../state/store';
+import { markFilmGesture } from '../watch/film';
 
 export function Wordmark() {
   const navigate = useApp((s) => s.navigate);
@@ -55,7 +56,16 @@ const BackIcon = () => (
 function WatchButton() {
   const navigate = useApp((s) => s.navigate);
   return (
-    <button className="hbtn hbtn--watch" onClick={() => navigate({ mode: 'watch' })} aria-label="Watch the film" title="Watch the narrated film">
+    <button
+      className="hbtn hbtn--watch"
+      onClick={() => {
+        // the click itself unlocks sound, so the film can start speaking straight away
+        markFilmGesture();
+        navigate({ mode: 'watch' });
+      }}
+      aria-label="Watch the film"
+      title="Watch the narrated film"
+    >
       <span className="hbtn__play" aria-hidden>
         <PlayIcon size={10} />
       </span>
@@ -72,7 +82,7 @@ function LessonPlace() {
   return (
     <div className="place" aria-live="polite">
       <span className="place__ch">
-        <span className="place__num">{String(ch.index).padStart(2, '0')}</span> {ch.title}
+        <span className="place__num">{String(ch.index).padStart(2, '0')}</span> <span className="place__chname">{ch.title}</span>
       </span>
       <span className="place__sep" aria-hidden>
         ·

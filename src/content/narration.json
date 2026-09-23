@@ -1,0 +1,372 @@
+{
+  "_about": "The Watch film's narration. Cue text is the exact caption; tools/narration/pronunciations.json only changes what is spoken. Each segment is one step of the journey (src/content/film.ts maps segments to steps, camera and process timing). Build with tools/narration/build.sh.",
+  "version": "film-1",
+  "voice": "bm_george",
+  "speed": 1.0,
+  "segments": [
+    {
+      "id": "intro",
+      "leadIn": 0.6,
+      "cues": [
+        { "id": "fab", "text": "This is a fab: a factory for computer chips.", "pauseAfter": 0.5 },
+        { "id": "follow", "text": "Over the next few minutes, we'll follow one silicon wafer through it." },
+        { "id": "goal", "text": "It starts as a bare, polished disc, and it ends as a working circuit: an inverter, the simplest logic gate, built from just two transistors." }
+      ],
+      "tail": 0.8
+    },
+    {
+      "id": "arrive",
+      "leadIn": 0.3,
+      "cues": [
+        { "id": "pods", "text": "Wafers travel between machines in sealed pods called FOUPs, twenty-five at a time." },
+        { "id": "dock", "text": "The pod docks at a load port, and its door opens only inside the machine, so the wafers never meet the air of the room." },
+        { "id": "ours", "text": "Ours is bare silicon, polished to a mirror." }
+      ],
+      "tail": 0.6
+    },
+    {
+      "id": "transfer",
+      "leadIn": 0.2,
+      "cues": [
+        { "id": "robot", "text": "A robot reaches in on a thin blade and lifts our wafer out." },
+        { "id": "notch", "text": "On the pre-aligner, the wafer turns until a sensor finds a small notch in its edge." },
+        { "id": "orient", "text": "From now on, every machine knows exactly which way it is facing." }
+      ],
+      "tail": 0.6
+    },
+    {
+      "id": "scan",
+      "leadIn": 0.2,
+      "cues": [
+        { "id": "laser", "text": "Before anything is built, a laser sweeps the surface." },
+        { "id": "map", "text": "A speck of dust scatters light into a detector, and each one becomes a dot on a defect map." },
+        { "id": "small", "text": "Particles far smaller than a hair can still ruin a circuit." }
+      ],
+      "tail": 0.6
+    },
+    {
+      "id": "clean",
+      "leadIn": 0.2,
+      "cues": [
+        { "id": "spray", "text": "So the wafer is cleaned: chemicals and ultrapure water spray across it as it spins, lifting particles away." },
+        { "id": "buried", "text": "Anything left now would be buried under the layers to come." }
+      ],
+      "tail": 0.6
+    },
+    {
+      "id": "diemap",
+      "leadIn": 0.2,
+      "cues": [
+        { "id": "grid", "text": "The wafer will carry hundreds of identical chips, called dies, laid out in a grid." },
+        { "id": "ours", "text": "We'll follow this one." },
+        { "id": "fields", "text": "Every pattern is printed across the whole wafer, one exposure field at a time." }
+      ],
+      "tail": 0.8
+    },
+    {
+      "id": "padox",
+      "leadIn": 0.3,
+      "cues": [
+        { "id": "begin", "text": "Now the building begins.", "pauseAfter": 0.4 },
+        { "id": "oxide", "text": "In a furnace, oxygen reacts with the hot silicon and grows a thin skin of silicon dioxide, partly consuming the silicon beneath." },
+        { "id": "nitride", "text": "Then a layer of silicon nitride is deposited on top. Together, they form a hard mask for what comes next." }
+      ],
+      "tail": 0.6
+    },
+    {
+      "id": "sti-etch",
+      "leadIn": 0.2,
+      "cues": [
+        { "id": "islands", "text": "The first pattern marks out islands where the transistors will live." },
+        { "id": "litho", "text": "That takes lithography, which we'll see in full shortly." },
+        { "id": "etch", "text": "Then a plasma etch cuts trenches through the nitride and deep into the silicon around each island." }
+      ],
+      "tail": 0.8
+    },
+    {
+      "id": "sti-fill",
+      "leadIn": 0.2,
+      "cues": [
+        { "id": "fill", "text": "The trenches are filled with oxide." },
+        { "id": "polish", "text": "Then the wafer is polished flat, down to the nitride, and the nitride is stripped away." },
+        { "id": "moat", "text": "Each silicon island now sits in its own insulating moat, so neighbouring transistors can't leak into each other." }
+      ],
+      "tail": 0.6
+    },
+    {
+      "id": "wells",
+      "leadIn": 0.2,
+      "cues": [
+        { "id": "two", "text": "Next, the silicon is prepared for two kinds of transistor." },
+        { "id": "phos", "text": "Resist covers one half, while an implanter fires phosphorus ions into the other." },
+        { "id": "boron", "text": "Then the masks swap, and boron goes into the second half." },
+        { "id": "invisible", "text": "Nothing looks different, but the silicon now conducts in two different ways." }
+      ],
+      "tail": 0.6
+    },
+    {
+      "id": "anneal",
+      "leadIn": 0.2,
+      "cues": [
+        { "id": "heat", "text": "A short trip back to the furnace." },
+        { "id": "active", "text": "Heat lets the implanted atoms settle into the crystal, where they become electrically active, and it repairs the damage the ions left behind." }
+      ],
+      "tail": 0.6
+    },
+    {
+      "id": "gatestack",
+      "leadIn": 0.2,
+      "cues": [
+        { "id": "oxide", "text": "Now the most delicate layer: the gate oxide, only a few nanometres thick." },
+        { "id": "poly", "text": "On top of it goes a film of polysilicon." },
+        { "id": "switch", "text": "Once patterned, it becomes the gates: the switches that turn each transistor on and off." }
+      ],
+      "tail": 0.8
+    },
+    {
+      "id": "prime",
+      "leadIn": 0.3,
+      "cues": [
+        { "id": "full", "text": "Here is lithography in full.", "pauseAfter": 0.4 },
+        { "id": "prime", "text": "In the track, the wafer is baked dry and primed with a vapour that helps the resist stick." }
+      ],
+      "tail": 0.5
+    },
+    {
+      "id": "coat",
+      "leadIn": 0.2,
+      "cues": [
+        { "id": "puddle", "text": "A nozzle pours a puddle of photoresist onto the centre." },
+        { "id": "spin", "text": "The wafer spins up, the resist spreads into a thin, even film, and the excess flies off the edge." },
+        { "id": "rim", "text": "A fine jet of solvent cleans the rim." }
+      ],
+      "tail": 0.8
+    },
+    {
+      "id": "softbake",
+      "leadIn": 0.2,
+      "cues": [
+        { "id": "bake", "text": "A hot plate drives most of the solvent out of the resist, leaving a firm, stable film." }
+      ],
+      "tail": 0.8
+    },
+    {
+      "id": "reticle",
+      "leadIn": 0.2,
+      "cues": [
+        { "id": "load", "text": "Meanwhile, the scanner loads the reticle for this layer." },
+        { "id": "chrome", "text": "It is a quartz plate carrying the pattern in chrome, drawn four times larger than it will print." }
+      ],
+      "tail": 0.6
+    },
+    {
+      "id": "align",
+      "leadIn": 0.2,
+      "cues": [
+        { "id": "marks", "text": "Before exposing, the scanner finds alignment marks left by the first pattern." },
+        { "id": "correct", "text": "It adjusts its stages so the gates will land exactly on the islands." }
+      ],
+      "tail": 0.6
+    },
+    {
+      "id": "expose",
+      "leadIn": 0.2,
+      "cues": [
+        { "id": "light", "text": "Deep ultraviolet light, at 193 nanometres, passes through the reticle." },
+        { "id": "shrink", "text": "The lens shrinks the image four times, and the scanner sweeps it across the wafer, field by field." },
+        { "id": "latent", "text": "Where the light strikes, the resist changes chemically. Nothing can be seen yet: this is a latent image." }
+      ],
+      "tail": 0.8
+    },
+    {
+      "id": "peb",
+      "leadIn": 0.2,
+      "cues": [
+        { "id": "bake", "text": "A second bake lets that chemistry finish, turning the exposed resist soluble." }
+      ],
+      "tail": 0.8
+    },
+    {
+      "id": "develop",
+      "leadIn": 0.2,
+      "cues": [
+        { "id": "developer", "text": "Then the developer." },
+        { "id": "dissolve", "text": "This is a positive resist, so wherever the light fell, the resist dissolves and washes away." },
+        { "id": "lines", "text": "What remains are resist lines, exactly where the chrome cast its shadow." }
+      ],
+      "tail": 0.8
+    },
+    {
+      "id": "adi",
+      "leadIn": 0.2,
+      "cues": [
+        { "id": "measure", "text": "An electron microscope measures the lines." },
+        { "id": "rework", "text": "If they're out of specification, the resist can still be stripped and the whole cycle repeated." },
+        { "id": "noreturn", "text": "After the next step, there's no going back." }
+      ],
+      "tail": 0.6
+    },
+    {
+      "id": "gate-etch",
+      "leadIn": 0.2,
+      "cues": [
+        { "id": "plasma", "text": "In the etch chamber, a plasma sends ions straight down onto the wafer." },
+        { "id": "carve", "text": "They carve through the polysilicon wherever it's uncovered, and stop at the thin gate oxide." },
+        { "id": "gates", "text": "The resist lines have become polysilicon gates." }
+      ],
+      "tail": 0.6
+    },
+    {
+      "id": "strip",
+      "leadIn": 0.2,
+      "cues": [
+        { "id": "ash", "text": "An oxygen plasma burns away the leftover resist." },
+        { "id": "cycle", "text": "That was one complete lithography cycle. Every patterned layer of a chip goes through the same loop, each with its own reticle." }
+      ],
+      "tail": 0.8
+    },
+    {
+      "id": "sd",
+      "leadIn": 0.2,
+      "cues": [
+        { "id": "repeat", "text": "The loop runs twice more, to implant the sources and drains: arsenic for one transistor, boron for the other." },
+        { "id": "self", "text": "The gates themselves block the ions, so every source and drain lines up perfectly with its gate." },
+        { "id": "done", "text": "Our two transistors are complete." }
+      ],
+      "tail": 0.6
+    },
+    {
+      "id": "pmd",
+      "leadIn": 0.3,
+      "cues": [
+        { "id": "wire", "text": "Now they must be wired together.", "pauseAfter": 0.3 },
+        { "id": "bury", "text": "First, a thick layer of insulating oxide buries them, polished perfectly flat." }
+      ],
+      "tail": 0.6
+    },
+    {
+      "id": "contact-align",
+      "leadIn": 0.2,
+      "cues": [
+        { "id": "align", "text": "Another coat of resist, and the contact reticle is aligned to the gates beneath." },
+        { "id": "drift", "text": "If it drifts too far, a contact could land on the wrong terminal." }
+      ],
+      "tail": 0.6
+    },
+    {
+      "id": "contact-print",
+      "leadIn": 0.2,
+      "cues": [
+        { "id": "print", "text": "The contact holes are printed into the resist, and their position is checked before anything is etched." }
+      ],
+      "tail": 0.8
+    },
+    {
+      "id": "contact-etch",
+      "leadIn": 0.2,
+      "cues": [
+        { "id": "etch", "text": "Then the plasma cuts narrow holes down through the oxide, stopping on the silicon and polysilicon below." }
+      ],
+      "tail": 0.8
+    },
+    {
+      "id": "contact-fill",
+      "leadIn": 0.2,
+      "cues": [
+        { "id": "tungsten", "text": "Tungsten fills the holes." },
+        { "id": "plugs", "text": "Polishing removes everything above the oxide, leaving a metal plug in each one." }
+      ],
+      "tail": 0.6
+    },
+    {
+      "id": "metal1",
+      "leadIn": 0.2,
+      "cues": [
+        { "id": "same", "text": "The first level of copper wiring is built the same way." },
+        { "id": "damascene", "text": "Trenches are etched into a fresh insulating layer, filled with copper and polished flat." },
+        { "id": "join", "text": "These wires join the two transistors into one circuit, and bring in power and ground." }
+      ],
+      "tail": 0.6
+    },
+    {
+      "id": "metal2",
+      "leadIn": 0.2,
+      "cues": [
+        { "id": "second", "text": "A second level goes on top, connected to the first through small vias." },
+        { "id": "many", "text": "Real chips stack many more levels; our inverter needs just two." }
+      ],
+      "tail": 0.6
+    },
+    {
+      "id": "passivate",
+      "leadIn": 0.2,
+      "cues": [
+        { "id": "seal", "text": "Finally, a tough passivation layer seals the chip against moisture and scratches, with windows left open over the pads." }
+      ],
+      "tail": 0.8
+    },
+    {
+      "id": "inspect",
+      "leadIn": 0.3,
+      "cues": [
+        { "id": "last", "text": "The finished wafer is scanned one last time, and the results of every inspection along the way are reviewed together." }
+      ],
+      "tail": 0.6
+    },
+    {
+      "id": "probe",
+      "leadIn": 0.2,
+      "cues": [
+        { "id": "test", "text": "Now the test. A probe card touches the pads of each die in turn, and runs the inverter through its paces." },
+        { "id": "map", "text": "Each result is marked on the wafer map." }
+      ],
+      "tail": 0.8
+    },
+    {
+      "id": "dice",
+      "leadIn": 0.2,
+      "cues": [
+        { "id": "saw", "text": "The wafer is mounted on tape, and sawn along the narrow streets between the dies." }
+      ],
+      "tail": 0.8
+    },
+    {
+      "id": "attach",
+      "leadIn": 0.2,
+      "cues": [
+        { "id": "pick", "text": "A good die is picked from the tape and bonded into a package." }
+      ],
+      "tail": 0.6
+    },
+    {
+      "id": "bond",
+      "leadIn": 0.2,
+      "cues": [
+        { "id": "wires", "text": "Gold wires, finer than a hair, link its pads to the package leads." },
+        { "id": "mould", "text": "Then the whole assembly is sealed in epoxy." }
+      ],
+      "tail": 0.8
+    },
+    {
+      "id": "final",
+      "leadIn": 0.3,
+      "cues": [
+        { "id": "here", "text": "And here is our inverter.", "pauseAfter": 0.4 },
+        { "id": "low", "text": "With the input low, the PMOS transistor conducts, and the output goes high." },
+        { "id": "high", "text": "With the input high, the NMOS transistor takes over, and the output goes low." },
+        { "id": "gate", "text": "A working logic gate: one of the building blocks of every digital chip." }
+      ],
+      "tail": 1.0
+    },
+    {
+      "id": "outro",
+      "leadIn": 0.4,
+      "cues": [
+        { "id": "journey", "text": "That's the journey: one wafer, dozens of steps, and one idea repeated again and again." },
+        { "id": "idea", "text": "Lithography draws a pattern in light, and every other process makes it permanent." },
+        { "id": "scale", "text": "A modern chip repeats that loop dozens of times, to build billions of transistors." }
+      ],
+      "tail": 1.6
+    }
+  ]
+}

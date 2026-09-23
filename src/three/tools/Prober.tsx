@@ -11,13 +11,15 @@
  * fast-forwards (a real prober needs minutes to hours for a 300 mm wafer). The wafer map
  * fills in die by die in the tester's order, exactly in step with the stage.
  * Motion is a pure function of step progress p.
+ * In the bay the scene stands in its bay model (Fab.tsx, prober), which keeps the tester
+ * cabinet and the status towers and opens above the chassis in front of the tester.
  */
 import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { DIES, type Die } from '../../sim/dies';
 import { useSimState, useWaferMap } from '../../state/sim';
 import { clamp01, lerp, smooth, useProgressBucket, useProgressFrame } from '../anim';
-import { Box, CleanFloor, Cyl, LightTower, mat } from '../kit/parts';
+import { Box, CleanFloor, Cyl, LightTower, mat, StandaloneOnly } from '../kit/parts';
 import { MAT, type MatKey } from '../materials';
 import { useWaferGeometry } from '../wafer/Wafer';
 import { drawWafer, lookKey, makeCanvasTexture, type WaferLook } from '../wafer/waferTexture';
@@ -322,6 +324,8 @@ const pcbMat = new THREE.MeshStandardMaterial({ color: '#23463a', metalness: 0.1
 const epoxyMat = new THREE.MeshStandardMaterial({ color: '#2b2320', metalness: 0.05, roughness: 0.55 });
 const headMat = new THREE.MeshStandardMaterial({ color: '#33373d', metalness: 0.35, roughness: 0.46 });
 const headTopMat = new THREE.MeshStandardMaterial({ color: '#484d55', metalness: 0.3, roughness: 0.5 });
+// wafer pods: the same pale grey as the bay model's
+const podMat = new THREE.MeshStandardMaterial({ color: '#b4bcc5', metalness: 0.05, roughness: 0.45 });
 
 function TestHead() {
   return (
@@ -374,19 +378,23 @@ function Loader() {
       <Box size={[0.48, 0.05, 0.36]} position={[0, 0.88, 0.72]} m="panelGray" radius={0.008} />
       <Box size={[0.52, 0.5, 0.04]} position={[0, 1.0, 0.56]} m="panelGray" radius={0.008} />
       <group position={[0, 0.905, 0.73]}>
-        <Box size={[0.39, 0.3, 0.33]} position={[0, 0.15, 0]} m="polycarbonate" radius={0.03} />
+        <Box size={[0.39, 0.3, 0.33]} position={[0, 0.15, 0]} m={podMat} radius={0.03} />
         <Box size={[0.37, 0.28, 0.02]} position={[0, 0.15, -0.17]} m="panelGray" radius={0.006} />
         <Box size={[0.2, 0.02, 0.14]} position={[0, 0.315, 0]} m="panelGray" radius={0.006} />
       </group>
-      <LightTower position={[0.22, 1.28, -0.4]} on="green" />
+      <StandaloneOnly>
+        <LightTower position={[0.22, 1.28, -0.4]} on="green" />
+      </StandaloneOnly>
     </group>
   );
 }
 
-/** Tester mainframe beside the prober, with a thick cable bundle to the test head. */
+/** Tester mainframe behind and beside the prober (the bay model draws it when placed). */
+const TESTER: V3 = [1.4, 0, -1.5];
+
 function Tester() {
   return (
-    <group position={[1.38, 0, -1.3]} rotation={[0, -0.45, 0]}>
+    <group position={TESTER} rotation={[0, -0.45, 0]}>
       <Box size={[0.78, 0.08, 0.74]} position={[0, 0.04, 0]} m="panelGray" radius={0.01} />
       <Box size={[0.78, 1.4, 0.74]} position={[0, 0.78, 0]} m="panel" radius={0.025} />
       {/* instrument slots behind a narrow dark window */}
@@ -476,12 +484,14 @@ export default function Prober({ variant }: ToolProps) {
       <TestHead />
       <Manipulator />
       <Loader />
-      <Tester />
+      <StandaloneOnly>
+        <Tester />
+        <LightTower position={[PX - 0.5, 1.03, PZ - 0.45]} on="violet" />
+      </StandaloneOnly>
       {/* cable bundle: test head → tester */}
-      <Cable points={[[0.3, 1.24, -0.54], [0.56, 1.0, -0.8], [0.8, 0.72, -1.2], [1.05, 0.9, -1.46]]} r={0.028} />
-      <Cable points={[[0.2, 1.28, -0.54], [0.5, 0.96, -0.9], [0.78, 0.66, -1.3], [1.06, 1.02, -1.5]]} r={0.024} />
-      <Cable points={[[0.36, 1.2, -0.5], [0.62, 1.0, -0.74], [0.86, 0.8, -1.12], [1.04, 1.14, -1.42]]} r={0.018} />
-      <LightTower position={[PX - 0.5, 1.03, PZ - 0.45]} on="violet" />
+      <Cable points={[[0.3, 1.24, -0.54], [0.56, 1.0, -0.84], [0.82, 0.72, -1.3], [1.08, 0.9, -1.62]]} r={0.028} />
+      <Cable points={[[0.2, 1.28, -0.54], [0.5, 0.96, -0.94], [0.8, 0.66, -1.42], [1.09, 1.02, -1.66]]} r={0.024} />
+      <Cable points={[[0.36, 1.2, -0.5], [0.62, 1.0, -0.8], [0.88, 0.8, -1.24], [1.07, 1.14, -1.58]]} r={0.018} />
     </group>
   );
 }

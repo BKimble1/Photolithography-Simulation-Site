@@ -14,6 +14,7 @@
  */
 
 import { create } from 'zustand';
+import { TEST_HOOKS } from '../three/stage/time';
 import { STEPS, type ViewLevel } from '../content/steps';
 import { FLOW, STEP_INDEX, type StepId } from '../sim/flow';
 import { DEFAULT_CHOICES, type Choices } from '../sim/types';
@@ -258,7 +259,9 @@ export const useApp = create<AppState>((set, get) => {
     });
     const clock = useClock.getState();
     const waitForCheck = content.check === 'develop' && !get().checks.develop;
-    // The step waits at p = 0 for its camera move; the director starts it on arrival.
+    // The step waits at p = 0 for its camera move; the director starts it on arrival. (With
+    // reduced motion the step still plays, so its captions and process keep their timing; the
+    // camera holds still compositions and cross-fades between them instead of travelling.)
     useClock.setState({ progress: 0, playing: false, pendingPlay: !waitForCheck, epoch: clock.epoch + 1 });
     persist(get());
   };
@@ -399,7 +402,8 @@ export function installHistorySync(): () => void {
   return () => window.removeEventListener('popstate', on);
 }
 
-// Test harness: expose the stores in development builds (e2e specs and capture scripts).
-if (import.meta.env.DEV && typeof window !== 'undefined') {
-  (window as unknown as { __fabStores: unknown }).__fabStores = { useApp, useClock };
+// Test harness: expose the stores in development builds and with ?virt=1 (e2e specs and
+// capture scripts), never otherwise.
+if (TEST_HOOKS) {
+  (window as unknown as { __fabStores: unknown }).__fabStores = { useApp, useClock, HAD_SAVE };
 }

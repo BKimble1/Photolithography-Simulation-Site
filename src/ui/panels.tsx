@@ -29,8 +29,7 @@ export function DevelopCheck() {
   ];
   const pick = (i: number) => {
     answer('develop', { choice: i, correct: i === 0 });
-    useClock.setState({ progress: 0, playing: !useApp.getState().reducedMotion });
-    if (useApp.getState().reducedMotion) useClock.getState().set(1);
+    useClock.setState({ progress: 0, playing: true });
   };
   return (
     <div className={'card card--check'} role="group" aria-labelledby="chk-dev">

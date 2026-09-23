@@ -10,7 +10,7 @@ import { FLOW, STEP_INDEX } from '../sim/flow';
 import { useDemo } from '../state/demo';
 import { MACHINES, type MachineId } from '../state/nav';
 import { useApp } from '../state/store';
-import { directorCommands, useStageInfo } from '../three/stage/Director';
+import { directorCommands, useStageInfo } from '../three/stage/info';
 import { useExplore } from '../three/stage/explore';
 import { PauseIcon, PlayIcon } from './Chrome';
 import { CloseIcon, useEscape, useFocusOnOpen } from './Overlays';
@@ -121,7 +121,10 @@ function OverviewCard() {
           <i className="areas__sw areas__sw--backend" aria-hidden /> Test and packaging, west of it
         </li>
       </ul>
-      <p className="mcard__fine">Conceptual layout. Real fabs group many copies of each tool into bays and move wafers between them by overhead transport.</p>
+      <p className="mcard__fine">
+        Conceptual layout. Real fabs group many copies of each tool into bays and move wafers between them by overhead transport; packaging and final test
+        usually happen at separate sites.
+      </p>
       <button className="btn btn--small" onClick={() => setPanel('equipment')}>
         Equipment list
       </button>

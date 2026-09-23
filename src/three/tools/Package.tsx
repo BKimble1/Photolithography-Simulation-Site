@@ -13,10 +13,14 @@
  *    chase lifts, leaving a black body with the leads sticking out.
  * Wires, loop height and bond sizes are exaggerated so they read at this scale.
  * Motion is a pure function of step progress p.
+ *
+ * In the bay the scene stands in its bay model (Fab.tsx, bondBenches): a die bonder on the
+ * left bench and a wire bonder on the right one, opened above their work holders. The
+ * millimetre work is done in the die bonder for 'attach' and in the wire bonder for 'bond'.
  */
 import { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
-import { StandaloneOnly } from '../kit/parts';
+import { Box, Cyl, StandaloneOnly } from '../kit/parts';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { filmsColor, toSrgb8 } from '../../sim/filmColor';
@@ -64,6 +68,9 @@ const dieSideMat = new THREE.MeshStandardMaterial({ color: '#5a5e65', metalness:
 const tapeMat = new THREE.MeshPhysicalMaterial({ color: '#8fb3dc', roughness: 0.35, metalness: 0, transparent: true, opacity: 0.6, clearcoat: 0.5, depthWrite: false });
 const moldMat = new THREE.MeshStandardMaterial({ color: '#17181b', metalness: 0.0, roughness: 0.62 });
 const holderMat = new THREE.MeshStandardMaterial({ color: '#9fa5ad', metalness: 0.9, roughness: 0.42 });
+
+/** The machine each step's work is done in (metres): die bonder (left bench), wire bonder (right). */
+const MACHINE_X = { attach: -0.75, bond: 0.75 } as const;
 const dimpleMat = new THREE.MeshStandardMaterial({ color: '#232428', metalness: 0.0, roughness: 0.35 });
 
 
@@ -252,6 +259,10 @@ function Collet({ groupRef }: { groupRef: React.RefObject<THREE.Group | null> })
       <mesh position={[0, 40, -24]} material={MAT.panelGray} castShadow>
         <boxGeometry args={[10, 8, 44]} />
       </mesh>
+      {/* Z rod up into the gantry beam */}
+      <mesh position={[0, 112, -40]} material={MAT.steelSatin} castShadow>
+        <cylinderGeometry args={[3, 3, 136, 16]} />
+      </mesh>
     </group>
   );
 }
@@ -277,6 +288,13 @@ function Dispenser({ groupRef }: { groupRef: React.RefObject<THREE.Group | null>
       </mesh>
       <mesh position={[9, 30, 0]} material={MAT.panel} castShadow>
         <boxGeometry args={[12, 26, 12]} />
+      </mesh>
+      {/* its Z actuator, hanging from above */}
+      <mesh position={[9, 100, 0]} material={MAT.steelSatin} castShadow>
+        <cylinderGeometry args={[2.5, 2.5, 114, 12]} />
+      </mesh>
+      <mesh position={[9, 165, 0]} material={MAT.panelGray} castShadow>
+        <boxGeometry args={[18, 18, 18]} />
       </mesh>
     </group>
   );
@@ -305,6 +323,54 @@ function BondHead({ groupRef }: { groupRef: React.RefObject<THREE.Group | null> 
       </mesh>
       <mesh position={[-52, 9, 0]} material={MAT.panelDark} castShadow>
         <boxGeometry args={[14, 18, 18]} />
+      </mesh>
+      {/* the bond head's Z axis above the transducer */}
+      <mesh position={[-52, 60, 0]} material={MAT.steelSatin} castShadow>
+        <boxGeometry args={[8, 84, 8]} />
+      </mesh>
+      <mesh position={[-52, 112, 0]} material={MAT.panelDark} castShadow>
+        <boxGeometry args={[36, 22, 32]} />
+      </mesh>
+    </group>
+  );
+}
+
+/** Die bonder: base plate, the gantry beam its pick-up head runs in, the work holder when idle. */
+function DieBonder({ active }: { active: boolean }) {
+  return (
+    <group position={[MACHINE_X.attach, 0, 0]}>
+      <Box size={[0.76, 0.043, 0.58]} position={[0, 0.9265, -0.005]} m="panelGray" radius={0.004} />
+      <Box size={[0.3, 0.016, 0.02]} position={[-0.025, 1.19, -0.04]} m="steelSatin" radius={0.003} />
+      {[-0.17, 0.12].map((x) => (
+        <Box key={x} size={[0.02, 0.242, 0.02]} position={[x, 1.069, -0.04]} m="steelSatin" radius={0.003} />
+      ))}
+      {!active && <IdleHolder />}
+    </group>
+  );
+}
+
+/** Wire bonder: base plate and the vision column on its bracket; the work holder when idle. */
+function WireBonder({ active }: { active: boolean }) {
+  return (
+    <group position={[MACHINE_X.bond, 0, 0]}>
+      <Box size={[0.7, 0.043, 0.54]} position={[0, 0.9265, -0.005]} m="panelGray" radius={0.004} />
+      <Box size={[0.06, 0.04, 0.23]} position={[0, 1.3, -0.085]} m="steelSatin" radius={0.006} />
+      <Cyl r={0.048} h={0.28} position={[0, 1.46, 0.05]} m="steelSatin" />
+      <Box size={[0.155, 0.095, 0.155]} position={[0, 1.63, 0.05]} m="panelDark" radius={0.01} />
+      {!active && <IdleHolder />}
+    </group>
+  );
+}
+
+/** An idle machine's heated work holder on its base block (metres). */
+function IdleHolder() {
+  return (
+    <group>
+      <mesh position={[0, 0.97, -0.004]} material={MAT.panelGray} receiveShadow>
+        <boxGeometry args={[0.23, 0.044, 0.1]} />
+      </mesh>
+      <mesh position={[0, 0.996, -0.004]} material={holderMat} receiveShadow castShadow>
+        <boxGeometry args={[0.1, 0.008, 0.058]} />
       </mesh>
     </group>
   );
@@ -348,10 +414,11 @@ export default function Package({ variant }: ToolProps) {
   const balls = useRef<(THREE.Mesh | null)[]>([]);
   const stitches = useRef<(THREE.Mesh | null)[]>([]);
 
-  // own key light with a tight shadow frustum: the stage light's shadows are sized for
-  // metre-scale tools and cannot resolve millimetre parts
+  // own key light with a tight shadow frustum (standalone only: in the bay a light would
+  // light every machine, and the bay's key light follows the station in focus)
   const lightTarget = useMemo(() => new THREE.Object3D(), []);
-  const centre: V3 = v === 'attach' ? [-0.035, 1.0, 0] : [0, 1.0, -0.004];
+  const mx = MACHINE_X[v];
+  const centre: V3 = v === 'attach' ? [mx - 0.035, 1.0, 0] : [mx, 1.0, -0.004];
 
   useLayoutEffect(() => {
     wires.forEach((_w, k) => {
@@ -489,38 +556,42 @@ export default function Package({ variant }: ToolProps) {
 
   return (
     <group>
-      {/* bench and machine base (metres) */}
-      <mesh position={[0, 0.94, 0]} material={MAT.panelWarm} receiveShadow>
-        <boxGeometry args={[1.4, 0.03, 0.8]} />
-      </mesh>
-      <mesh position={[0, 0.47, 0]} material={MAT.panel} receiveShadow>
-        <boxGeometry args={[1.36, 0.92, 0.76]} />
-      </mesh>
+      {/* benches (in the bay, the bay model's), floor and key light: standalone only */}
       <StandaloneOnly>
+        {[-0.75, 0.75].map((x) => (
+          <group key={x}>
+            <mesh position={[x, 0.88, 0]} material={MAT.panelWarm} receiveShadow>
+              <boxGeometry args={[1.3, 0.04, 0.8]} />
+            </mesh>
+            {[-0.6, 0.6].flatMap((sx) => [-0.34, 0.34].map((sz) => <Box key={`${sx}${sz}`} size={[0.04, 0.86, 0.04]} position={[x + sx, 0.43, sz]} m="steelSatin" radius={0.008} />))}
+          </group>
+        ))}
         <mesh position={[0, 0, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
           <planeGeometry args={[8, 8]} />
           <meshStandardMaterial color="#e4e2dc" roughness={0.6} />
         </mesh>
+        <primitive object={lightTarget} position={centre} />
+        <directionalLight
+          position={[centre[0] + 0.22, centre[1] + 0.5, centre[2] + 0.3]}
+          target={lightTarget}
+          intensity={1.1}
+          castShadow
+          shadow-mapSize={[1024, 1024]}
+          shadow-camera-left={-0.14}
+          shadow-camera-right={0.14}
+          shadow-camera-top={0.14}
+          shadow-camera-bottom={-0.14}
+          shadow-camera-near={0.2}
+          shadow-camera-far={1.2}
+          shadow-bias={-0.0002}
+          shadow-normalBias={0.0003}
+        />
       </StandaloneOnly>
-      <primitive object={lightTarget} position={centre} />
-      <directionalLight
-        position={[centre[0] + 0.22, centre[1] + 0.5, centre[2] + 0.3]}
-        target={lightTarget}
-        intensity={1.1}
-        castShadow
-        shadow-mapSize={[1024, 1024]}
-        shadow-camera-left={-0.14}
-        shadow-camera-right={0.14}
-        shadow-camera-top={0.14}
-        shadow-camera-bottom={-0.14}
-        shadow-camera-near={0.2}
-        shadow-camera-far={1.2}
-        shadow-bias={-0.0002}
-        shadow-normalBias={0.0003}
-      />
+      <DieBonder active={v === 'attach'} />
+      <WireBonder active={v === 'bond'} />
 
-      {/* ── millimetre world ── */}
-      <group position={[0, 1.0, 0]} scale={0.001}>
+      {/* ── millimetre world, in the machine doing this step's work ── */}
+      <group position={[mx, 1.0, 0]} scale={0.001}>
         {/* heated work holder with a steel base */}
         <mesh position={[0, -4, -4]} material={holderMat} receiveShadow castShadow>
           <boxGeometry args={[PITCH * 3.6, 8, 58]} />

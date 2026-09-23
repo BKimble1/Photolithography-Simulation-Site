@@ -24,13 +24,15 @@ import { useApp, useClock } from '../state/store';
 import { useFilmPresentation } from '../watch/filmStage';
 import { DeviceScene } from './device/DeviceScene';
 import { LabelSpaceContext } from './labels';
-import { readyStations, stationCentre, stationGroups, toolMatrix } from './stage/anchors';
+import { readyStations, stationBoxes, stationCentre, stationGroups, toolMatrix } from './stage/anchors';
 import { StationContext } from './stage/context';
-import { Director, stageFocus, useStageInfo } from './stage/Director';
+import { BeatLabels } from './stage/BeatLabels';
+import { Director } from './stage/Director';
+import { stageFocus, useStageInfo } from './stage/info';
 import { useExplore } from './stage/explore';
-import { stageTime, VIRTUAL_TIME } from './stage/time';
+import { stageTime, TEST_HOOKS, VIRTUAL_TIME } from './stage/time';
 import { toolComponent } from './tools';
-import { FabScene, type FabPicking } from './tools/Fab';
+import { cutAmount, cutOpen, FabScene, proxyHidden, type FabPicking } from './tools/Fab';
 
 // ───────────────────────────── clocks ─────────────────────────────
 
@@ -426,6 +428,11 @@ export function Stage() {
       <ClockDriver />
       <World mounts={mounts} highlight={highlight} />
       <DeviceSpace scene={deviceScene} pres={primary} />
+      {primary && primary.kind !== 'watch' && (
+        <PresentationProvider value={primary}>
+          <BeatLabels />
+        </PresentationProvider>
+      )}
       <CameraControls
         ref={controlsRef}
         makeDefault
@@ -437,18 +444,18 @@ export function Stage() {
       />
       <Director deviceScene={deviceScene} controlsRef={controlsRef} />
       <PerformanceMonitor onDecline={() => setDpr(Math.max(1, maxDpr * 0.66))} onIncline={() => setDpr(maxDpr)} flipflops={3} onFallback={() => setDpr(1)} />
-      {import.meta.env.DEV && <DevHook deviceScene={deviceScene} />}
+      {TEST_HOOKS && <DevHook deviceScene={deviceScene} />}
     </Canvas>
   );
 }
 
-/** Dev only: expose the renderer and scenes for measurement scripts. */
+/** Development and test harness only: expose the renderer and scenes for measurement scripts. */
 function DevHook({ deviceScene }: { deviceScene: THREE.Scene }) {
   const gl = useThree((s) => s.gl);
   const scene = useThree((s) => s.scene);
   const camera = useThree((s) => s.camera);
   useEffect(() => {
-    (window as unknown as { __fab: unknown }).__fab = { gl, scene, deviceScene, camera, THREE, readyStations, stationGroups };
+    (window as unknown as { __fab: unknown }).__fab = { gl, scene, deviceScene, camera, THREE, readyStations, stationGroups, cutOpen, cutAmount, proxyHidden, stageFocus, useStageInfo, stationBoxes };
   }, [gl, scene, camera, deviceScene]);
   return null;
 }
@@ -458,6 +465,7 @@ if (VIRTUAL_TIME) {
   (window as unknown as { __fabAdvance: (n?: number) => number }).__fabAdvance = (n = 1) => {
     for (let i = 0; i < n; i++) {
       stageTime.t += stageTime.dt;
+      stageTime.beforeFrame?.();
       advance(stageTime.t * 1000);
     }
     return stageTime.t;

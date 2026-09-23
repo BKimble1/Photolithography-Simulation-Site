@@ -1,0 +1,5 @@
+{ "name": "develop-layers", "w": 960, "h": 540, "url": "http://127.0.0.1:5173/?step=develop&virt=1",
+  "setup": [ {"wait": 3000}, {"advance": 30},
+             {"eval": "window.__fabStores.useApp.getState().answer('develop', {choice: 0, correct: true}); window.__fabStores.useClock.setState({progress: 0, playing: true, pendingPlay: false})"},
+             {"advance": 2} ],
+  "frames": 330, "out": "docs/recordings/02-develop-machine-to-layers.mp4" }

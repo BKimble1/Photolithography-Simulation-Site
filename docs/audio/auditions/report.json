@@ -1,0 +1,3520 @@
+{
+ "passage": "A single silicon wafer arrives at the lithography bay. First, the track spins it and spreads a thin film of photoresist across the surface. The scanner then shines 193-nanometre deep ultraviolet light through a reticle, shrinking the pattern four times onto the wafer. Nothing is carved yet: the light only changes the resist's chemistry, leaving a hidden latent image. A short bake finishes that reaction. Then developer washes away the exposed positive resist, and the pattern opens. Only now can the plasma etch reach the polysilicon underneath. When the etch is done, the leftover resist is stripped, and the gates of a CMOS inverter remain.",
+ "plan": [
+  [
+   "bm_george",
+   1.0
+  ],
+  [
+   "bm_fable",
+   1.0
+  ],
+  [
+   "bm_lewis",
+   1.0
+  ],
+  [
+   "bm_daniel",
+   1.0
+  ],
+  [
+   "bm_george",
+   0.92
+  ],
+  [
+   "bm_fable",
+   0.92
+  ]
+ ],
+ "missingVoices": [],
+ "fingerprint": {
+  "engine": "float-conv",
+  "engineSha256": "2e83328bed32c73a02614d7405cc78a8f9e5ad9588c5f179e34569c99cdc949d",
+  "sourceSha256": "fbae9257e1e05ffc727e951ef9b9c98418e6d79f1c9b6b13bd59f5c9028a1478",
+  "onnxruntime": "1.30.0",
+  "threads": 4,
+  "g2p": {
+   "g2p": "2026-09-23.1",
+   "misaki": "0.9.4",
+   "phonemizer-fork": "3.3.2",
+   "espeakng-loader": "0.2.4",
+   "espeak-ng": "1.52.0",
+   "num2words": "0.5.14"
+  }
+ },
+ "results": [
+  {
+   "clip": "bm_george",
+   "voice": "bm_george",
+   "speed": 1.0,
+   "file": "bm_george.mp3",
+   "encoded": {
+    "bytes": 374976,
+    "sha256": "9a5dad6ed044b216121b0da397f8a755702de5b923d54308d23a414c9ef8436e",
+    "decodedSamples": 1123200,
+    "sourceSamples": 1123200,
+    "durationMs": 46800,
+    "lagSamples": 0,
+    "lengthMatches": true,
+    "gapless": {
+     "xingTag": true,
+     "tag": "Info",
+     "frames": 1952,
+     "bytes": 374976,
+     "encoder": "Lavf lame",
+     "encoderDelaySamples": 576,
+     "paddingSamples": 576
+    },
+    "decodedPeakDbfs": -1.82
+   },
+   "loudness": {
+    "inputLufs": -21.7,
+    "inputTruePeakDb": -4.1,
+    "gainDb": 2.6,
+    "outputLufs": -19.1,
+    "outputTruePeakDb": -1.5
+   },
+   "qa": {
+    "durationS": 46.8,
+    "peakDbfs": -1.47,
+    "clippedSamples": 0,
+    "dcOffset": -0.00021,
+    "leadingSilenceS": 0.04,
+    "trailingSilenceS": 0.71,
+    "longestInternalSilenceS": 0.51,
+    "pauses": [
+     [
+      1.57,
+      0.18
+     ],
+     [
+      2.32,
+      0.26
+     ],
+     [
+      3.82,
+      0.5
+     ],
+     [
+      5.78,
+      0.36
+     ],
+     [
+      8.45,
+      0.24
+     ],
+     [
+      9.8,
+      0.51
+     ],
+     [
+      10.89,
+      0.2
+     ],
+     [
+      15.07,
+      0.24
+     ],
+     [
+      16.1,
+      0.44
+     ],
+     [
+      19.36,
+      0.49
+     ],
+     [
+      21.27,
+      0.39
+     ],
+     [
+      24.22,
+      0.32
+     ],
+     [
+      26.41,
+      0.48
+     ],
+     [
+      27.73,
+      0.17
+     ],
+     [
+      29.32,
+      0.49
+     ],
+     [
+      33.34,
+      0.37
+     ],
+     [
+      34.99,
+      0.48
+     ],
+     [
+      37.22,
+      0.29
+     ],
+     [
+      39.67,
+      0.51
+     ],
+     [
+      41.21,
+      0.29
+     ],
+     [
+      43.26,
+      0.39
+     ]
+    ],
+    "speechSpanS": 46.05,
+    "f0MedianHz": 141.1,
+    "f0RangeSemitones": 7.7,
+    "pitchJumpsPerMin": 0.0,
+    "voicedShare": 0.348,
+    "burstDb": 6.9,
+    "burstAtS": 16.65,
+    "onsetBurstDb": 4.6,
+    "spikes": 0,
+    "hfShareDb": -28.5,
+    "words": 107,
+    "wpm": 137.2,
+    "speechWpm": 139.4
+   },
+   "rtf": 0.23,
+   "synthSeconds": 11.26,
+   "rawAudioSeconds": 48.95,
+   "allCached": true,
+   "punctuationMarks": 7,
+   "marksWithPause": 2,
+   "meanModelPauseS": 0.125,
+   "maxModelPauseS": 0.175,
+   "medianPauseDepthDb": -68.4,
+   "hesitations": 0,
+   "hesitationSeconds": 0,
+   "rateCv": 0.032,
+   "meanBurstDb": 5.6,
+   "meanOnsetBurstDb": 5.2,
+   "maxRawPeakDbfs": -4.07,
+   "decodedQa": {
+    "peakDbfs": -1.82,
+    "clippedSamples": 0
+   },
+   "sentences": [
+    {
+     "text": "A single silicon wafer arrives at the lithography bay.",
+     "durationS": 3.92,
+     "speechWpm": 142.9,
+     "phonemesPerS": 10.05,
+     "rawLeadS": 0.26,
+     "rawTailS": 0.515,
+     "pauses": [],
+     "hesitations": [],
+     "rawPeakDbfs": -6.09,
+     "rawClipped": 0,
+     "tokens": 53,
+     "synthS": 1.077,
+     "cached": true,
+     "pitchJumps": 0.0,
+     "spikes": 0,
+     "burstDb": 4.9,
+     "onsetBurstDb": 4.8,
+     "asr": {
+      "hypothesis": "A single silicon wafer arrives at the lethography bay.",
+      "reference": "a single silicon wafer arrives at the lithography bay",
+      "errors": 1,
+      "refWords": 9,
+      "wer": 0.111,
+      "diffs": [
+       [
+        "lithography",
+        "lethography"
+       ]
+      ]
+     }
+    },
+    {
+     "text": "First, the track spins it and spreads a thin film of photoresist across the surface.",
+     "durationS": 5.64,
+     "speechWpm": 164.2,
+     "phonemesPerS": 10.58,
+     "rawLeadS": 0.27,
+     "rawTailS": 0.485,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.05,
+       "depthDb": 0.1,
+       "t": 0.495
+      }
+     ],
+     "hesitations": [],
+     "rawPeakDbfs": -4.07,
+     "rawClipped": 0,
+     "tokens": 86,
+     "synthS": 1.591,
+     "cached": true,
+     "pitchJumps": 0.0,
+     "spikes": 0,
+     "burstDb": 6.5,
+     "onsetBurstDb": 6.5,
+     "asr": {
+      "hypothesis": "First, the track spins it and spreads a thin film of photo resist across the surface.",
+      "reference": "first the track spins it spreads a thin film of photoresist across the surface",
+      "errors": 0,
+      "refWords": 14,
+      "wer": 0.0,
+      "diffs": []
+     }
+    },
+    {
+     "text": "The scanner then shines 193-nanometre deep ultraviolet light through a reticle, shrinking the pattern four times onto the wafer.",
+     "durationS": 9.2,
+     "speechWpm": 139.2,
+     "phonemesPerS": 10.06,
+     "rawLeadS": 0.27,
+     "rawTailS": 0.525,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.175,
+       "depthDb": -67.6,
+       "t": 6.195
+      }
+     ],
+     "hesitations": [],
+     "rawPeakDbfs": -4.27,
+     "rawClipped": 0,
+     "tokens": 138,
+     "synthS": 2.145,
+     "cached": true,
+     "pitchJumps": 0.0,
+     "spikes": 0,
+     "burstDb": 6.6,
+     "onsetBurstDb": 4.8,
+     "asr": {
+      "hypothesis": "The scanner then shines 193 nanometer deep ultraviolet light through a reticle, shrinking the pattern four times onto the wafer.",
+      "reference": "the scanner then shines one hundred ninety three nanometer deep ultraviolet light through a reticle shrinking the pattern four times onto the wafer",
+      "errors": 0,
+      "refWords": 23,
+      "wer": 0.0,
+      "diffs": []
+     }
+    },
+    {
+     "text": "Nothing is carved yet: the light only changes the resist's chemistry, leaving a hidden latent image.",
+     "durationS": 6.69,
+     "speechWpm": 146.3,
+     "phonemesPerS": 10.21,
+     "rawLeadS": 0.27,
+     "rawTailS": 0.51,
+     "pauses": [
+      {
+       "mark": ":",
+       "pauseS": 0.125,
+       "depthDb": -69.7,
+       "t": 1.745
+      },
+      {
+       "mark": ",",
+       "pauseS": 0.15,
+       "depthDb": -69.3,
+       "t": 4.62
+      }
+     ],
+     "hesitations": [],
+     "rawPeakDbfs": -5.23,
+     "rawClipped": 0,
+     "tokens": 99,
+     "synthS": 1.732,
+     "cached": true,
+     "pitchJumps": 0.0,
+     "spikes": 0,
+     "burstDb": 5.4,
+     "onsetBurstDb": 5.2,
+     "asr": {
+      "hypothesis": "Nothing is carved yet. The light only changes the resisted chemistry, leaving a hidden, latent image.",
+      "reference": "nothing is carved yet the light only changes the resists chemistry leaving a hidden latent image",
+      "errors": 1,
+      "refWords": 16,
+      "wer": 0.062,
+      "diffs": [
+       [
+        "resists",
+        "resisted"
+       ]
+      ]
+     }
+    },
+    {
+     "text": "A short bake finishes that reaction.",
+     "durationS": 2.57,
+     "speechWpm": 148.1,
+     "phonemesPerS": 9.88,
+     "rawLeadS": 0.25,
+     "rawTailS": 0.475,
+     "pauses": [],
+     "hesitations": [],
+     "rawPeakDbfs": -6.86,
+     "rawClipped": 0,
+     "tokens": 36,
+     "synthS": 0.718,
+     "cached": true,
+     "pitchJumps": 0.0,
+     "spikes": 0,
+     "burstDb": 5.6,
+     "onsetBurstDb": 5.6,
+     "asr": {
+      "hypothesis": "A short bake finishes that reaction.",
+      "reference": "a short bake finishes that reaction",
+      "errors": 0,
+      "refWords": 6,
+      "wer": 0.0,
+      "diffs": []
+     }
+    },
+    {
+     "text": "Then developer washes away the exposed positive resist, and the pattern opens.",
+     "durationS": 5.31,
+     "speechWpm": 139.0,
+     "phonemesPerS": 10.81,
+     "rawLeadS": 0.28,
+     "rawTailS": 0.53,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.125,
+       "depthDb": -69.2,
+       "t": 3.86
+      }
+     ],
+     "hesitations": [],
+     "rawPeakDbfs": -5.52,
+     "rawClipped": 0,
+     "tokens": 78,
+     "synthS": 1.53,
+     "cached": true,
+     "pitchJumps": 0.0,
+     "spikes": 0,
+     "burstDb": 5.7,
+     "onsetBurstDb": 5.5,
+     "asr": {
+      "hypothesis": "Then developer washes away the exposed positive resist and the pattern opens.",
+      "reference": "then developer washes away the exposed positive resist the pattern opens",
+      "errors": 0,
+      "refWords": 11,
+      "wer": 0.0,
+      "diffs": []
+     }
+    },
+    {
+     "text": "Only now can the plasma etch reach the polysilicon underneath.",
+     "durationS": 4.35,
+     "speechWpm": 142.9,
+     "phonemesPerS": 10.0,
+     "rawLeadS": 0.27,
+     "rawTailS": 0.5,
+     "pauses": [],
+     "hesitations": [],
+     "rawPeakDbfs": -7.4,
+     "rawClipped": 0,
+     "tokens": 63,
+     "synthS": 1.053,
+     "cached": true,
+     "pitchJumps": 0.0,
+     "spikes": 0,
+     "burstDb": 5.1,
+     "onsetBurstDb": 4.6,
+     "asr": {
+      "hypothesis": "Only now can the plasma etch reach the polysilicon underneath.",
+      "reference": "only now can the plasma etch reach the polysilicon underneath",
+      "errors": 0,
+      "refWords": 10,
+      "wer": 0.0,
+      "diffs": []
+     }
+    },
+    {
+     "text": "When the etch is done, the leftover resist is stripped, and the gates of a CMOS inverter remain.",
+     "durationS": 6.07,
+     "speechWpm": 182.7,
+     "phonemesPerS": 10.66,
+     "rawLeadS": 0.27,
+     "rawTailS": 0.48,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.125,
+       "depthDb": -68.7,
+       "t": 1.27
+      },
+      {
+       "mark": ",",
+       "pauseS": 0.125,
+       "depthDb": -68.3,
+       "t": 3.445
+      }
+     ],
+     "hesitations": [],
+     "rawPeakDbfs": -6.97,
+     "rawClipped": 0,
+     "tokens": 95,
+     "synthS": 1.413,
+     "cached": true,
+     "pitchJumps": 0.0,
+     "spikes": 0,
+     "burstDb": 5.2,
+     "onsetBurstDb": 4.9,
+     "asr": {
+      "hypothesis": "When the edge is done, the left over resist is stripped and the gates of a seamoss inverter remain.",
+      "reference": "when the etch is done the leftover resist is stripped the gates of a cmos inverter remain",
+      "errors": 1,
+      "refWords": 17,
+      "wer": 0.059,
+      "diffs": [
+       [
+        "etch",
+        "edge"
+       ]
+      ]
+     }
+    }
+   ],
+   "wallSeconds": 17.2,
+   "asrWer": 0.028
+  },
+  {
+   "clip": "bm_fable",
+   "voice": "bm_fable",
+   "speed": 1.0,
+   "file": "bm_fable.mp3",
+   "encoded": {
+    "bytes": 355584,
+    "sha256": "85eaa712f007f797924680e4410f91fcfb488c26e237b3d93b740b0147d802f7",
+    "decodedSamples": 1064640,
+    "sourceSamples": 1064640,
+    "durationMs": 44360,
+    "lagSamples": 0,
+    "lengthMatches": true,
+    "gapless": {
+     "xingTag": true,
+     "tag": "Info",
+     "frames": 1851,
+     "bytes": 355584,
+     "encoder": "Lavf lame",
+     "encoderDelaySamples": 576,
+     "paddingSamples": 960
+    },
+    "decodedPeakDbfs": -2.58
+   },
+   "loudness": {
+    "inputLufs": -21.9,
+    "inputTruePeakDb": 4.0,
+    "gainDb": -5.5,
+    "outputLufs": -27.4,
+    "outputTruePeakDb": -1.5
+   },
+   "qa": {
+    "durationS": 44.36,
+    "peakDbfs": -2.04,
+    "clippedSamples": 0,
+    "dcOffset": -0.00019,
+    "leadingSilenceS": 0.05,
+    "trailingSilenceS": 0.73,
+    "longestInternalSilenceS": 0.57,
+    "pauses": [
+     [
+      3.77,
+      0.55
+     ],
+     [
+      9.39,
+      0.54
+     ],
+     [
+      17.35,
+      0.15
+     ],
+     [
+      17.63,
+      0.54
+     ],
+     [
+      24.19,
+      0.55
+     ],
+     [
+      27.53,
+      0.48
+     ],
+     [
+      32.98,
+      0.54
+     ],
+     [
+      37.54,
+      0.57
+     ]
+    ],
+    "speechSpanS": 43.58,
+    "f0MedianHz": 134.6,
+    "f0RangeSemitones": 11.5,
+    "pitchJumpsPerMin": 0.0,
+    "voicedShare": 0.083,
+    "burstDb": 17.0,
+    "burstAtS": 10.05,
+    "onsetBurstDb": 10.9,
+    "spikes": 0,
+    "hfShareDb": -10.0,
+    "words": 107,
+    "wpm": 144.7,
+    "speechWpm": 147.3
+   },
+   "rtf": 0.233,
+   "synthSeconds": 10.28,
+   "rawAudioSeconds": 44.17,
+   "allCached": true,
+   "punctuationMarks": 7,
+   "marksWithPause": 2,
+   "meanModelPauseS": 0.121,
+   "maxModelPauseS": 0.175,
+   "medianPauseDepthDb": -19.1,
+   "hesitations": 0,
+   "hesitationSeconds": 0,
+   "rateCv": 0.089,
+   "meanBurstDb": 12.8,
+   "meanOnsetBurstDb": 12.6,
+   "maxRawPeakDbfs": 3.46,
+   "decodedQa": {
+    "peakDbfs": -2.58,
+    "clippedSamples": 0
+   },
+   "sentences": [
+    {
+     "text": "A single silicon wafer arrives at the lithography bay.",
+     "durationS": 3.88,
+     "speechWpm": 145.2,
+     "phonemesPerS": 10.22,
+     "rawLeadS": 0.24,
+     "rawTailS": 0.225,
+     "pauses": [],
+     "hesitations": [],
+     "rawPeakDbfs": -3.61,
+     "rawClipped": 0,
+     "tokens": 53,
+     "synthS": 1.137,
+     "cached": true,
+     "pitchJumps": 0.0,
+     "spikes": 0,
+     "burstDb": 12.1,
+     "onsetBurstDb": 12.1,
+     "asr": {
+      "hypothesis": "A single silicon wafer arrives at the lethography bay.",
+      "reference": "a single silicon wafer arrives at the lithography bay",
+      "errors": 1,
+      "refWords": 9,
+      "wer": 0.111,
+      "diffs": [
+       [
+        "lithography",
+        "lethography"
+       ]
+      ]
+     }
+    },
+    {
+     "text": "First, the track spins it and spreads a thin film of photoresist across the surface.",
+     "durationS": 5.31,
+     "speechWpm": 177.5,
+     "phonemesPerS": 11.44,
+     "rawLeadS": 0.25,
+     "rawTailS": 0.235,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.05,
+       "depthDb": 5.8,
+       "t": 0.54
+      }
+     ],
+     "hesitations": [],
+     "rawPeakDbfs": -3.44,
+     "rawClipped": 0,
+     "tokens": 86,
+     "synthS": 1.345,
+     "cached": true,
+     "pitchJumps": 0.0,
+     "spikes": 0,
+     "burstDb": 14.0,
+     "onsetBurstDb": 14.0,
+     "asr": {
+      "hypothesis": "First, the track spins it and spreads a thin film of photoresist across the surface.",
+      "reference": "first the track spins it spreads a thin film of photoresist across the surface",
+      "errors": 0,
+      "refWords": 14,
+      "wer": 0.0,
+      "diffs": []
+     }
+    },
+    {
+     "text": "The scanner then shines 193-nanometre deep ultraviolet light through a reticle, shrinking the pattern four times onto the wafer.",
+     "durationS": 7.86,
+     "speechWpm": 163.6,
+     "phonemesPerS": 11.82,
+     "rawLeadS": 0.25,
+     "rawTailS": 0.26,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.175,
+       "depthDb": -20.1,
+       "t": 4.915
+      }
+     ],
+     "hesitations": [],
+     "rawPeakDbfs": 3.46,
+     "rawClipped": 26,
+     "tokens": 138,
+     "synthS": 1.899,
+     "cached": true,
+     "pitchJumps": 0.0,
+     "spikes": 0,
+     "burstDb": 17.6,
+     "onsetBurstDb": 17.6,
+     "asr": {
+      "hypothesis": "The scanner then shines 193 nanometer deep ultraviolet light through a reticle, shrinking the pattern four times onto the wafer.",
+      "reference": "the scanner then shines one hundred ninety three nanometer deep ultraviolet light through a reticle shrinking the pattern four times onto the wafer",
+      "errors": 0,
+      "refWords": 23,
+      "wer": 0.0,
+      "diffs": []
+     }
+    },
+    {
+     "text": "Nothing is carved yet: the light only changes the resist's chemistry, leaving a hidden latent image.",
+     "durationS": 6.23,
+     "speechWpm": 159.5,
+     "phonemesPerS": 11.13,
+     "rawLeadS": 0.25,
+     "rawTailS": 0.24,
+     "pauses": [
+      {
+       "mark": ":",
+       "pauseS": 0.125,
+       "depthDb": -15.5,
+       "t": 1.49
+      },
+      {
+       "mark": ",",
+       "pauseS": 0.15,
+       "depthDb": -18.2,
+       "t": 4.015
+      }
+     ],
+     "hesitations": [],
+     "rawPeakDbfs": -1.09,
+     "rawClipped": 0,
+     "tokens": 99,
+     "synthS": 1.652,
+     "cached": true,
+     "pitchJumps": 0.0,
+     "spikes": 0,
+     "burstDb": 12.8,
+     "onsetBurstDb": 11.2,
+     "asr": {
+      "hypothesis": "Nothing is carved yet. The light only changes the resistance chemistry, leaving a hidden lightened image.",
+      "reference": "nothing is carved yet the light only changes the resists chemistry leaving a hidden latent image",
+      "errors": 2,
+      "refWords": 16,
+      "wer": 0.125,
+      "diffs": [
+       [
+        "resists",
+        "resistance"
+       ],
+       [
+        "latent",
+        "lightened"
+       ]
+      ]
+     }
+    },
+    {
+     "text": "A short bake finishes that reaction.",
+     "durationS": 2.94,
+     "speechWpm": 129.0,
+     "phonemesPerS": 8.6,
+     "rawLeadS": 0.23,
+     "rawTailS": 0.225,
+     "pauses": [],
+     "hesitations": [],
+     "rawPeakDbfs": -4.71,
+     "rawClipped": 0,
+     "tokens": 36,
+     "synthS": 0.766,
+     "cached": true,
+     "pitchJumps": 0.0,
+     "spikes": 0,
+     "burstDb": 12.9,
+     "onsetBurstDb": 12.9,
+     "asr": {
+      "hypothesis": "A short bake finishes that reaction.",
+      "reference": "a short bake finishes that reaction",
+      "errors": 0,
+      "refWords": 6,
+      "wer": 0.0,
+      "diffs": []
+     }
+    },
+    {
+     "text": "Then developer washes away the exposed positive resist, and the pattern opens.",
+     "durationS": 5.15,
+     "speechWpm": 144.9,
+     "phonemesPerS": 11.27,
+     "rawLeadS": 0.25,
+     "rawTailS": 0.245,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.125,
+       "depthDb": -20.9,
+       "t": 3.315
+      }
+     ],
+     "hesitations": [],
+     "rawPeakDbfs": -2.73,
+     "rawClipped": 0,
+     "tokens": 78,
+     "synthS": 1.171,
+     "cached": true,
+     "pitchJumps": 0.0,
+     "spikes": 0,
+     "burstDb": 11.5,
+     "onsetBurstDb": 11.5,
+     "asr": {
+      "hypothesis": "Then developer washes away the exposed positive resist, and the pattern opens.",
+      "reference": "then developer washes away the exposed positive resist the pattern opens",
+      "errors": 0,
+      "refWords": 11,
+      "wer": 0.0,
+      "diffs": []
+     }
+    },
+    {
+     "text": "Only now can the plasma etch reach the polysilicon underneath.",
+     "durationS": 4.23,
+     "speechWpm": 149.3,
+     "phonemesPerS": 10.45,
+     "rawLeadS": 0.24,
+     "rawTailS": 0.225,
+     "pauses": [],
+     "hesitations": [],
+     "rawPeakDbfs": -3.48,
+     "rawClipped": 0,
+     "tokens": 63,
+     "synthS": 0.996,
+     "cached": true,
+     "pitchJumps": 0.0,
+     "spikes": 0,
+     "burstDb": 11.5,
+     "onsetBurstDb": 11.5,
+     "asr": {
+      "hypothesis": "Only now can the plasma etch reach the poly silicon underneath.",
+      "reference": "only now can the plasma etch reach the polysilicon underneath",
+      "errors": 0,
+      "refWords": 10,
+      "wer": 0.0,
+      "diffs": []
+     }
+    },
+    {
+     "text": "When the etch is done, the leftover resist is stripped, and the gates of a CMOS inverter remain.",
+     "durationS": 5.71,
+     "speechWpm": 195.7,
+     "phonemesPerS": 11.41,
+     "rawLeadS": 0.23,
+     "rawTailS": 0.23,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.1,
+       "depthDb": -16.7,
+       "t": 1.01
+      },
+      {
+       "mark": ",",
+       "pauseS": 0.125,
+       "depthDb": -20.1,
+       "t": 2.835
+      }
+     ],
+     "hesitations": [],
+     "rawPeakDbfs": -3.04,
+     "rawClipped": 0,
+     "tokens": 95,
+     "synthS": 1.311,
+     "cached": true,
+     "pitchJumps": 0.0,
+     "spikes": 0,
+     "burstDb": 10.1,
+     "onsetBurstDb": 10.1,
+     "asr": {
+      "hypothesis": "When the etch is done, the leftover resist is stripped and the gates of a seamoss inverter remain.",
+      "reference": "when the etch is done the leftover resist is stripped the gates of a cmos inverter remain",
+      "errors": 0,
+      "refWords": 17,
+      "wer": 0.0,
+      "diffs": []
+     }
+    }
+   ],
+   "wallSeconds": 12.92,
+   "asrWer": 0.028
+  },
+  {
+   "clip": "bm_lewis",
+   "voice": "bm_lewis",
+   "speed": 1.0,
+   "file": "bm_lewis.mp3",
+   "encoded": {
+    "bytes": 362496,
+    "sha256": "3a631e91238adc82d9e5a4f8c3c3f8ad7efb61ff28256b472373ead0b68ae39d",
+    "decodedSamples": 1085760,
+    "sourceSamples": 1085760,
+    "durationMs": 45240,
+    "lagSamples": 0,
+    "lengthMatches": true,
+    "gapless": {
+     "xingTag": true,
+     "tag": "Info",
+     "frames": 1887,
+     "bytes": 362496,
+     "encoder": "Lavf lame",
+     "encoderDelaySamples": 576,
+     "paddingSamples": 576
+    },
+    "decodedPeakDbfs": -2.03
+   },
+   "loudness": {
+    "inputLufs": -23.2,
+    "inputTruePeakDb": -1.9,
+    "gainDb": 0.4,
+    "outputLufs": -22.8,
+    "outputTruePeakDb": -1.5
+   },
+   "qa": {
+    "durationS": 45.24,
+    "peakDbfs": -1.49,
+    "clippedSamples": 0,
+    "dcOffset": -0.0001,
+    "leadingSilenceS": 0.04,
+    "trailingSilenceS": 0.72,
+    "longestInternalSilenceS": 0.54,
+    "pauses": [
+     [
+      1.43,
+      0.32
+     ],
+     [
+      3.56,
+      0.51
+     ],
+     [
+      5.46,
+      0.39
+     ],
+     [
+      8.09,
+      0.2
+     ],
+     [
+      9.25,
+      0.5
+     ],
+     [
+      13.07,
+      0.22
+     ],
+     [
+      14.35,
+      0.28
+     ],
+     [
+      15.28,
+      0.46
+     ],
+     [
+      16.67,
+      0.24
+     ],
+     [
+      18.42,
+      0.49
+     ],
+     [
+      20.26,
+      0.54
+     ],
+     [
+      23.33,
+      0.35
+     ],
+     [
+      25.46,
+      0.5
+     ],
+     [
+      26.77,
+      0.24
+     ],
+     [
+      28.28,
+      0.5
+     ],
+     [
+      31.91,
+      0.46
+     ],
+     [
+      33.58,
+      0.5
+     ],
+     [
+      35.77,
+      0.35
+     ],
+     [
+      36.5,
+      0.15
+     ],
+     [
+      38.19,
+      0.51
+     ],
+     [
+      39.71,
+      0.36
+     ],
+     [
+      41.74,
+      0.41
+     ]
+    ],
+    "speechSpanS": 44.48,
+    "f0MedianHz": 123.6,
+    "f0RangeSemitones": 6.5,
+    "pitchJumpsPerMin": 0.0,
+    "voicedShare": 0.022,
+    "burstDb": 13.0,
+    "burstAtS": 4.15,
+    "onsetBurstDb": 9.9,
+    "spikes": 0,
+    "hfShareDb": -22.7,
+    "words": 107,
+    "wpm": 141.9,
+    "speechWpm": 144.3
+   },
+   "rtf": 0.346,
+   "synthSeconds": 17.0,
+   "rawAudioSeconds": 49.15,
+   "allCached": true,
+   "punctuationMarks": 7,
+   "marksWithPause": 5,
+   "meanModelPauseS": 0.146,
+   "maxModelPauseS": 0.225,
+   "medianPauseDepthDb": -91.1,
+   "hesitations": 2,
+   "hesitationSeconds": 0.3,
+   "rateCv": 0.045,
+   "meanBurstDb": 12.5,
+   "meanOnsetBurstDb": 11.3,
+   "maxRawPeakDbfs": -1.89,
+   "decodedQa": {
+    "peakDbfs": -2.03,
+    "clippedSamples": 0
+   },
+   "sentences": [
+    {
+     "text": "A single silicon wafer arrives at the lithography bay.",
+     "durationS": 3.67,
+     "speechWpm": 153.4,
+     "phonemesPerS": 10.8,
+     "rawLeadS": 0.4,
+     "rawTailS": 0.575,
+     "pauses": [],
+     "hesitations": [],
+     "rawPeakDbfs": -3.09,
+     "rawClipped": 0,
+     "tokens": 53,
+     "synthS": 0.94,
+     "cached": true,
+     "pitchJumps": null,
+     "spikes": 0,
+     "burstDb": 13.6,
+     "onsetBurstDb": 11.4,
+     "asr": {
+      "hypothesis": "A single silicon wafer arrives at the lethography bay.",
+      "reference": "a single silicon wafer arrives at the lithography bay",
+      "errors": 1,
+      "refWords": 9,
+      "wer": 0.111,
+      "diffs": [
+       [
+        "lithography",
+        "lethography"
+       ]
+      ]
+     }
+    },
+    {
+     "text": "First, the track spins it and spreads a thin film of photoresist across the surface.",
+     "durationS": 5.33,
+     "speechWpm": 173.7,
+     "phonemesPerS": 11.2,
+     "rawLeadS": 0.39,
+     "rawTailS": 0.6,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.05,
+       "depthDb": 1.5,
+       "t": 0.5
+      }
+     ],
+     "hesitations": [],
+     "rawPeakDbfs": -2.86,
+     "rawClipped": 0,
+     "tokens": 86,
+     "synthS": 1.434,
+     "cached": true,
+     "pitchJumps": 0.0,
+     "spikes": 0,
+     "burstDb": 13.1,
+     "onsetBurstDb": 13.1,
+     "asr": {
+      "hypothesis": "First, the track spins it and spreads a thin film of photoresist across the surface.",
+      "reference": "first the track spins it spreads a thin film of photoresist across the surface",
+      "errors": 0,
+      "refWords": 14,
+      "wer": 0.0,
+      "diffs": []
+     }
+    },
+    {
+     "text": "The scanner then shines 193-nanometre deep ultraviolet light through a reticle, shrinking the pattern four times onto the wafer.",
+     "durationS": 8.82,
+     "speechWpm": 145.3,
+     "phonemesPerS": 10.5,
+     "rawLeadS": 0.4,
+     "rawTailS": 0.65,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.225,
+       "depthDb": -130.4,
+       "t": 5.915
+      }
+     ],
+     "hesitations": [
+      [
+       7.14,
+       0.15
+      ]
+     ],
+     "rawPeakDbfs": -3.86,
+     "rawClipped": 0,
+     "tokens": 138,
+     "synthS": 3.844,
+     "cached": true,
+     "pitchJumps": 0.0,
+     "spikes": 0,
+     "burstDb": 12.0,
+     "onsetBurstDb": 10.1,
+     "asr": {
+      "hypothesis": "The scanner then shines one ninety three nanometer deep ultraviolet light through a reticle, shrinking the pattern four times onto the wafer.",
+      "reference": "the scanner then shines one ninety three nanometer deep ultraviolet light through a reticle shrinking the pattern four times onto the wafer",
+      "errors": 0,
+      "refWords": 22,
+      "wer": 0.0,
+      "diffs": []
+     }
+    },
+    {
+     "text": "Nothing is carved yet: the light only changes the resist's chemistry, leaving a hidden latent image.",
+     "durationS": 6.69,
+     "speechWpm": 146.6,
+     "phonemesPerS": 10.23,
+     "rawLeadS": 0.41,
+     "rawTailS": 0.595,
+     "pauses": [
+      {
+       "mark": ":",
+       "pauseS": 0.175,
+       "depthDb": -115.3,
+       "t": 1.78
+      },
+      {
+       "mark": ",",
+       "pauseS": 0.15,
+       "depthDb": -54.7,
+       "t": 4.705
+      }
+     ],
+     "hesitations": [],
+     "rawPeakDbfs": -1.89,
+     "rawClipped": 0,
+     "tokens": 99,
+     "synthS": 3.698,
+     "cached": true,
+     "pitchJumps": 0.0,
+     "spikes": 0,
+     "burstDb": 12.3,
+     "onsetBurstDb": 11.6,
+     "asr": {
+      "hypothesis": "Nothing is carved yet. The light only changes the resist chemistry, leaving a hidden, latent image.",
+      "reference": "nothing is carved yet the light only changes the resists chemistry leaving a hidden latent image",
+      "errors": 1,
+      "refWords": 16,
+      "wer": 0.062,
+      "diffs": [
+       [
+        "resists",
+        "resist"
+       ]
+      ]
+     }
+    },
+    {
+     "text": "A short bake finishes that reaction.",
+     "durationS": 2.47,
+     "speechWpm": 155.2,
+     "phonemesPerS": 10.34,
+     "rawLeadS": 0.39,
+     "rawTailS": 0.535,
+     "pauses": [],
+     "hesitations": [],
+     "rawPeakDbfs": -3.86,
+     "rawClipped": 0,
+     "tokens": 36,
+     "synthS": 1.813,
+     "cached": true,
+     "pitchJumps": null,
+     "spikes": 0,
+     "burstDb": 12.2,
+     "onsetBurstDb": 10.6,
+     "asr": {
+      "hypothesis": "A short bake finishes that reaction.",
+      "reference": "a short bake finishes that reaction",
+      "errors": 0,
+      "refWords": 6,
+      "wer": 0.0,
+      "diffs": []
+     }
+    },
+    {
+     "text": "Then developer washes away the exposed positive resist, and the pattern opens.",
+     "durationS": 4.95,
+     "speechWpm": 150.0,
+     "phonemesPerS": 11.67,
+     "rawLeadS": 0.4,
+     "rawTailS": 0.595,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.15,
+       "depthDb": -91.1,
+       "t": 3.54
+      }
+     ],
+     "hesitations": [],
+     "rawPeakDbfs": -3.4,
+     "rawClipped": 0,
+     "tokens": 78,
+     "synthS": 2.449,
+     "cached": true,
+     "pitchJumps": null,
+     "spikes": 0,
+     "burstDb": 12.4,
+     "onsetBurstDb": 12.4,
+     "asr": {
+      "hypothesis": "Then developer washes away the exposed positive resist, and the pattern opens.",
+      "reference": "then developer washes away the exposed positive resist the pattern opens",
+      "errors": 0,
+      "refWords": 11,
+      "wer": 0.0,
+      "diffs": []
+     }
+    },
+    {
+     "text": "Only now can the plasma etch reach the polysilicon underneath.",
+     "durationS": 4.28,
+     "speechWpm": 146.0,
+     "phonemesPerS": 10.22,
+     "rawLeadS": 0.4,
+     "rawTailS": 0.59,
+     "pauses": [],
+     "hesitations": [
+      [
+       2.015,
+       0.15
+      ]
+     ],
+     "rawPeakDbfs": -3.48,
+     "rawClipped": 0,
+     "tokens": 63,
+     "synthS": 1.232,
+     "cached": true,
+     "pitchJumps": 0.0,
+     "spikes": 0,
+     "burstDb": 12.5,
+     "onsetBurstDb": 12.5,
+     "asr": {
+      "hypothesis": "Only now can the plasma etch reach the poly silicon underneath.",
+      "reference": "only now can the plasma etch reach the polysilicon underneath",
+      "errors": 0,
+      "refWords": 10,
+      "wer": 0.0,
+      "diffs": []
+     }
+    },
+    {
+     "text": "When the etch is done, the leftover resist is stripped, and the gates of a CMOS inverter remain.",
+     "durationS": 5.98,
+     "speechWpm": 185.6,
+     "phonemesPerS": 10.82,
+     "rawLeadS": 0.4,
+     "rawTailS": 0.59,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.15,
+       "depthDb": -70.2,
+       "t": 1.29
+      },
+      {
+       "mark": ",",
+       "pauseS": 0.125,
+       "depthDb": -78.9,
+       "t": 3.415
+      }
+     ],
+     "hesitations": [],
+     "rawPeakDbfs": -3.65,
+     "rawClipped": 0,
+     "tokens": 95,
+     "synthS": 1.586,
+     "cached": true,
+     "pitchJumps": null,
+     "spikes": 0,
+     "burstDb": 12.2,
+     "onsetBurstDb": 9.1,
+     "asr": {
+      "hypothesis": "When the etch is done, the leftover resist is stripped, and the gates of a sea-moss inverter remain.",
+      "reference": "when the etch is done the leftover resist is stripped the gates of a cmos inverter remain",
+      "errors": 0,
+      "refWords": 17,
+      "wer": 0.0,
+      "diffs": []
+     }
+    }
+   ],
+   "wallSeconds": 9.55,
+   "asrWer": 0.019
+  },
+  {
+   "clip": "bm_daniel",
+   "voice": "bm_daniel",
+   "speed": 1.0,
+   "file": "bm_daniel.mp3",
+   "encoded": {
+    "bytes": 321216,
+    "sha256": "b67d00fc9368016df1ce082d94e65b485e8c85a4101a569168761a676263211a",
+    "decodedSamples": 961440,
+    "sourceSamples": 961440,
+    "durationMs": 40060,
+    "lagSamples": 0,
+    "lengthMatches": true,
+    "gapless": {
+     "xingTag": true,
+     "tag": "Info",
+     "frames": 1672,
+     "bytes": 321216,
+     "encoder": "Lavf lame",
+     "encoderDelaySamples": 576,
+     "paddingSamples": 1056
+    },
+    "decodedPeakDbfs": -1.92
+   },
+   "loudness": {
+    "inputLufs": -21.4,
+    "inputTruePeakDb": -2.8,
+    "gainDb": 1.3,
+    "outputLufs": -20.1,
+    "outputTruePeakDb": -1.5
+   },
+   "qa": {
+    "durationS": 40.06,
+    "peakDbfs": -1.55,
+    "clippedSamples": 0,
+    "dcOffset": -0.0003,
+    "leadingSilenceS": 0.04,
+    "trailingSilenceS": 0.72,
+    "longestInternalSilenceS": 0.53,
+    "pauses": [
+     [
+      3.17,
+      0.52
+     ],
+     [
+      4.98,
+      0.23
+     ],
+     [
+      8.4,
+      0.48
+     ],
+     [
+      13.47,
+      0.31
+     ],
+     [
+      16.1,
+      0.52
+     ],
+     [
+      17.86,
+      0.27
+     ],
+     [
+      22.11,
+      0.5
+     ],
+     [
+      24.77,
+      0.49
+     ],
+     [
+      28.36,
+      0.26
+     ],
+     [
+      29.72,
+      0.49
+     ],
+     [
+      33.67,
+      0.53
+     ],
+     [
+      36.87,
+      0.28
+     ]
+    ],
+    "speechSpanS": 39.3,
+    "f0MedianHz": 129.3,
+    "f0RangeSemitones": 6.8,
+    "pitchJumpsPerMin": 0.0,
+    "voicedShare": 0.179,
+    "burstDb": 9.3,
+    "burstAtS": 13.9,
+    "onsetBurstDb": 8.1,
+    "spikes": 0,
+    "hfShareDb": -26.8,
+    "words": 107,
+    "wpm": 160.3,
+    "speechWpm": 163.4
+   },
+   "rtf": 0.225,
+   "synthSeconds": 9.5,
+   "rawAudioSeconds": 42.18,
+   "allCached": true,
+   "punctuationMarks": 7,
+   "marksWithPause": 1,
+   "meanModelPauseS": 0.111,
+   "maxModelPauseS": 0.15,
+   "medianPauseDepthDb": -67.2,
+   "hesitations": 0,
+   "hesitationSeconds": 0,
+   "rateCv": 0.035,
+   "meanBurstDb": 8.4,
+   "meanOnsetBurstDb": 8.2,
+   "maxRawPeakDbfs": -2.85,
+   "decodedQa": {
+    "peakDbfs": -1.92,
+    "clippedSamples": 0
+   },
+   "sentences": [
+    {
+     "text": "A single silicon wafer arrives at the lithography bay.",
+     "durationS": 3.29,
+     "speechWpm": 172.5,
+     "phonemesPerS": 12.14,
+     "rawLeadS": 0.25,
+     "rawTailS": 0.505,
+     "pauses": [],
+     "hesitations": [],
+     "rawPeakDbfs": -5.18,
+     "rawClipped": 0,
+     "tokens": 53,
+     "synthS": 0.825,
+     "cached": true,
+     "pitchJumps": 0.0,
+     "spikes": 0,
+     "burstDb": 8.3,
+     "onsetBurstDb": 8.3,
+     "asr": {
+      "hypothesis": "A single silicon wafer arrives at the lethography bay.",
+      "reference": "a single silicon wafer arrives at the lithography bay",
+      "errors": 1,
+      "refWords": 9,
+      "wer": 0.111,
+      "diffs": [
+       [
+        "lithography",
+        "lethography"
+       ]
+      ]
+     }
+    },
+    {
+     "text": "First, the track spins it and spreads a thin film of photoresist across the surface.",
+     "durationS": 4.85,
+     "speechWpm": 191.1,
+     "phonemesPerS": 12.31,
+     "rawLeadS": 0.25,
+     "rawTailS": 0.545,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.05,
+       "depthDb": 2.1,
+       "t": 0.415
+      }
+     ],
+     "hesitations": [],
+     "rawPeakDbfs": -2.85,
+     "rawClipped": 0,
+     "tokens": 86,
+     "synthS": 1.209,
+     "cached": true,
+     "pitchJumps": 0.0,
+     "spikes": 0,
+     "burstDb": 9.9,
+     "onsetBurstDb": 9.4,
+     "asr": {
+      "hypothesis": "First, the track spins it and spreads a thin film of photo-resist across the surface.",
+      "reference": "first the track spins it spreads a thin film of photoresist across the surface",
+      "errors": 0,
+      "refWords": 14,
+      "wer": 0.0,
+      "diffs": []
+     }
+    },
+    {
+     "text": "The scanner then shines 193-nanometre deep ultraviolet light through a reticle, shrinking the pattern four times onto the wafer.",
+     "durationS": 7.38,
+     "speechWpm": 174.5,
+     "phonemesPerS": 12.6,
+     "rawLeadS": 0.27,
+     "rawTailS": 0.545,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.15,
+       "depthDb": -67.2,
+       "t": 4.87
+      }
+     ],
+     "hesitations": [],
+     "rawPeakDbfs": -3.18,
+     "rawClipped": 0,
+     "tokens": 138,
+     "synthS": 1.844,
+     "cached": true,
+     "pitchJumps": 0.0,
+     "spikes": 0,
+     "burstDb": 9.6,
+     "onsetBurstDb": 8.5,
+     "asr": {
+      "hypothesis": "The scanner then shines one 93 nanometer deep ultraviolet light through a reticle, shrinking the pattern four times onto the wafer.",
+      "reference": "the scanner then shines one ninety three nanometer deep ultraviolet light through a reticle shrinking the pattern four times onto the wafer",
+      "errors": 0,
+      "refWords": 22,
+      "wer": 0.0,
+      "diffs": []
+     }
+    },
+    {
+     "text": "Nothing is carved yet: the light only changes the resist's chemistry, leaving a hidden latent image.",
+     "durationS": 5.64,
+     "speechWpm": 174.9,
+     "phonemesPerS": 12.2,
+     "rawLeadS": 0.25,
+     "rawTailS": 0.53,
+     "pauses": [
+      {
+       "mark": ":",
+       "pauseS": 0.125,
+       "depthDb": -67.2,
+       "t": 1.465
+      },
+      {
+       "mark": ",",
+       "pauseS": 0.1,
+       "depthDb": -43.2,
+       "t": 3.965
+      }
+     ],
+     "hesitations": [],
+     "rawPeakDbfs": -5.29,
+     "rawClipped": 0,
+     "tokens": 99,
+     "synthS": 1.29,
+     "cached": true,
+     "pitchJumps": 0.0,
+     "spikes": 0,
+     "burstDb": 7.5,
+     "onsetBurstDb": 7.5,
+     "asr": {
+      "hypothesis": "Nothing is carved yet. The light only changes the resist's chemistry, leaving a hidden latent image.",
+      "reference": "nothing is carved yet the light only changes the resists chemistry leaving a hidden latent image",
+      "errors": 0,
+      "refWords": 16,
+      "wer": 0.0,
+      "diffs": []
+     }
+    },
+    {
+     "text": "A short bake finishes that reaction.",
+     "durationS": 2.31,
+     "speechWpm": 166.7,
+     "phonemesPerS": 11.11,
+     "rawLeadS": 0.24,
+     "rawTailS": 0.445,
+     "pauses": [],
+     "hesitations": [],
+     "rawPeakDbfs": -4.52,
+     "rawClipped": 0,
+     "tokens": 36,
+     "synthS": 0.702,
+     "cached": true,
+     "pitchJumps": 0.0,
+     "spikes": 0,
+     "burstDb": 10.0,
+     "onsetBurstDb": 10.0,
+     "asr": {
+      "hypothesis": "A short bake finishes that reaction.",
+      "reference": "a short bake finishes that reaction",
+      "errors": 0,
+      "refWords": 6,
+      "wer": 0.0,
+      "diffs": []
+     }
+    },
+    {
+     "text": "Then developer washes away the exposed positive resist, and the pattern opens.",
+     "durationS": 4.59,
+     "speechWpm": 161.4,
+     "phonemesPerS": 12.56,
+     "rawLeadS": 0.26,
+     "rawTailS": 0.52,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.125,
+       "depthDb": -66.1,
+       "t": 3.33
+      }
+     ],
+     "hesitations": [],
+     "rawPeakDbfs": -5.91,
+     "rawClipped": 0,
+     "tokens": 78,
+     "synthS": 1.282,
+     "cached": true,
+     "pitchJumps": 0.0,
+     "spikes": 0,
+     "burstDb": 7.0,
+     "onsetBurstDb": 6.7,
+     "asr": {
+      "hypothesis": "Then developer washes away the exposed positive resist, and the pattern opens.",
+      "reference": "then developer washes away the exposed positive resist the pattern opens",
+      "errors": 0,
+      "refWords": 11,
+      "wer": 0.0,
+      "diffs": []
+     }
+    },
+    {
+     "text": "Only now can the plasma etch reach the polysilicon underneath.",
+     "durationS": 3.64,
+     "speechWpm": 173.4,
+     "phonemesPerS": 12.14,
+     "rawLeadS": 0.25,
+     "rawTailS": 0.505,
+     "pauses": [],
+     "hesitations": [],
+     "rawPeakDbfs": -5.12,
+     "rawClipped": 0,
+     "tokens": 63,
+     "synthS": 0.962,
+     "cached": true,
+     "pitchJumps": 0.0,
+     "spikes": 0,
+     "burstDb": 7.9,
+     "onsetBurstDb": 7.9,
+     "asr": {
+      "hypothesis": "Only now can the plasma etch reach the poly silicon underneath.",
+      "reference": "only now can the plasma etch reach the polysilicon underneath",
+      "errors": 0,
+      "refWords": 10,
+      "wer": 0.0,
+      "diffs": []
+     }
+    },
+    {
+     "text": "When the etch is done, the leftover resist is stripped, and the gates of a CMOS inverter remain.",
+     "durationS": 5.31,
+     "speechWpm": 210.1,
+     "phonemesPerS": 12.26,
+     "rawLeadS": 0.26,
+     "rawTailS": 0.5,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.1,
+       "depthDb": -25.3,
+       "t": 1.03
+      },
+      {
+       "mark": ",",
+       "pauseS": 0.125,
+       "depthDb": -66.0,
+       "t": 2.93
+      }
+     ],
+     "hesitations": [],
+     "rawPeakDbfs": -4.8,
+     "rawClipped": 0,
+     "tokens": 95,
+     "synthS": 1.385,
+     "cached": true,
+     "pitchJumps": 0.0,
+     "spikes": 0,
+     "burstDb": 6.9,
+     "onsetBurstDb": 6.9,
+     "asr": {
+      "hypothesis": "When the etch is done, the leftover resist is stripped, and the gates of a seamoss inverter remain.",
+      "reference": "when the etch is done the leftover resist is stripped the gates of a cmos inverter remain",
+      "errors": 0,
+      "refWords": 17,
+      "wer": 0.0,
+      "diffs": []
+     }
+    }
+   ],
+   "wallSeconds": 8.1,
+   "asrWer": 0.01
+  },
+  {
+   "clip": "bm_george_0.92",
+   "voice": "bm_george",
+   "speed": 0.92,
+   "file": "bm_george_0.92.mp3",
+   "encoded": {
+    "bytes": 394368,
+    "sha256": "5c85ec7615c672ec237268c878e54a656006147165776cf7bae932357b60cfdc",
+    "decodedSamples": 1181040,
+    "sourceSamples": 1181040,
+    "durationMs": 49210,
+    "lagSamples": 0,
+    "lengthMatches": true,
+    "gapless": {
+     "xingTag": true,
+     "tag": "Info",
+     "frames": 2053,
+     "bytes": 394368,
+     "encoder": "Lavf lame",
+     "encoderDelaySamples": 576,
+     "paddingSamples": 912
+    },
+    "decodedPeakDbfs": -1.83
+   },
+   "loudness": {
+    "inputLufs": -21.6,
+    "inputTruePeakDb": -4.1,
+    "gainDb": 2.6,
+    "outputLufs": -19.0,
+    "outputTruePeakDb": -1.5
+   },
+   "qa": {
+    "durationS": 49.21,
+    "peakDbfs": -1.54,
+    "clippedSamples": 0,
+    "dcOffset": -0.0002,
+    "leadingSilenceS": 0.04,
+    "trailingSilenceS": 0.69,
+    "longestInternalSilenceS": 0.52,
+    "pauses": [
+     [
+      1.61,
+      0.2
+     ],
+     [
+      2.47,
+      0.29
+     ],
+     [
+      4.08,
+      0.5
+     ],
+     [
+      6.12,
+      0.37
+     ],
+     [
+      8.84,
+      0.25
+     ],
+     [
+      10.26,
+      0.5
+     ],
+     [
+      11.37,
+      0.25
+     ],
+     [
+      15.73,
+      0.23
+     ],
+     [
+      16.83,
+      0.47
+     ],
+     [
+      19.37,
+      0.15
+     ],
+     [
+      20.37,
+      0.49
+     ],
+     [
+      22.35,
+      0.41
+     ],
+     [
+      25.41,
+      0.33
+     ],
+     [
+      27.7,
+      0.49
+     ],
+     [
+      29.03,
+      0.2
+     ],
+     [
+      30.77,
+      0.49
+     ],
+     [
+      35.01,
+      0.4
+     ],
+     [
+      36.7,
+      0.49
+     ],
+     [
+      39.07,
+      0.3
+     ],
+     [
+      39.79,
+      0.17
+     ],
+     [
+      41.77,
+      0.52
+     ],
+     [
+      43.39,
+      0.31
+     ],
+     [
+      45.54,
+      0.41
+     ]
+    ],
+    "speechSpanS": 48.48,
+    "f0MedianHz": 141.4,
+    "f0RangeSemitones": 7.9,
+    "pitchJumpsPerMin": 0.0,
+    "voicedShare": 0.349,
+    "burstDb": 6.7,
+    "burstAtS": 4.65,
+    "onsetBurstDb": 5.1,
+    "spikes": 0,
+    "hfShareDb": -28.5,
+    "words": 107,
+    "wpm": 130.5,
+    "speechWpm": 132.4
+   },
+   "rtf": 0.389,
+   "synthSeconds": 20.13,
+   "rawAudioSeconds": 51.7,
+   "allCached": true,
+   "punctuationMarks": 7,
+   "marksWithPause": 2,
+   "meanModelPauseS": 0.132,
+   "maxModelPauseS": 0.2,
+   "medianPauseDepthDb": -68.8,
+   "hesitations": 2,
+   "hesitationSeconds": 0.3,
+   "rateCv": 0.042,
+   "meanBurstDb": 5.7,
+   "meanOnsetBurstDb": 5.2,
+   "maxRawPeakDbfs": -4.14,
+   "decodedQa": {
+    "peakDbfs": -1.83,
+    "clippedSamples": 0
+   },
+   "sentences": [
+    {
+     "text": "A single silicon wafer arrives at the lithography bay.",
+     "durationS": 4.18,
+     "speechWpm": 133.7,
+     "phonemesPerS": 9.41,
+     "rawLeadS": 0.27,
+     "rawTailS": 0.545,
+     "pauses": [],
+     "hesitations": [],
+     "rawPeakDbfs": -6.79,
+     "rawClipped": 0,
+     "tokens": 53,
+     "synthS": 1.137,
+     "cached": true,
+     "pitchJumps": 0.0,
+     "spikes": 0,
+     "burstDb": 5.1,
+     "onsetBurstDb": 5.1,
+     "asr": {
+      "hypothesis": "A single silicon wafer arrives at the lethography bay.",
+      "reference": "a single silicon wafer arrives at the lithography bay",
+      "errors": 1,
+      "refWords": 9,
+      "wer": 0.111,
+      "diffs": [
+       [
+        "lithography",
+        "lethography"
+       ]
+      ]
+     }
+    },
+    {
+     "text": "First, the track spins it and spreads a thin film of photoresist across the surface.",
+     "durationS": 5.83,
+     "speechWpm": 158.5,
+     "phonemesPerS": 10.21,
+     "rawLeadS": 0.27,
+     "rawTailS": 0.52,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.075,
+       "depthDb": -9.2,
+       "t": 0.52
+      }
+     ],
+     "hesitations": [],
+     "rawPeakDbfs": -4.25,
+     "rawClipped": 0,
+     "tokens": 86,
+     "synthS": 1.62,
+     "cached": true,
+     "pitchJumps": 0.0,
+     "spikes": 0,
+     "burstDb": 5.8,
+     "onsetBurstDb": 5.0,
+     "asr": {
+      "hypothesis": "First, the track spins it and spreads a thin film of photo resist across the surface.",
+      "reference": "first the track spins it spreads a thin film of photoresist across the surface",
+      "errors": 0,
+      "refWords": 14,
+      "wer": 0.0,
+      "diffs": []
+     }
+    },
+    {
+     "text": "The scanner then shines 193-nanometre deep ultraviolet light through a reticle, shrinking the pattern four times onto the wafer.",
+     "durationS": 9.76,
+     "speechWpm": 131.1,
+     "phonemesPerS": 9.47,
+     "rawLeadS": 0.29,
+     "rawTailS": 0.545,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.2,
+       "depthDb": -68.2,
+       "t": 6.5
+      }
+     ],
+     "hesitations": [
+      [
+       7.725,
+       0.15
+      ]
+     ],
+     "rawPeakDbfs": -4.14,
+     "rawClipped": 0,
+     "tokens": 138,
+     "synthS": 2.959,
+     "cached": true,
+     "pitchJumps": 0.0,
+     "spikes": 0,
+     "burstDb": 6.3,
+     "onsetBurstDb": 5.3,
+     "asr": {
+      "hypothesis": "The scanner then shines one ninety three nanometer deep ultraviolet light through a reticle, shrinking the pattern four times onto the wafer.",
+      "reference": "the scanner then shines one ninety three nanometer deep ultraviolet light through a reticle shrinking the pattern four times onto the wafer",
+      "errors": 0,
+      "refWords": 22,
+      "wer": 0.0,
+      "diffs": []
+     }
+    },
+    {
+     "text": "Nothing is carved yet: the light only changes the resist's chemistry, leaving a hidden latent image.",
+     "durationS": 6.98,
+     "speechWpm": 140.4,
+     "phonemesPerS": 9.8,
+     "rawLeadS": 0.28,
+     "rawTailS": 0.535,
+     "pauses": [
+      {
+       "mark": ":",
+       "pauseS": 0.125,
+       "depthDb": -69.7,
+       "t": 1.835
+      },
+      {
+       "mark": ",",
+       "pauseS": 0.15,
+       "depthDb": -69.3,
+       "t": 4.81
+      }
+     ],
+     "hesitations": [],
+     "rawPeakDbfs": -5.69,
+     "rawClipped": 0,
+     "tokens": 99,
+     "synthS": 4.102,
+     "cached": true,
+     "pitchJumps": 0.0,
+     "spikes": 0,
+     "burstDb": 5.9,
+     "onsetBurstDb": 5.9,
+     "asr": {
+      "hypothesis": "Nothing is carved yet. The light only changes the resist chemistry, leaving a hidden, latent image.",
+      "reference": "nothing is carved yet the light only changes the resists chemistry leaving a hidden latent image",
+      "errors": 1,
+      "refWords": 16,
+      "wer": 0.062,
+      "diffs": [
+       [
+        "resists",
+        "resist"
+       ]
+      ]
+     }
+    },
+    {
+     "text": "A short bake finishes that reaction.",
+     "durationS": 2.72,
+     "speechWpm": 139.5,
+     "phonemesPerS": 9.3,
+     "rawLeadS": 0.27,
+     "rawTailS": 0.505,
+     "pauses": [],
+     "hesitations": [],
+     "rawPeakDbfs": -7.06,
+     "rawClipped": 0,
+     "tokens": 36,
+     "synthS": 1.696,
+     "cached": true,
+     "pitchJumps": 0.0,
+     "spikes": 0,
+     "burstDb": 5.6,
+     "onsetBurstDb": 5.6,
+     "asr": {
+      "hypothesis": "A short bake finishes that reaction.",
+      "reference": "a short bake finishes that reaction",
+      "errors": 0,
+      "refWords": 6,
+      "wer": 0.0,
+      "diffs": []
+     }
+    },
+    {
+     "text": "Then developer washes away the exposed positive resist, and the pattern opens.",
+     "durationS": 5.58,
+     "speechWpm": 132.4,
+     "phonemesPerS": 10.29,
+     "rawLeadS": 0.28,
+     "rawTailS": 0.56,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.125,
+       "depthDb": -69.0,
+       "t": 4.11
+      }
+     ],
+     "hesitations": [],
+     "rawPeakDbfs": -4.95,
+     "rawClipped": 0,
+     "tokens": 78,
+     "synthS": 3.013,
+     "cached": true,
+     "pitchJumps": 0.0,
+     "spikes": 0,
+     "burstDb": 5.3,
+     "onsetBurstDb": 4.8,
+     "asr": {
+      "hypothesis": "Then developer washes away the exposed positive resist and the pattern opens.",
+      "reference": "then developer washes away the exposed positive resist the pattern opens",
+      "errors": 0,
+      "refWords": 11,
+      "wer": 0.0,
+      "diffs": []
+     }
+    },
+    {
+     "text": "Only now can the plasma etch reach the polysilicon underneath.",
+     "durationS": 4.74,
+     "speechWpm": 131.0,
+     "phonemesPerS": 9.17,
+     "rawLeadS": 0.28,
+     "rawTailS": 0.525,
+     "pauses": [],
+     "hesitations": [
+      [
+       2.16,
+       0.15
+      ]
+     ],
+     "rawPeakDbfs": -6.29,
+     "rawClipped": 0,
+     "tokens": 63,
+     "synthS": 3.177,
+     "cached": true,
+     "pitchJumps": 0.0,
+     "spikes": 0,
+     "burstDb": 5.6,
+     "onsetBurstDb": 4.9,
+     "asr": {
+      "hypothesis": "Only now can the plasma etch reach the polysilicon underneath.",
+      "reference": "only now can the plasma etch reach the polysilicon underneath",
+      "errors": 0,
+      "refWords": 10,
+      "wer": 0.0,
+      "diffs": []
+     }
+    },
+    {
+     "text": "When the etch is done, the leftover resist is stripped, and the gates of a CMOS inverter remain.",
+     "durationS": 6.37,
+     "speechWpm": 173.4,
+     "phonemesPerS": 10.11,
+     "rawLeadS": 0.28,
+     "rawTailS": 0.545,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.125,
+       "depthDb": -68.8,
+       "t": 1.36
+      },
+      {
+       "mark": ",",
+       "pauseS": 0.125,
+       "depthDb": -68.4,
+       "t": 3.635
+      }
+     ],
+     "hesitations": [],
+     "rawPeakDbfs": -6.94,
+     "rawClipped": 0,
+     "tokens": 95,
+     "synthS": 2.425,
+     "cached": true,
+     "pitchJumps": 0.0,
+     "spikes": 0,
+     "burstDb": 5.8,
+     "onsetBurstDb": 5.3,
+     "asr": {
+      "hypothesis": "When the edge is done, the left over resist is stripped and the gates of a sea-moss inverter remain.",
+      "reference": "when the etch is done the leftover resist is stripped the gates of a cmos inverter remain",
+      "errors": 1,
+      "refWords": 17,
+      "wer": 0.059,
+      "diffs": [
+       [
+        "etch",
+        "edge"
+       ]
+      ]
+     }
+    }
+   ],
+   "wallSeconds": 7.36,
+   "asrWer": 0.029
+  },
+  {
+   "clip": "bm_fable_0.92",
+   "voice": "bm_fable",
+   "speed": 0.92,
+   "file": "bm_fable_0.92.mp3",
+   "encoded": {
+    "bytes": 373632,
+    "sha256": "567dd7d9de186062d1488e01b7d3c6635e7a14b4776903cd79aa4a59012178b5",
+    "decodedSamples": 1118880,
+    "sourceSamples": 1118880,
+    "durationMs": 46620,
+    "lagSamples": 0,
+    "lengthMatches": true,
+    "gapless": {
+     "xingTag": true,
+     "tag": "Info",
+     "frames": 1945,
+     "bytes": 373632,
+     "encoder": "Lavf lame",
+     "encoderDelaySamples": 576,
+     "paddingSamples": 864
+    },
+    "decodedPeakDbfs": -2.1
+   },
+   "loudness": {
+    "inputLufs": -21.8,
+    "inputTruePeakDb": 3.8,
+    "gainDb": -5.3,
+    "outputLufs": -27.1,
+    "outputTruePeakDb": -1.5
+   },
+   "qa": {
+    "durationS": 46.62,
+    "peakDbfs": -2.22,
+    "clippedSamples": 0,
+    "dcOffset": -0.00019,
+    "leadingSilenceS": 0.08,
+    "trailingSilenceS": 0.74,
+    "longestInternalSilenceS": 0.56,
+    "pauses": [
+     [
+      4.01,
+      0.53
+     ],
+     [
+      10.01,
+      0.56
+     ],
+     [
+      18.41,
+      0.2
+     ],
+     [
+      18.74,
+      0.55
+     ],
+     [
+      25.18,
+      0.17
+     ],
+     [
+      25.58,
+      0.55
+     ],
+     [
+      29.12,
+      0.51
+     ],
+     [
+      34.77,
+      0.54
+     ],
+     [
+      39.6,
+      0.56
+     ]
+    ],
+    "speechSpanS": 45.8,
+    "f0MedianHz": 135.4,
+    "f0RangeSemitones": 11.5,
+    "pitchJumpsPerMin": 0.0,
+    "voicedShare": 0.083,
+    "burstDb": 16.9,
+    "burstAtS": 10.7,
+    "onsetBurstDb": 10.5,
+    "spikes": 1,
+    "hfShareDb": -10.0,
+    "words": 107,
+    "wpm": 137.7,
+    "speechWpm": 140.2
+   },
+   "rtf": 0.783,
+   "synthSeconds": 36.46,
+   "rawAudioSeconds": 46.55,
+   "allCached": true,
+   "punctuationMarks": 7,
+   "marksWithPause": 4,
+   "meanModelPauseS": 0.136,
+   "maxModelPauseS": 0.225,
+   "medianPauseDepthDb": -18.2,
+   "hesitations": 0,
+   "hesitationSeconds": 0,
+   "rateCv": 0.095,
+   "meanBurstDb": 12.9,
+   "meanOnsetBurstDb": 12.9,
+   "maxRawPeakDbfs": 3.08,
+   "decodedQa": {
+    "peakDbfs": -2.1,
+    "clippedSamples": 0
+   },
+   "sentences": [
+    {
+     "text": "A single silicon wafer arrives at the lithography bay.",
+     "durationS": 4.12,
+     "speechWpm": 137.4,
+     "phonemesPerS": 9.67,
+     "rawLeadS": 0.25,
+     "rawTailS": 0.225,
+     "pauses": [],
+     "hesitations": [],
+     "rawPeakDbfs": -3.82,
+     "rawClipped": 0,
+     "tokens": 53,
+     "synthS": 3.366,
+     "cached": true,
+     "pitchJumps": 0.0,
+     "spikes": 0,
+     "burstDb": 11.1,
+     "onsetBurstDb": 11.1,
+     "asr": {
+      "hypothesis": "A single silicon wafer arrives at the lethography bay.",
+      "reference": "a single silicon wafer arrives at the lithography bay",
+      "errors": 1,
+      "refWords": 9,
+      "wer": 0.111,
+      "diffs": [
+       [
+        "lithography",
+        "lethography"
+       ]
+      ]
+     }
+    },
+    {
+     "text": "First, the track spins it and spreads a thin film of photoresist across the surface.",
+     "durationS": 5.68,
+     "speechWpm": 164.5,
+     "phonemesPerS": 10.6,
+     "rawLeadS": 0.25,
+     "rawTailS": 0.24,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.05,
+       "depthDb": 4.3,
+       "t": 0.615
+      }
+     ],
+     "hesitations": [],
+     "rawPeakDbfs": -3.38,
+     "rawClipped": 0,
+     "tokens": 86,
+     "synthS": 4.515,
+     "cached": true,
+     "pitchJumps": 0.0,
+     "spikes": 0,
+     "burstDb": 13.2,
+     "onsetBurstDb": 13.2,
+     "asr": {
+      "hypothesis": "First, the track spins it and spreads a thin film of photo resist across the surface.",
+      "reference": "first the track spins it spreads a thin film of photoresist across the surface",
+      "errors": 0,
+      "refWords": 14,
+      "wer": 0.0,
+      "diffs": []
+     }
+    },
+    {
+     "text": "The scanner then shines 193-nanometre deep ultraviolet light through a reticle, shrinking the pattern four times onto the wafer.",
+     "durationS": 8.38,
+     "speechWpm": 154.2,
+     "phonemesPerS": 11.14,
+     "rawLeadS": 0.25,
+     "rawTailS": 0.265,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.225,
+       "depthDb": -20.3,
+       "t": 5.215
+      }
+     ],
+     "hesitations": [],
+     "rawPeakDbfs": 3.08,
+     "rawClipped": 19,
+     "tokens": 138,
+     "synthS": 5.769,
+     "cached": true,
+     "pitchJumps": 0.0,
+     "spikes": 0,
+     "burstDb": 17.2,
+     "onsetBurstDb": 17.2,
+     "asr": {
+      "hypothesis": "The scanner then shines one 93 nanometer deep ultraviolet light through a reticle, shrinking the pattern four times onto the wafer.",
+      "reference": "the scanner then shines one ninety three nanometer deep ultraviolet light through a reticle shrinking the pattern four times onto the wafer",
+      "errors": 0,
+      "refWords": 22,
+      "wer": 0.0,
+      "diffs": []
+     }
+    },
+    {
+     "text": "Nothing is carved yet: the light only changes the resist's chemistry, leaving a hidden latent image.",
+     "durationS": 6.5,
+     "speechWpm": 152.6,
+     "phonemesPerS": 10.65,
+     "rawLeadS": 0.26,
+     "rawTailS": 0.26,
+     "pauses": [
+      {
+       "mark": ":",
+       "pauseS": 0.15,
+       "depthDb": -18.5,
+       "t": 1.58
+      },
+      {
+       "mark": ",",
+       "pauseS": 0.15,
+       "depthDb": -17.7,
+       "t": 4.155
+      }
+     ],
+     "hesitations": [],
+     "rawPeakDbfs": -1.31,
+     "rawClipped": 0,
+     "tokens": 99,
+     "synthS": 5.003,
+     "cached": true,
+     "pitchJumps": 0.0,
+     "spikes": 0,
+     "burstDb": 12.9,
+     "onsetBurstDb": 12.9,
+     "asr": {
+      "hypothesis": "Nothing is carved yet. The light only changes the resist's chemistry, leaving a hidden lightened image.",
+      "reference": "nothing is carved yet the light only changes the resists chemistry leaving a hidden latent image",
+      "errors": 1,
+      "refWords": 16,
+      "wer": 0.062,
+      "diffs": [
+       [
+        "latent",
+        "lightened"
+       ]
+      ]
+     }
+    },
+    {
+     "text": "A short bake finishes that reaction.",
+     "durationS": 3.13,
+     "speechWpm": 120.4,
+     "phonemesPerS": 8.03,
+     "rawLeadS": 0.24,
+     "rawTailS": 0.225,
+     "pauses": [],
+     "hesitations": [],
+     "rawPeakDbfs": -4.65,
+     "rawClipped": 0,
+     "tokens": 36,
+     "synthS": 3.29,
+     "cached": true,
+     "pitchJumps": 0.0,
+     "spikes": 0,
+     "burstDb": 15.4,
+     "onsetBurstDb": 15.4,
+     "asr": {
+      "hypothesis": "A short bake finishes that reaction.",
+      "reference": "a short bake finishes that reaction",
+      "errors": 0,
+      "refWords": 6,
+      "wer": 0.0,
+      "diffs": []
+     }
+    },
+    {
+     "text": "Then developer washes away the exposed positive resist, and the pattern opens.",
+     "durationS": 5.34,
+     "speechWpm": 140.1,
+     "phonemesPerS": 10.89,
+     "rawLeadS": 0.25,
+     "rawTailS": 0.255,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.15,
+       "depthDb": -18.0,
+       "t": 3.415
+      }
+     ],
+     "hesitations": [],
+     "rawPeakDbfs": -3.11,
+     "rawClipped": 0,
+     "tokens": 78,
+     "synthS": 5.737,
+     "cached": true,
+     "pitchJumps": 0.0,
+     "spikes": 0,
+     "burstDb": 12.3,
+     "onsetBurstDb": 12.3,
+     "asr": {
+      "hypothesis": "Then developer washes away the exposed positive resist, and the pattern opens.",
+      "reference": "then developer washes away the exposed positive resist the pattern opens",
+      "errors": 0,
+      "refWords": 11,
+      "wer": 0.0,
+      "diffs": []
+     }
+    },
+    {
+     "text": "Only now can the plasma etch reach the polysilicon underneath.",
+     "durationS": 4.49,
+     "speechWpm": 139.9,
+     "phonemesPerS": 9.79,
+     "rawLeadS": 0.25,
+     "rawTailS": 0.23,
+     "pauses": [],
+     "hesitations": [],
+     "rawPeakDbfs": -2.58,
+     "rawClipped": 0,
+     "tokens": 63,
+     "synthS": 2.938,
+     "cached": true,
+     "pitchJumps": 0.0,
+     "spikes": 0,
+     "burstDb": 10.9,
+     "onsetBurstDb": 10.9,
+     "asr": {
+      "hypothesis": "Only now can the plasma etch reach the polysilicon underneath.",
+      "reference": "only now can the plasma etch reach the polysilicon underneath",
+      "errors": 0,
+      "refWords": 10,
+      "wer": 0.0,
+      "diffs": []
+     }
+    },
+    {
+     "text": "When the etch is done, the leftover resist is stripped, and the gates of a CMOS inverter remain.",
+     "durationS": 5.93,
+     "speechWpm": 188.8,
+     "phonemesPerS": 11.01,
+     "rawLeadS": 0.25,
+     "rawTailS": 0.24,
+     "pauses": [
+      {
+       "mark": ",",
+       "pauseS": 0.1,
+       "depthDb": -16.4,
+       "t": 1.065
+      },
+      {
+       "mark": ",",
+       "pauseS": 0.125,
+       "depthDb": -19.2,
+       "t": 2.99
+      }
+     ],
+     "hesitations": [],
+     "rawPeakDbfs": -2.06,
+     "rawClipped": 0,
+     "tokens": 95,
+     "synthS": 5.84,
+     "cached": true,
+     "pitchJumps": 0.0,
+     "spikes": 1,
+     "burstDb": 10.3,
+     "onsetBurstDb": 10.3,
+     "asr": {
+      "hypothesis": "When the etch is done, the leftover resist is stripped, and the gates of a seamoss inverter remain.",
+      "reference": "when the etch is done the leftover resist is stripped the gates of a cmos inverter remain",
+      "errors": 0,
+      "refWords": 17,
+      "wer": 0.0,
+      "diffs": []
+     }
+    }
+   ],
+   "wallSeconds": 10.24,
+   "asrWer": 0.019
+  }
+ ],
+ "ranking": {
+  "criteria": [
+   {
+    "criterion": "artifacts: clipped samples + spikes + pitch jumps/min + sentences with raw peak > 0 dBFS",
+    "tolerance": 0.0,
+    "values": {
+     "bm_george": 0,
+     "bm_fable": 1,
+     "bm_lewis": 0,
+     "bm_daniel": 0
+    },
+    "ranks": {
+     "bm_george": 1,
+     "bm_fable": 4,
+     "bm_lewis": 1,
+     "bm_daniel": 1
+    }
+   },
+   {
+    "criterion": "sentence-onset level burst, dB over median speech (mean)",
+    "tolerance": 2.0,
+    "values": {
+     "bm_george": 5.2,
+     "bm_fable": 12.6,
+     "bm_lewis": 11.3,
+     "bm_daniel": 8.2
+    },
+    "ranks": {
+     "bm_george": 1,
+     "bm_fable": 3,
+     "bm_lewis": 3,
+     "bm_daniel": 2
+    }
+   },
+   {
+    "criterion": "in-sentence punctuation marks without a \u22650.15 s pause",
+    "tolerance": 1.0,
+    "values": {
+     "bm_george": 5,
+     "bm_fable": 5,
+     "bm_lewis": 2,
+     "bm_daniel": 6
+    },
+    "ranks": {
+     "bm_george": 2,
+     "bm_fable": 2,
+     "bm_lewis": 1,
+     "bm_daniel": 2
+    }
+   },
+   {
+    "criterion": "pause depth, dB below speech (values under -50 count as clean silence)",
+    "tolerance": 6.0,
+    "values": {
+     "bm_george": -50.0,
+     "bm_fable": -19.1,
+     "bm_lewis": -50.0,
+     "bm_daniel": -50.0
+    },
+    "ranks": {
+     "bm_george": 1,
+     "bm_fable": 4,
+     "bm_lewis": 1,
+     "bm_daniel": 1
+    }
+   },
+   {
+    "criterion": "speech rate outside 140-170 wpm, wpm",
+    "tolerance": 5.0,
+    "values": {
+     "bm_george": 0.5999999999999943,
+     "bm_fable": 0.0,
+     "bm_lewis": 0.0,
+     "bm_daniel": 0.0
+    },
+    "ranks": {
+     "bm_george": 1,
+     "bm_fable": 1,
+     "bm_lewis": 1,
+     "bm_daniel": 1
+    }
+   },
+   {
+    "criterion": "pace variation between sentences (CV of phonemes/s)",
+    "tolerance": 0.02,
+    "values": {
+     "bm_george": 0.032,
+     "bm_fable": 0.089,
+     "bm_lewis": 0.045,
+     "bm_daniel": 0.035
+    },
+    "ranks": {
+     "bm_george": 1,
+     "bm_fable": 4,
+     "bm_lewis": 1,
+     "bm_daniel": 1
+    }
+   },
+   {
+    "criterion": "F0 range outside 6-12 semitones",
+    "tolerance": 1.0,
+    "values": {
+     "bm_george": 0.0,
+     "bm_fable": 0.0,
+     "bm_lewis": 0.0,
+     "bm_daniel": 0.0
+    },
+    "ranks": {
+     "bm_george": 1,
+     "bm_fable": 1,
+     "bm_lewis": 1,
+     "bm_daniel": 1
+    }
+   },
+   {
+    "criterion": "ASR word error rate",
+    "tolerance": 0.05,
+    "values": {
+     "bm_george": 0.028,
+     "bm_fable": 0.028,
+     "bm_lewis": 0.019,
+     "bm_daniel": 0.01
+    },
+    "ranks": {
+     "bm_george": 1,
+     "bm_fable": 1,
+     "bm_lewis": 1,
+     "bm_daniel": 1
+    }
+   }
+  ],
+  "totals": {
+   "bm_george": 9,
+   "bm_fable": 20,
+   "bm_lewis": 10,
+   "bm_daniel": 10
+  },
+  "recommended": {
+   "voice": "bm_george",
+   "speed": 1.0
+  }
+ },
+ "engineComparison": [
+  {
+   "label": "float-conv (default)",
+   "clip": {
+    "clip": "bm_george",
+    "voice": "bm_george",
+    "speed": 1.0,
+    "file": "bm_george.mp3",
+    "encoded": {
+     "bytes": 374976,
+     "sha256": "9a5dad6ed044b216121b0da397f8a755702de5b923d54308d23a414c9ef8436e",
+     "decodedSamples": 1123200,
+     "sourceSamples": 1123200,
+     "durationMs": 46800,
+     "lagSamples": 0,
+     "lengthMatches": true,
+     "gapless": {
+      "xingTag": true,
+      "tag": "Info",
+      "frames": 1952,
+      "bytes": 374976,
+      "encoder": "Lavf lame",
+      "encoderDelaySamples": 576,
+      "paddingSamples": 576
+     },
+     "decodedPeakDbfs": -1.82
+    },
+    "loudness": {
+     "inputLufs": -21.7,
+     "inputTruePeakDb": -4.1,
+     "gainDb": 2.6,
+     "outputLufs": -19.1,
+     "outputTruePeakDb": -1.5
+    },
+    "qa": {
+     "durationS": 46.8,
+     "peakDbfs": -1.47,
+     "clippedSamples": 0,
+     "dcOffset": -0.00021,
+     "leadingSilenceS": 0.04,
+     "trailingSilenceS": 0.71,
+     "longestInternalSilenceS": 0.51,
+     "pauses": [
+      [
+       1.57,
+       0.18
+      ],
+      [
+       2.32,
+       0.26
+      ],
+      [
+       3.82,
+       0.5
+      ],
+      [
+       5.78,
+       0.36
+      ],
+      [
+       8.45,
+       0.24
+      ],
+      [
+       9.8,
+       0.51
+      ],
+      [
+       10.89,
+       0.2
+      ],
+      [
+       15.07,
+       0.24
+      ],
+      [
+       16.1,
+       0.44
+      ],
+      [
+       19.36,
+       0.49
+      ],
+      [
+       21.27,
+       0.39
+      ],
+      [
+       24.22,
+       0.32
+      ],
+      [
+       26.41,
+       0.48
+      ],
+      [
+       27.73,
+       0.17
+      ],
+      [
+       29.32,
+       0.49
+      ],
+      [
+       33.34,
+       0.37
+      ],
+      [
+       34.99,
+       0.48
+      ],
+      [
+       37.22,
+       0.29
+      ],
+      [
+       39.67,
+       0.51
+      ],
+      [
+       41.21,
+       0.29
+      ],
+      [
+       43.26,
+       0.39
+      ]
+     ],
+     "speechSpanS": 46.05,
+     "f0MedianHz": 141.1,
+     "f0RangeSemitones": 7.7,
+     "pitchJumpsPerMin": 0.0,
+     "voicedShare": 0.348,
+     "burstDb": 6.9,
+     "burstAtS": 16.65,
+     "onsetBurstDb": 4.6,
+     "spikes": 0,
+     "hfShareDb": -28.5,
+     "words": 107,
+     "wpm": 137.2,
+     "speechWpm": 139.4
+    },
+    "rtf": 0.23,
+    "synthSeconds": 11.26,
+    "rawAudioSeconds": 48.95,
+    "allCached": true,
+    "punctuationMarks": 7,
+    "marksWithPause": 2,
+    "meanModelPauseS": 0.125,
+    "maxModelPauseS": 0.175,
+    "medianPauseDepthDb": -68.4,
+    "hesitations": 0,
+    "hesitationSeconds": 0,
+    "rateCv": 0.032,
+    "meanBurstDb": 5.6,
+    "meanOnsetBurstDb": 5.2,
+    "maxRawPeakDbfs": -4.07,
+    "decodedQa": {
+     "peakDbfs": -1.82,
+     "clippedSamples": 0
+    },
+    "sentences": [
+     {
+      "text": "A single silicon wafer arrives at the lithography bay.",
+      "durationS": 3.92,
+      "speechWpm": 142.9,
+      "phonemesPerS": 10.05,
+      "rawLeadS": 0.26,
+      "rawTailS": 0.515,
+      "pauses": [],
+      "hesitations": [],
+      "rawPeakDbfs": -6.09,
+      "rawClipped": 0,
+      "tokens": 53,
+      "synthS": 1.077,
+      "cached": true,
+      "pitchJumps": 0.0,
+      "spikes": 0,
+      "burstDb": 4.9,
+      "onsetBurstDb": 4.8,
+      "asr": {
+       "hypothesis": "A single silicon wafer arrives at the lethography bay.",
+       "reference": "a single silicon wafer arrives at the lithography bay",
+       "errors": 1,
+       "refWords": 9,
+       "wer": 0.111,
+       "diffs": [
+        [
+         "lithography",
+         "lethography"
+        ]
+       ]
+      }
+     },
+     {
+      "text": "First, the track spins it and spreads a thin film of photoresist across the surface.",
+      "durationS": 5.64,
+      "speechWpm": 164.2,
+      "phonemesPerS": 10.58,
+      "rawLeadS": 0.27,
+      "rawTailS": 0.485,
+      "pauses": [
+       {
+        "mark": ",",
+        "pauseS": 0.05,
+        "depthDb": 0.1,
+        "t": 0.495
+       }
+      ],
+      "hesitations": [],
+      "rawPeakDbfs": -4.07,
+      "rawClipped": 0,
+      "tokens": 86,
+      "synthS": 1.591,
+      "cached": true,
+      "pitchJumps": 0.0,
+      "spikes": 0,
+      "burstDb": 6.5,
+      "onsetBurstDb": 6.5,
+      "asr": {
+       "hypothesis": "First, the track spins it and spreads a thin film of photo resist across the surface.",
+       "reference": "first the track spins it spreads a thin film of photoresist across the surface",
+       "errors": 0,
+       "refWords": 14,
+       "wer": 0.0,
+       "diffs": []
+      }
+     },
+     {
+      "text": "The scanner then shines 193-nanometre deep ultraviolet light through a reticle, shrinking the pattern four times onto the wafer.",
+      "durationS": 9.2,
+      "speechWpm": 139.2,
+      "phonemesPerS": 10.06,
+      "rawLeadS": 0.27,
+      "rawTailS": 0.525,
+      "pauses": [
+       {
+        "mark": ",",
+        "pauseS": 0.175,
+        "depthDb": -67.6,
+        "t": 6.195
+       }
+      ],
+      "hesitations": [],
+      "rawPeakDbfs": -4.27,
+      "rawClipped": 0,
+      "tokens": 138,
+      "synthS": 2.145,
+      "cached": true,
+      "pitchJumps": 0.0,
+      "spikes": 0,
+      "burstDb": 6.6,
+      "onsetBurstDb": 4.8,
+      "asr": {
+       "hypothesis": "The scanner then shines 193 nanometer deep ultraviolet light through a reticle, shrinking the pattern four times onto the wafer.",
+       "reference": "the scanner then shines one hundred ninety three nanometer deep ultraviolet light through a reticle shrinking the pattern four times onto the wafer",
+       "errors": 0,
+       "refWords": 23,
+       "wer": 0.0,
+       "diffs": []
+      }
+     },
+     {
+      "text": "Nothing is carved yet: the light only changes the resist's chemistry, leaving a hidden latent image.",
+      "durationS": 6.69,
+      "speechWpm": 146.3,
+      "phonemesPerS": 10.21,
+      "rawLeadS": 0.27,
+      "rawTailS": 0.51,
+      "pauses": [
+       {
+        "mark": ":",
+        "pauseS": 0.125,
+        "depthDb": -69.7,
+        "t": 1.745
+       },
+       {
+        "mark": ",",
+        "pauseS": 0.15,
+        "depthDb": -69.3,
+        "t": 4.62
+       }
+      ],
+      "hesitations": [],
+      "rawPeakDbfs": -5.23,
+      "rawClipped": 0,
+      "tokens": 99,
+      "synthS": 1.732,
+      "cached": true,
+      "pitchJumps": 0.0,
+      "spikes": 0,
+      "burstDb": 5.4,
+      "onsetBurstDb": 5.2,
+      "asr": {
+       "hypothesis": "Nothing is carved yet. The light only changes the resisted chemistry, leaving a hidden, latent image.",
+       "reference": "nothing is carved yet the light only changes the resists chemistry leaving a hidden latent image",
+       "errors": 1,
+       "refWords": 16,
+       "wer": 0.062,
+       "diffs": [
+        [
+         "resists",
+         "resisted"
+        ]
+       ]
+      }
+     },
+     {
+      "text": "A short bake finishes that reaction.",
+      "durationS": 2.57,
+      "speechWpm": 148.1,
+      "phonemesPerS": 9.88,
+      "rawLeadS": 0.25,
+      "rawTailS": 0.475,
+      "pauses": [],
+      "hesitations": [],
+      "rawPeakDbfs": -6.86,
+      "rawClipped": 0,
+      "tokens": 36,
+      "synthS": 0.718,
+      "cached": true,
+      "pitchJumps": 0.0,
+      "spikes": 0,
+      "burstDb": 5.6,
+      "onsetBurstDb": 5.6,
+      "asr": {
+       "hypothesis": "A short bake finishes that reaction.",
+       "reference": "a short bake finishes that reaction",
+       "errors": 0,
+       "refWords": 6,
+       "wer": 0.0,
+       "diffs": []
+      }
+     },
+     {
+      "text": "Then developer washes away the exposed positive resist, and the pattern opens.",
+      "durationS": 5.31,
+      "speechWpm": 139.0,
+      "phonemesPerS": 10.81,
+      "rawLeadS": 0.28,
+      "rawTailS": 0.53,
+      "pauses": [
+       {
+        "mark": ",",
+        "pauseS": 0.125,
+        "depthDb": -69.2,
+        "t": 3.86
+       }
+      ],
+      "hesitations": [],
+      "rawPeakDbfs": -5.52,
+      "rawClipped": 0,
+      "tokens": 78,
+      "synthS": 1.53,
+      "cached": true,
+      "pitchJumps": 0.0,
+      "spikes": 0,
+      "burstDb": 5.7,
+      "onsetBurstDb": 5.5,
+      "asr": {
+       "hypothesis": "Then developer washes away the exposed positive resist and the pattern opens.",
+       "reference": "then developer washes away the exposed positive resist the pattern opens",
+       "errors": 0,
+       "refWords": 11,
+       "wer": 0.0,
+       "diffs": []
+      }
+     },
+     {
+      "text": "Only now can the plasma etch reach the polysilicon underneath.",
+      "durationS": 4.35,
+      "speechWpm": 142.9,
+      "phonemesPerS": 10.0,
+      "rawLeadS": 0.27,
+      "rawTailS": 0.5,
+      "pauses": [],
+      "hesitations": [],
+      "rawPeakDbfs": -7.4,
+      "rawClipped": 0,
+      "tokens": 63,
+      "synthS": 1.053,
+      "cached": true,
+      "pitchJumps": 0.0,
+      "spikes": 0,
+      "burstDb": 5.1,
+      "onsetBurstDb": 4.6,
+      "asr": {
+       "hypothesis": "Only now can the plasma etch reach the polysilicon underneath.",
+       "reference": "only now can the plasma etch reach the polysilicon underneath",
+       "errors": 0,
+       "refWords": 10,
+       "wer": 0.0,
+       "diffs": []
+      }
+     },
+     {
+      "text": "When the etch is done, the leftover resist is stripped, and the gates of a CMOS inverter remain.",
+      "durationS": 6.07,
+      "speechWpm": 182.7,
+      "phonemesPerS": 10.66,
+      "rawLeadS": 0.27,
+      "rawTailS": 0.48,
+      "pauses": [
+       {
+        "mark": ",",
+        "pauseS": 0.125,
+        "depthDb": -68.7,
+        "t": 1.27
+       },
+       {
+        "mark": ",",
+        "pauseS": 0.125,
+        "depthDb": -68.3,
+        "t": 3.445
+       }
+      ],
+      "hesitations": [],
+      "rawPeakDbfs": -6.97,
+      "rawClipped": 0,
+      "tokens": 95,
+      "synthS": 1.413,
+      "cached": true,
+      "pitchJumps": 0.0,
+      "spikes": 0,
+      "burstDb": 5.2,
+      "onsetBurstDb": 4.9,
+      "asr": {
+       "hypothesis": "When the edge is done, the left over resist is stripped and the gates of a seamoss inverter remain.",
+       "reference": "when the etch is done the leftover resist is stripped the gates of a cmos inverter remain",
+       "errors": 1,
+       "refWords": 17,
+       "wer": 0.059,
+       "diffs": [
+        [
+         "etch",
+         "edge"
+        ]
+       ]
+      }
+     }
+    ],
+    "wallSeconds": 17.2,
+    "asrWer": 0.028
+   }
+  },
+  {
+   "label": "quantized",
+   "clip": {
+    "clip": "bm_george",
+    "voice": "bm_george",
+    "speed": 1.0,
+    "file": "bm_george.mp3",
+    "encoded": {
+     "bytes": 374976,
+     "sha256": "0d74f7271b7f92f7ab38fe2fa6b59b2069ef6b19d26c3bde501369a1804023fd",
+     "decodedSamples": 1122720,
+     "sourceSamples": 1122720,
+     "durationMs": 46780,
+     "lagSamples": 0,
+     "lengthMatches": true,
+     "gapless": {
+      "xingTag": true,
+      "tag": "Info",
+      "frames": 1952,
+      "bytes": 374976,
+      "encoder": "Lavf lame",
+      "encoderDelaySamples": 576,
+      "paddingSamples": 1056
+     },
+     "decodedPeakDbfs": -1.91
+    },
+    "loudness": {
+     "inputLufs": -21.8,
+     "inputTruePeakDb": -4.1,
+     "gainDb": 2.6,
+     "outputLufs": -19.2,
+     "outputTruePeakDb": -1.5
+    },
+    "qa": {
+     "durationS": 46.78,
+     "peakDbfs": -1.56,
+     "clippedSamples": 0,
+     "dcOffset": -0.0003,
+     "leadingSilenceS": 0.04,
+     "trailingSilenceS": 0.69,
+     "longestInternalSilenceS": 0.51,
+     "pauses": [
+      [
+       1.57,
+       0.18
+      ],
+      [
+       2.32,
+       0.26
+      ],
+      [
+       3.82,
+       0.5
+      ],
+      [
+       5.78,
+       0.36
+      ],
+      [
+       8.45,
+       0.23
+      ],
+      [
+       9.8,
+       0.51
+      ],
+      [
+       10.89,
+       0.2
+      ],
+      [
+       15.07,
+       0.24
+      ],
+      [
+       16.1,
+       0.44
+      ],
+      [
+       19.36,
+       0.49
+      ],
+      [
+       21.27,
+       0.39
+      ],
+      [
+       24.22,
+       0.32
+      ],
+      [
+       26.41,
+       0.48
+      ],
+      [
+       27.73,
+       0.17
+      ],
+      [
+       29.32,
+       0.49
+      ],
+      [
+       33.34,
+       0.37
+      ],
+      [
+       34.98,
+       0.49
+      ],
+      [
+       37.22,
+       0.29
+      ],
+      [
+       39.67,
+       0.51
+      ],
+      [
+       41.21,
+       0.29
+      ],
+      [
+       43.26,
+       0.39
+      ]
+     ],
+     "speechSpanS": 46.05,
+     "f0MedianHz": 141.1,
+     "f0RangeSemitones": 7.7,
+     "pitchJumpsPerMin": 0.0,
+     "voicedShare": 0.334,
+     "burstDb": 6.6,
+     "burstAtS": 16.65,
+     "onsetBurstDb": 4.7,
+     "spikes": 0,
+     "hfShareDb": -28.3,
+     "words": 107,
+     "wpm": 137.2,
+     "speechWpm": 139.4
+    },
+    "rtf": 1.611,
+    "synthSeconds": 78.88,
+    "rawAudioSeconds": 48.95,
+    "allCached": true,
+    "punctuationMarks": 7,
+    "marksWithPause": 2,
+    "meanModelPauseS": 0.125,
+    "maxModelPauseS": 0.175,
+    "medianPauseDepthDb": -68.2,
+    "hesitations": 0,
+    "hesitationSeconds": 0,
+    "rateCv": 0.032,
+    "meanBurstDb": 5.6,
+    "meanOnsetBurstDb": 5.1,
+    "maxRawPeakDbfs": -4.16,
+    "decodedQa": {
+     "peakDbfs": -1.91,
+     "clippedSamples": 0
+    },
+    "sentences": [
+     {
+      "text": "A single silicon wafer arrives at the lithography bay.",
+      "durationS": 3.92,
+      "speechWpm": 142.9,
+      "phonemesPerS": 10.05,
+      "rawLeadS": 0.26,
+      "rawTailS": 0.515,
+      "pauses": [],
+      "hesitations": [],
+      "rawPeakDbfs": -6.55,
+      "rawClipped": 0,
+      "tokens": 53,
+      "synthS": 7.475,
+      "cached": true,
+      "pitchJumps": 0.0,
+      "spikes": 0,
+      "burstDb": 4.9,
+      "onsetBurstDb": 4.7
+     },
+     {
+      "text": "First, the track spins it and spreads a thin film of photoresist across the surface.",
+      "durationS": 5.64,
+      "speechWpm": 164.2,
+      "phonemesPerS": 10.58,
+      "rawLeadS": 0.27,
+      "rawTailS": 0.485,
+      "pauses": [
+       {
+        "mark": ",",
+        "pauseS": 0.05,
+        "depthDb": -0.4,
+        "t": 0.495
+       }
+      ],
+      "hesitations": [],
+      "rawPeakDbfs": -4.16,
+      "rawClipped": 0,
+      "tokens": 86,
+      "synthS": 9.77,
+      "cached": true,
+      "pitchJumps": 0.0,
+      "spikes": 0,
+      "burstDb": 6.2,
+      "onsetBurstDb": 6.2
+     },
+     {
+      "text": "The scanner then shines 193-nanometre deep ultraviolet light through a reticle, shrinking the pattern four times onto the wafer.",
+      "durationS": 9.2,
+      "speechWpm": 139.2,
+      "phonemesPerS": 10.06,
+      "rawLeadS": 0.27,
+      "rawTailS": 0.525,
+      "pauses": [
+       {
+        "mark": ",",
+        "pauseS": 0.175,
+        "depthDb": -67.3,
+        "t": 6.195
+       }
+      ],
+      "hesitations": [],
+      "rawPeakDbfs": -4.38,
+      "rawClipped": 0,
+      "tokens": 138,
+      "synthS": 15.328,
+      "cached": true,
+      "pitchJumps": 0.0,
+      "spikes": 0,
+      "burstDb": 6.5,
+      "onsetBurstDb": 4.7
+     },
+     {
+      "text": "Nothing is carved yet: the light only changes the resist's chemistry, leaving a hidden latent image.",
+      "durationS": 6.69,
+      "speechWpm": 146.3,
+      "phonemesPerS": 10.21,
+      "rawLeadS": 0.27,
+      "rawTailS": 0.51,
+      "pauses": [
+       {
+        "mark": ":",
+        "pauseS": 0.125,
+        "depthDb": -69.6,
+        "t": 1.745
+       },
+       {
+        "mark": ",",
+        "pauseS": 0.15,
+        "depthDb": -69.0,
+        "t": 4.62
+       }
+      ],
+      "hesitations": [],
+      "rawPeakDbfs": -5.62,
+      "rawClipped": 0,
+      "tokens": 99,
+      "synthS": 10.428,
+      "cached": true,
+      "pitchJumps": 0.0,
+      "spikes": 0,
+      "burstDb": 5.6,
+      "onsetBurstDb": 5.2
+     },
+     {
+      "text": "A short bake finishes that reaction.",
+      "durationS": 2.57,
+      "speechWpm": 148.1,
+      "phonemesPerS": 9.88,
+      "rawLeadS": 0.25,
+      "rawTailS": 0.475,
+      "pauses": [],
+      "hesitations": [],
+      "rawPeakDbfs": -6.9,
+      "rawClipped": 0,
+      "tokens": 36,
+      "synthS": 7.09,
+      "cached": true,
+      "pitchJumps": 0.0,
+      "spikes": 0,
+      "burstDb": 5.6,
+      "onsetBurstDb": 5.6
+     },
+     {
+      "text": "Then developer washes away the exposed positive resist, and the pattern opens.",
+      "durationS": 5.31,
+      "speechWpm": 139.3,
+      "phonemesPerS": 10.83,
+      "rawLeadS": 0.28,
+      "rawTailS": 0.53,
+      "pauses": [
+       {
+        "mark": ",",
+        "pauseS": 0.125,
+        "depthDb": -69.0,
+        "t": 3.86
+       }
+      ],
+      "hesitations": [],
+      "rawPeakDbfs": -6.36,
+      "rawClipped": 0,
+      "tokens": 78,
+      "synthS": 11.23,
+      "cached": true,
+      "pitchJumps": 0.0,
+      "spikes": 0,
+      "burstDb": 5.4,
+      "onsetBurstDb": 5.4
+     },
+     {
+      "text": "Only now can the plasma etch reach the polysilicon underneath.",
+      "durationS": 4.35,
+      "speechWpm": 142.9,
+      "phonemesPerS": 10.0,
+      "rawLeadS": 0.27,
+      "rawTailS": 0.5,
+      "pauses": [],
+      "hesitations": [],
+      "rawPeakDbfs": -7.38,
+      "rawClipped": 0,
+      "tokens": 63,
+      "synthS": 7.755,
+      "cached": true,
+      "pitchJumps": 0.0,
+      "spikes": 0,
+      "burstDb": 5.2,
+      "onsetBurstDb": 4.5
+     },
+     {
+      "text": "When the etch is done, the leftover resist is stripped, and the gates of a CMOS inverter remain.",
+      "durationS": 6.05,
+      "speechWpm": 182.7,
+      "phonemesPerS": 10.66,
+      "rawLeadS": 0.27,
+      "rawTailS": 0.5,
+      "pauses": [
+       {
+        "mark": ",",
+        "pauseS": 0.125,
+        "depthDb": -68.7,
+        "t": 1.27
+       },
+       {
+        "mark": ",",
+        "pauseS": 0.125,
+        "depthDb": -68.2,
+        "t": 3.445
+       }
+      ],
+      "hesitations": [],
+      "rawPeakDbfs": -7.32,
+      "rawClipped": 0,
+      "tokens": 95,
+      "synthS": 9.806,
+      "cached": true,
+      "pitchJumps": 0.0,
+      "spikes": 0,
+      "burstDb": 5.5,
+      "onsetBurstDb": 4.8
+     }
+    ],
+    "wallSeconds": 2.97
+   }
+  }
+ ]
+}

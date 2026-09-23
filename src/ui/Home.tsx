@@ -5,14 +5,14 @@
  */
 import { STEPS } from '../content/steps';
 import { FLOW } from '../sim/flow';
-import { HAD_SAVE, useApp } from '../state/store';
+import { useApp } from '../state/store';
 
 export function HomeIntro() {
   const navigate = useApp((s) => s.navigate);
   const goTo = useApp((s) => s.goTo);
   const step = useApp((s) => s.step);
   const maxStep = useApp((s) => s.maxStep);
-  const resumable = HAD_SAVE && maxStep > 0;
+  const resumable = maxStep > 0;
   return (
     <section className="home-intro" aria-labelledby="home-title">
       <h1 id="home-title" className="home-intro__title">

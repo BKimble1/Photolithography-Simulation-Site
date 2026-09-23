@@ -1,12 +1,19 @@
 /**
- * Illustrative 193 nm step-and-scan scanner (no manufacturer's design):
- *  - an ArF excimer laser in its own cabinet, with a beam-delivery tube to the illuminator;
- *  - a reticle stage holding a chrome-on-quartz reticle above a refractive projection lens;
- *  - two wafer stages on a granite frame: one measured under the alignment sensor while
- *    the other is exposed under the lens.
+ * Illustrative 193 nm step-and-scan immersion scanner (no manufacturer's design), drawn as the
+ * inside of its bay model (Fab.tsx, scanner) with the front and top of the enclosure cut away:
+ *  - at the left end a wafer handler takes wafers from the track, pre-aligns them and sets
+ *    them on the measure stage;
+ *  - two wafer stages on a heavy base frame: one measured under the alignment sensor while
+ *    the other is exposed under the projection lens, where an immersion hood holds a thin
+ *    film of water between the last lens element and the wafer;
+ *  - a refractive projection lens hanging in the metrology frame, the reticle stage above it
+ *    and the illuminator on top, fed through the rear bulkhead by the beam-delivery duct from
+ *    the ArF excimer laser behind the machine;
+ *  - at the right end a reticle library and a handler that carries a reticle to the stage.
  * During a scan the reticle and wafer move in opposite directions, the reticle 4× faster
  * (the lens reduces 4×), while a slit of light sweeps the field; then the wafer steps to the
  * next field. The light path is an optional educational overlay: 193 nm UV is invisible.
+ * Every motion is a pure function of step progress.
  */
 import { useMemo, useRef } from 'react';
 import * as THREE from 'three';
@@ -14,16 +21,31 @@ import { FIELDS, WAFER } from '../../sim/dies';
 import { useSimState, useStep } from '../../state/sim';
 import { lerp, seg, smooth, useProgressBucket, useProgressFrame } from '../anim';
 import { MAT } from '../materials';
-import { Box, Cyl, Lathe, LightTower, StandaloneOnly } from '../kit/parts';
+import { Box, Cyl, Lathe, LightTower, ScaraRobot, StandaloneOnly } from '../kit/parts';
 import { Wafer } from '../wafer/Wafer';
 import type { ToolProps } from './index';
 import { useOverlay } from '../../state/presentation';
 
+// ───────────────────────────── layout (metres) ─────────────────────────────
+//
+// Tool frame: x across the machine (wafer handler at −x, reticle library at +x), z toward the
+// aisle, the wafer-stage line at z = 0. In the bay the frame sits 0.25 m in front of the
+// housing's centre (poses/scanner.ts), so the rear bulkhead is at the housing's cut plane.
+
 const GRANITE_TOP = 0.66;
 const WAFER_Y = GRANITE_TOP + 0.075;
-const LENS_X = 0.34;
-const MEAS_X = -0.36;
+const LENS_X = 0.3;
+const MEAS_X = -0.4;
 const RETICLE_Y = 2.02;
+/** Underside of the last lens element (the water-filled gap is drawn far larger than it is). */
+const LENS_Y0 = WAFER_Y + 0.02;
+const LENS_TOP = LENS_Y0 + 1.0;
+/** Illuminator module above the reticle stage (x0..x1, y0..y1, z0..z1). */
+const ILLUM = { x0: LENS_X - 0.45, x1: LENS_X + 0.45, y0: 2.55, y1: 3.2, z0: -0.9, z1: 0.35 } as const;
+const BEAM_Y = 3.0; // beam delivery into the illuminator
+const BULKHEAD_Z = -1.0; // internal rear bulkhead (the housing's cut plane)
+const LIB_X = 1.95; // reticle library
+const HANDLER_X = -1.75; // wafer handler robot
 
 function reticleTexture(kind: 'poly' | 'contact'): THREE.CanvasTexture {
   const c = document.createElement('canvas');
@@ -93,41 +115,65 @@ function Reticle({ kind }: { kind: 'poly' | 'contact' }) {
   );
 }
 
+const glassMat = new THREE.MeshPhysicalMaterial({ color: '#e8f2fa', roughness: 0.02, transmission: 0.6, transparent: true, opacity: 0.7, clearcoat: 1 });
+// the next wafer, measured on the other stage while yours is exposed (bare silicon look)
+const nextWaferMat = new THREE.MeshStandardMaterial({ color: '#6f747c', metalness: 0.6, roughness: 0.22 });
+
+/** Refractive projection lens: turned barrel with flange rings; the last element at the bottom. */
 function LensColumn() {
-  // turned profile of a projection lens barrel (radius, height), bottom at 0
+  // turned profile of the barrel (radius, height), bottom at 0 (= LENS_Y0)
   const profile: [number, number][] = [
     [0.0, 0],
-    [0.06, 0],
-    [0.075, 0.02],
-    [0.1, 0.05],
-    [0.13, 0.08],
-    [0.13, 0.2],
-    [0.155, 0.21],
-    [0.155, 0.235],
-    [0.14, 0.245],
-    [0.15, 0.45],
-    [0.175, 0.46],
-    [0.175, 0.49],
-    [0.155, 0.5],
-    [0.16, 0.78],
-    [0.2, 0.79],
-    [0.2, 0.83],
-    [0.15, 0.84],
-    [0.12, 0.98],
-    [0.13, 1.0],
+    [0.07, 0],
+    [0.09, 0.02],
+    [0.125, 0.05],
+    [0.16, 0.08],
+    [0.16, 0.2],
+    [0.19, 0.21],
+    [0.19, 0.235],
+    [0.175, 0.245],
+    [0.185, 0.45],
+    [0.215, 0.46],
+    [0.215, 0.49],
+    [0.19, 0.5],
+    [0.2, 0.78],
+    [0.25, 0.79],
+    [0.25, 0.83],
+    [0.19, 0.84],
+    [0.15, 0.98],
+    [0.16, 1.0],
     [0.0, 1.0],
   ];
   return (
-    <group position={[LENS_X, WAFER_Y + 0.07, 0]}>
+    <group position={[LENS_X, LENS_Y0, 0]}>
       <Lathe profile={profile} m="steelSatin" seg={80} />
       {/* bright flange rings */}
       {[0.22, 0.475, 0.81].map((y) => (
-        <Cyl key={y} r={0.19} h={0.012} position={[0, y, 0]} m="chrome" seg={80} />
+        <Cyl key={y} r={y > 0.8 ? 0.26 : 0.23} h={0.012} position={[0, y, 0]} m="chrome" seg={80} />
       ))}
       {/* last lens element, visible at the bottom */}
-      <mesh position={[0, 0.002, 0]} rotation={[Math.PI, 0, 0]}>
+      <mesh position={[0, 0.002, 0]} rotation={[Math.PI, 0, 0]} material={glassMat}>
         <sphereGeometry args={[0.06, 32, 16, 0, Math.PI * 2, 0, 0.5]} />
-        <meshPhysicalMaterial color="#e8f2fa" roughness={0.02} transmission={0.6} transparent opacity={0.7} clearcoat={1} />
+      </mesh>
+    </group>
+  );
+}
+
+/** Immersion hood around the last element and the water film it keeps under the lens. */
+function ImmersionHood() {
+  const hood: [number, number][] = [
+    [0.05, 0.004],
+    [0.12, 0.004],
+    [0.135, 0.012],
+    [0.13, LENS_Y0 - WAFER_Y + 0.012],
+    [0.08, LENS_Y0 - WAFER_Y + 0.012],
+    [0.05, 0.012],
+  ];
+  return (
+    <group position={[LENS_X, WAFER_Y, 0]}>
+      <Lathe profile={[...hood, hood[0]]} m="steelDark" seg={64} />
+      <mesh position={[0, (0.0016 + LENS_Y0 - WAFER_Y) / 2, 0]} material={MAT.water} renderOrder={2}>
+        <cylinderGeometry args={[0.049, 0.049, LENS_Y0 - WAFER_Y - 0.0016, 48]} />
       </mesh>
     </group>
   );
@@ -167,8 +213,113 @@ function SlitFrustum({ x, y0, y1, w0, w1, d }: { x: number; y0: number; y1: numb
   return <mesh geometry={geo} position={[x, 0, 0]} material={MAT.beam} />;
 }
 
+/** Base frame on vibration isolators, and the metrology frame the lens hangs from. */
+function Frames() {
+  return (
+    <group>
+      {[-0.8, 0.8].flatMap((x) => [-0.45, 0.45].map((z) => <Cyl key={`${x},${z}`} r={0.07} h={0.26} position={[x, 0.13, z]} m="panelDark" />))}
+      <Box size={[2.0, 0.38, 1.2]} position={[0, GRANITE_TOP - 0.19 - 0.02, 0]} m="granite" radius={0.02} />
+      {/* metrology frame: rear columns, a frame plate behind the lens and arms holding its mount */}
+      {[-0.75, 0.9].map((x) => (
+        <Box key={x} size={[0.12, LENS_TOP + 0.08 - GRANITE_TOP, 0.12]} position={[x, (LENS_TOP + 0.08 + GRANITE_TOP) / 2, -0.5]} m="steelSatin" radius={0.015} />
+      ))}
+      <Box size={[1.8, 0.08, 0.36]} position={[0.08, LENS_TOP + 0.04, -0.42]} m="aluminum" radius={0.015} />
+      {[-0.3, 0.3].map((dx) => (
+        <Box key={dx} size={[0.1, 0.08, 0.5]} position={[LENS_X + dx, LENS_TOP + 0.04, -0.12]} m="aluminum" radius={0.012} />
+      ))}
+      <Cyl r={0.28} h={0.05} position={[LENS_X, LENS_TOP + 0.025, 0]} m="aluminum" seg={64} />
+      {/* bridge carrying the reticle stage */}
+      <Box size={[1.0, 0.05, 0.56]} position={[LENS_X, RETICLE_Y - 0.1, -0.08]} m="aluminum" radius={0.012} />
+      {[-0.45, 0.45].map((dx) => (
+        <Box key={dx} size={[0.08, RETICLE_Y - 0.1 - LENS_TOP - 0.08, 0.08]} position={[LENS_X + dx, (RETICLE_Y - 0.1 + LENS_TOP + 0.08) / 2, -0.3]} m="steelSatin" radius={0.01} />
+      ))}
+    </group>
+  );
+}
+
+/** Illuminator: beam-shaping module on top, condenser above the reticle, duct through the bulkhead. */
+function Illuminator() {
+  const { x0, x1, y0, y1, z0, z1 } = ILLUM;
+  return (
+    <group>
+      <Box size={[x1 - x0, y1 - y0, z1 - z0]} position={[(x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2]} m="panel" radius={0.03} />
+      <Box size={[x1 - x0 + 0.01, 0.05, z1 - z0 + 0.01]} position={[(x0 + x1) / 2, y0 + 0.14, (z0 + z1) / 2]} m="steelSatin" radius={0.01} />
+      <Box size={[0.3, 0.18, 0.012]} position={[(x0 + x1) / 2, y0 + 0.36, z1 + 0.004]} m="glassDark" radius={0.004} castShadow={false} />
+      <Box size={[0.36, y0 - RETICLE_Y - 0.11, 0.36]} position={[LENS_X, (y0 + RETICLE_Y + 0.11) / 2, 0]} m="steelSatin" radius={0.02} />
+      <Box size={[0.2, 0.02, 0.2]} position={[LENS_X, RETICLE_Y + 0.1, 0]} m="black" radius={0.004} />
+      <Box size={[0.22, 0.22, z0 - BULKHEAD_Z]} position={[LENS_X, BEAM_Y, (z0 + BULKHEAD_Z) / 2]} m="steelSatin" radius={0.02} />
+    </group>
+  );
+}
+
+/** Wafer handler at the left end: robot and pre-aligner between the track interface and the stages. */
+function WaferHandler() {
+  return (
+    <group>
+      <Box size={[0.34, 0.44, 0.34]} position={[HANDLER_X, 0.22, 0.05]} m="panelGray" radius={0.012} />
+      <ScaraRobot position={[HANDLER_X, 0.44, 0.05]} base={0.4} elbow={-1.9} wrist={1.35} />
+      {/* pre-aligner: spin chuck and notch sensor */}
+      <group position={[-1.25, 0, 0.42]}>
+        <Box size={[0.22, 0.66, 0.22]} position={[0, 0.33, 0]} m="panelGray" radius={0.01} />
+        <Cyl r={0.025} h={0.05} position={[0, 0.685, 0]} m="steelSatin" />
+        <Cyl r={0.06} h={0.01} position={[0, 0.715, 0]} m="ceramicGray" />
+        <Box size={[0.06, 0.07, 0.09]} position={[0.1, 0.72, 0]} m="black" radius={0.006} />
+      </group>
+      {/* track interface: the wafer port in the end wall */}
+      <Box size={[0.08, 0.3, 0.5]} position={[-2.62, 0.78, 0.05]} m="panelGray" radius={0.01} />
+      <Box size={[0.02, 0.08, 0.36]} position={[-2.575, 0.78, 0.05]} m="black" radius={0.004} castShadow={false} />
+      {/* electronics cabinet against the bulkhead */}
+      <Box size={[0.7, 1.9, 0.4]} position={[-2.2, 1.07, BULKHEAD_Z + 0.22]} m="panelWarm" radius={0.02} />
+      <Box size={[0.5, 0.4, 0.012]} position={[-2.2, 1.55, BULKHEAD_Z + 0.426]} m="glassDark" radius={0.004} castShadow={false} />
+    </group>
+  );
+}
+
+/** Reticle library (pods on shelves) at the right end, with the handler's rail to the stage. */
+function ReticleLibrary() {
+  // the handler lifts reticles in and out at the travel height (reticle seat + 0.1)
+  const slots = [1.8, 1.98, 2.16, 2.34];
+  return (
+    <group>
+      {/* cabinet below the library */}
+      <Box size={[0.62, 1.52, 0.62]} position={[LIB_X, 0.86, -0.12]} m="panelWarm" radius={0.02} />
+      <Box size={[0.4, 0.3, 0.012]} position={[LIB_X, 1.2, 0.195]} m="glassDark" radius={0.004} castShadow={false} />
+      {/* shelf frame */}
+      {[-0.28, 0.28].map((dx) => (
+        <Box key={dx} size={[0.03, 0.78, 0.5]} position={[LIB_X + dx, 2.02, -0.1]} m="steelSatin" radius={0.006} />
+      ))}
+      <Box size={[0.6, 0.03, 0.52]} position={[LIB_X, 2.42, -0.1]} m="panelGray" radius={0.006} />
+      {slots.map((y, i) => (
+        <group key={y}>
+          <Box size={[0.53, 0.012, 0.46]} position={[LIB_X, y - 0.05, -0.1]} m="panelGray" radius={0.003} />
+          {/* reticle pods; the third slot's reticle is the one in use */}
+          {i !== 2 && <Box size={[0.26, 0.07, 0.26]} position={[LIB_X, y - 0.008, -0.1]} m="polycarbonate" radius={0.012} />}
+        </group>
+      ))}
+      {/* handler rail from the library to the reticle stage, behind the reticle's path */}
+      <Box size={[LIB_X - LENS_X + 0.25, 0.05, 0.06]} position={[(LENS_X + LIB_X + 0.35) / 2, RETICLE_Y + 0.27, -0.26]} m="steelSatin" radius={0.01} />
+    </group>
+  );
+}
+
 /** Field positions (m) relative to the wafer centre, in exposure order. */
 const FIELD_M = FIELDS.map((f) => ({ x: f.x / 1000, y: f.y / 1000, h: f.h / 1000 }));
+
+/** Alignment marks visited under the sensor (wafer-centre offsets, m) and the measure schedule. */
+const MARKS: [number, number][] = [
+  [0.1, 0.08],
+  [-0.1, 0.09],
+  [-0.09, -0.1],
+  [0.11, -0.08],
+];
+function markPose(p: number, a: number, b: number): { x: number; z: number; dwell: boolean } {
+  const u = seg(p, a, b) * MARKS.length;
+  const k = Math.min(MARKS.length - 1, Math.floor(u));
+  const [mx, my] = MARKS[k];
+  const prev = MARKS[Math.max(0, k - 1)];
+  const tt = smooth(u - k, 0, 0.5);
+  return { x: -lerp(prev[0], mx, k === 0 ? 1 : tt), z: lerp(prev[1], my, k === 0 ? 1 : tt), dwell: p > a && p < b && u - k > 0.55 };
+}
 
 export default function Scanner({ variant }: ToolProps) {
   const state = useSimState();
@@ -184,6 +335,7 @@ export default function Scanner({ variant }: ToolProps) {
   const measStage = useRef<THREE.Group>(null);
   const reticleStage = useRef<THREE.Group>(null);
   const reticleHand = useRef<THREE.Group>(null);
+  const fork = useRef<THREE.Group>(null);
   const slit = useRef<THREE.Mesh>(null);
   const beam = useRef<THREE.Group>(null);
   const alignSpot = useRef<THREE.Mesh>(null);
@@ -191,8 +343,9 @@ export default function Scanner({ variant }: ToolProps) {
   // Exposure schedule: fields exposed over p ∈ [0.08, 0.86]
   const nF = FIELD_M.length;
   const fieldsDone = exposing ? Math.floor(seg(bucket, 0.08, 0.86) * nF) : 0;
+  const libDx = LIB_X - LENS_X;
 
-  useProgressFrame((p, t) => {
+  useProgressFrame((p) => {
     // ── exposure: step and scan ──
     if (exposeStage.current) {
       let x = 0,
@@ -219,18 +372,10 @@ export default function Scanner({ variant }: ToolProps) {
         if (reticleStage.current) reticleStage.current.position.z = -scanOffset * 4 * 0.25; // 4× faster, drawn at 1/4 scale travel
       } else if (aligning) {
         // measure marks at a few positions under the alignment sensor
-        const marks = [
-          [0.1, 0.08],
-          [-0.1, 0.09],
-          [-0.09, -0.1],
-          [0.11, -0.08],
-        ];
-        const k = Math.min(3, Math.floor(seg(p, 0.1, 0.8) * 4));
-        const [mx, my] = marks[k];
-        const prev = marks[Math.max(0, k - 1)];
-        const tt = smooth(seg(p, 0.1, 0.8) * 4 - k, 0, 0.5);
-        x = -lerp(prev[0], mx, k === 0 ? 1 : tt);
-        z = lerp(prev[1], my, k === 0 ? 1 : tt);
+        const m = markPose(p, 0.1, 0.8);
+        x = m.x;
+        z = m.z;
+        if (alignSpot.current) alignSpot.current.visible = m.dwell;
       }
       exposeStage.current.position.set(x, 0, z);
       if (slit.current) {
@@ -238,17 +383,23 @@ export default function Scanner({ variant }: ToolProps) {
       }
       if (beam.current) beam.current.visible = lightPath && (exposing ? scanning || p < 0.08 || p > 0.86 : true);
     }
+    // the other stage measures the next wafer while yours is exposed
     if (measStage.current) {
-      measStage.current.position.x = Math.sin(t * 0.7) * 0.02;
+      const m = exposing ? markPose(p, 0.12, 0.84) : { x: 0, z: 0 };
+      measStage.current.position.set(m.x, 0, m.z);
     }
-    if (alignSpot.current) {
-      alignSpot.current.visible = aligning && Math.floor(t * 4) % 2 === 0 && p > 0.1 && p < 0.85;
-    }
-    // ── reticle load ──
+    // ── reticle load: the handler carries it from the library, lowers it and withdraws ──
+    const loading = v === 'reticle';
+    const inT = loading ? smooth(p, 0.15, 0.62) : 1;
+    const down = loading ? smooth(p, 0.62, 0.72) : 1;
+    const back = loading ? smooth(p, 0.76, 0.95) : 1;
     if (reticleHand.current) {
-      const inT = v === 'reticle' ? smooth(p, 0.15, 0.7) : 1;
-      reticleHand.current.position.x = lerp(1.1, 0, inT);
-      reticleHand.current.position.y = lerp(0.12, 0, smooth(p, 0.62, 0.75) * (v === 'reticle' ? 1 : 0)) + (v === 'reticle' ? 0 : 0);
+      reticleHand.current.position.x = lerp(libDx, 0, inT);
+      reticleHand.current.position.y = lerp(0.1, 0, down);
+    }
+    if (fork.current) {
+      fork.current.position.x = back > 0 ? lerp(0, libDx, back) : lerp(libDx, 0, inT);
+      fork.current.position.y = back > 0 ? lerp(-0.012, 0.1, back) : lerp(0.1, -0.012, down);
     }
   });
 
@@ -263,20 +414,22 @@ export default function Scanner({ variant }: ToolProps) {
           <meshStandardMaterial color="#e2dfd6" roughness={0.55} />
         </mesh>
       </StandaloneOnly>
-      {/* vibration isolators and granite base */}
-      {[-0.55, 0.55].flatMap((x) => [-0.38, 0.38].map((z) => <Cyl key={`${x},${z}`} r={0.06} h={0.28} position={[x, 0.14, z]} m="panelDark" />))}
-      <Box size={[1.5, 0.36, 1.0]} position={[0, GRANITE_TOP - 0.18 - 0.02, 0]} m="granite" radius={0.02} />
-      {/* metrology frame: two rear columns carrying a dark frame plate the lens hangs from */}
-      {[-0.66, 0.7].map((x) => (
-        <Box key={x} size={[0.09, 1.66, 0.09]} position={[x, GRANITE_TOP + 0.82, -0.4]} m="steelSatin" radius={0.012} />
+      {/* rear bulkhead: the enclosure behind the cut, with service ribs, a cable tray, and the
+          closing panel of the roof housing behind it */}
+      <Box size={[5.34, 2.74, 0.04]} position={[0, 0.14 + 1.37, BULKHEAD_Z]} m="panelGray" radius={0.01} />
+      <Box size={[2.36, 0.42, 0.04]} position={[0.37, 3.1, BULKHEAD_Z]} m="steelSatin" radius={0.01} />
+      {[-1.9, -0.9, 1.35, 2.3].map((x) => (
+        <Box key={x} size={[0.05, 2.6, 0.03]} position={[x, 1.5, BULKHEAD_Z + 0.035]} m="panelGray" radius={0.006} castShadow={false} />
       ))}
-      <Box size={[1.46, 0.06, 0.5]} position={[0.02, GRANITE_TOP + 1.12, -0.2]} m="panelGray" radius={0.015} />
-      <Box size={[0.7, 0.045, 0.42]} position={[LENS_X, RETICLE_Y - 0.1, -0.12]} m="panelGray" radius={0.012} />
+      <Box size={[5.2, 0.06, 0.16]} position={[0, 1.34, BULKHEAD_Z + 0.1]} m="steelSatin" radius={0.01} />
+      <Frames />
       <LensColumn />
+      <ImmersionHood />
       {/* alignment sensor over the measure side */}
       <group position={[MEAS_X, WAFER_Y + 0.2, 0]}>
-        <Cyl r={0.045} h={0.28} position={[0, 0.14, 0]} m="steelSatin" />
+        <Cyl r={0.05} h={0.3} position={[0, 0.15, 0]} m="steelSatin" />
         <Cyl r={0.02} h={0.04} position={[0, -0.01, 0]} m="black" />
+        <Box size={[0.05, 0.05, 0.36]} position={[0, 0.26, -0.2]} m="steelSatin" radius={0.008} />
         <mesh ref={alignSpot} position={[0, -0.12, 0]} visible={false}>
           <cylinderGeometry args={[0.004, 0.012, 0.19, 12, 1, true]} />
           <meshBasicMaterial color="#ffd27a" transparent opacity={0.5} depthWrite={false} />
@@ -292,7 +445,13 @@ export default function Scanner({ variant }: ToolProps) {
       </group>
       <group position={aligning ? [LENS_X, 0, 0] : [MEAS_X, 0, 0]}>
         <group ref={measStage}>
-          <Stage />
+          <Stage>
+            {exposing && (
+              <mesh position={[0, WAFER_Y + 0.0008, 0]} material={nextWaferMat} castShadow>
+                <cylinderGeometry args={[0.15, 0.15, 0.0016, 96]} />
+              </mesh>
+            )}
+          </Stage>
         </group>
       </group>
       {/* slit of light on the wafer during a scan (the resist is being exposed there) */}
@@ -302,7 +461,7 @@ export default function Scanner({ variant }: ToolProps) {
       </mesh>
       {/* reticle stage */}
       <group position={[LENS_X, RETICLE_Y, 0]}>
-        <Box size={[0.5, 0.05, 0.3]} position={[0, -0.03, 0]} m="black" radius={0.01} />
+        <Box size={[0.7, 0.06, 0.46]} position={[0, -0.035, 0]} m="black" radius={0.012} />
         <group ref={reticleStage}>
           <Box size={[0.24, 0.03, 0.24]} position={[0, 0.005, 0]} m="ceramicGray" radius={0.006} />
           <group ref={reticleHand} position={[0, 0, 0]}>
@@ -311,44 +470,49 @@ export default function Scanner({ variant }: ToolProps) {
             </group>
           </group>
         </group>
+        {/* handler fork, hanging from its carriage on the rail behind the reticle's path */}
+        <group ref={fork}>
+          <Box size={[0.08, 0.05, 0.08]} position={[0.1, 0.22, -0.26]} m="panelGray" radius={0.01} />
+          <Box size={[0.03, 0.2, 0.03]} position={[0.1, 0.11, -0.26]} m="steelSatin" radius={0.006} />
+          <Box size={[0.03, 0.008, 0.18]} position={[0.1, 0.017, -0.17]} m="ceramicGray" radius={0.002} />
+          <Box size={[0.13, 0.008, 0.02]} position={[0.035, 0.017, -0.09]} m="ceramicGray" radius={0.002} />
+          {[-0.05, 0.05].map((dx) => (
+            <Box key={dx} size={[0.012, 0.008, 0.16]} position={[dx, 0.017, -0.01]} m="ceramicGray" radius={0.002} />
+          ))}
+        </group>
       </group>
-      {/* reticle pod / library for the load animation */}
-      <group position={[LENS_X + 1.15, RETICLE_Y - 0.05, 0]}>
-        <Box size={[0.3, 0.12, 0.26]} m="polycarbonate" radius={0.02} />
-        <Box size={[0.32, 0.04, 0.28]} position={[0, -0.08, 0]} m="panelGray" radius={0.01} />
+      <ReticleLibrary />
+      <Illuminator />
+      <WaferHandler />
+      {/* operator screen on its arm (where the bay model has it) */}
+      <group position={[2.4, 1.45, 1.35]}>
+        <Box size={[0.036, 0.036, 0.2]} position={[0, -0.05, 0.1]} m="steelDark" radius={0.008} />
+        <Box size={[0.41, 0.27, 0.036]} position={[0, 0.08, 0.225]} m="panelDark" radius={0.01} />
+        <Box size={[0.37, 0.23, 0.006]} position={[0, 0.08, 0.245]} m="screen" radius={0.003} castShadow={false} />
       </group>
-      {/* illuminator above */}
-      <group position={[LENS_X, RETICLE_Y + 0.32, 0]}>
-        <Box size={[0.5, 0.36, 0.42]} m="panel" radius={0.03} />
-        <Box size={[0.22, 0.1, 0.22]} position={[0, -0.22, 0]} m="steelSatin" radius={0.01} />
-      </group>
-      {/* excimer laser cabinet and beam delivery */}
-      <group position={[1.75, 0, -0.1]}>
-        <Box size={[0.8, 1.35, 0.7]} position={[0, 0.675, 0]} m="panelWarm" radius={0.03} />
-        <Box size={[0.5, 0.16, 0.012]} position={[-0.05, 1.05, 0.352]} m="glassDark" radius={0.004} />
-        <LightTower position={[0.28, 1.35, -0.25]} on="violet" />
-      </group>
-      <Box size={[0.9, 0.12, 0.12]} position={[1.25, RETICLE_Y + 0.32, -0.1]} m="steelSatin" radius={0.03} />
-      <Box size={[0.12, 1.0, 0.12]} position={[1.72, 1.85, -0.1]} m="steelSatin" radius={0.03} />
+      {/* excimer laser and beam delivery behind the machine (the bay model has its own) */}
+      <StandaloneOnly>
+        <group position={[0.6, 0, -2.9]}>
+          <Box size={[3.0, 1.9, 1.1]} position={[0, 0.95, 0]} m="panelWarm" radius={0.03} />
+          <Box size={[1.4, 0.26, 0.012]} position={[-0.4, 1.45, 0.556]} m="glassDark" radius={0.004} />
+          <LightTower position={[1.3, 1.9, -0.35]} on="violet" />
+        </group>
+        <Box size={[0.3, 1.2, 0.3]} position={[LENS_X, 2.5, -2.8]} m="steelSatin" radius={0.03} />
+        <Box size={[0.3, 0.3, 1.9]} position={[LENS_X, BEAM_Y, -1.95]} m="steelSatin" radius={0.03} />
+      </StandaloneOnly>
       {/* educational light path overlay (193 nm UV is invisible in reality) */}
       <group ref={beam} visible={false}>
-        <mesh position={[1.72, 1.85, -0.1]} material={MAT.beam}>
-          <boxGeometry args={[0.024, 1.0, 0.024]} />
-        </mesh>
-        <mesh position={[1.25, RETICLE_Y + 0.32, -0.1]} rotation={[0, 0, Math.PI / 2]} material={MAT.beam}>
-          <boxGeometry args={[0.024, 0.9, 0.024]} />
+        <mesh position={[LENS_X, BEAM_Y, (BULKHEAD_Z + ILLUM.z0) / 2]} rotation={[Math.PI / 2, 0, 0]} material={MAT.beam}>
+          <boxGeometry args={[0.024, ILLUM.z0 - BULKHEAD_Z, 0.024]} />
         </mesh>
         {/* shaped slit of light onto the reticle (drawn 4× the printed slit) */}
-        <mesh position={[LENS_X, RETICLE_Y + 0.12, 0]} material={MAT.beam}>
-          <boxGeometry args={[0.104, 0.2, 0.012]} />
+        <mesh position={[LENS_X, RETICLE_Y + 0.06, 0]} material={MAT.beam}>
+          <boxGeometry args={[0.104, 0.08, 0.012]} />
         </mesh>
         {/* from the reticle into the lens, and out of the lens onto the wafer: 4× smaller */}
-        <SlitFrustum x={LENS_X} y0={RETICLE_Y - 0.01} y1={WAFER_Y + 1.07} w0={0.104} w1={0.07} d={0.012} />
-        <SlitFrustum x={LENS_X} y0={WAFER_Y + 0.07} y1={WAFER_Y + 0.004} w0={0.05} w1={0.026} d={0.006} />
+        <SlitFrustum x={LENS_X} y0={RETICLE_Y - 0.01} y1={LENS_TOP} w0={0.104} w1={0.07} d={0.012} />
+        <SlitFrustum x={LENS_X} y0={LENS_Y0} y1={WAFER_Y + 0.004} w0={0.034} w1={0.026} d={0.006} />
       </group>
-      {/* enclosure: back wall and side glass (front cut away) */}
-      <Box size={[3.2, 2.7, 0.04]} position={[0.5, 1.35, -0.64]} m="panel" radius={0.01} />
-      <Box size={[0.04, 2.7, 1.2]} position={[-1.05, 1.35, -0.02]} m="glassClear" radius={0.005} castShadow={false} />
     </group>
   );
 }

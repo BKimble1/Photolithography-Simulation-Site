@@ -1,18 +1,23 @@
 /**
- * Plasma etch cluster (illustrative, no manufacturer's design): a vacuum transfer chamber with
- * a SCARA wafer robot, a load lock fed from the equipment front end (EFEM), and a single-wafer
- * process chamber drawn in cutaway. The chamber is a cylindrical aluminium vacuum vessel with an
+ * Plasma etch cluster (illustrative, no manufacturer's design), laid out like its bay model
+ * (Fab.tsx, etchCluster): an equipment front end (EFEM) across the front with three load ports
+ * and an atmospheric robot, a load lock behind it, a square vacuum transfer chamber with a SCARA
+ * wafer robot, and three single-wafer process chambers around it — the etch chamber on the
+ * right, a second etch chamber behind and a resist-strip (ash) chamber on the left. The chamber
+ * in use is drawn in cutaway. Each chamber is a cylindrical aluminium vacuum vessel with an
  * electrostatic chuck on a cantilevered cathode, a turbomolecular pump hanging below a pendulum
  * valve, gas lines and an optical-emission viewport. Its top depends on the process:
  *  - silicon / polysilicon etch: a ceramic window with a flat inductive (ICP) coil;
  *  - oxide (contact) etch: a showerhead top electrode, capacitively coupled (CCP);
  *  - resist ashing: a quartz downstream source with a helical coil above a baffle.
+ * Placed in the bay, the scene stands inside the cutaway of that bay model: its parts sit just
+ * inside the model's surfaces, so the opening wipe uncovers them where the model is removed.
  *
  * Plasma glow is real visible light. It is drawn as an additive, ray-marched volume with a
  * dark sheath just above the wafer. Hues are qualitative: Cl2/HBr silicon etch pale
  * blue-violet, fluorocarbon (oxide/nitride) etch bluish-purple, O2 ash pale bluish-white.
- * All process motion is a pure function of step progress; only pump rotors and the plasma
- * flicker use wall-clock time.
+ * All process motion is a pure function of step progress; only the plasma flicker uses
+ * wall-clock time.
  */
 import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
@@ -20,7 +25,7 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 import { useSimState, useStep } from '../../state/sim';
 import { lerp, seg, smooth, useProgressBucket, useProgressFrame } from '../anim';
 import { MAT, type MatKey } from '../materials';
-import { Box, CleanFloor, Cyl, LightTower, mat } from '../kit/parts';
+import { Box, CleanFloor, Cyl, LightTower, mat, StandaloneOnly } from '../kit/parts';
 import { Wafer } from '../wafer/Wafer';
 import type { ToolProps } from './index';
 
@@ -29,6 +34,9 @@ type V3 = [number, number, number];
 const TAU = Math.PI * 2;
 
 // ───────────────────────────── layout (metres) ─────────────────────────────
+//
+// Tool frame: the etch chamber sits at the origin, the transfer-chamber hub to its left (−x),
+// the load lock in front of the hub (+z, toward the aisle) and the EFEM in front of that.
 
 const DECK_Y = 0.93; // transfer-chamber floor
 const ESC_Y = 1.0; // wafer seat on the chuck
@@ -40,8 +48,7 @@ const ARM_Y = 0.987; // first robot link (centre)
 
 const R_PC = 0.912; // hub → process-chamber axis
 const R_LL = 0.8; // hub → load-lock wafer centre
-const HUB: V2 = [-R_PC, 0]; // the process chamber sits at the origin, the cluster runs along −x
-const TH = { pc: 0, ll: -Math.PI } as const; // robot headings (rotation.y); LL → PC swings via the front
+const HUB: V2 = [-R_PC, 0];
 const BLADE = 0.3; // wrist → wafer centre
 const D_RET = 0.05; // retracted wrist distance
 const L1 = 0.36;
@@ -50,8 +57,22 @@ const EXT_LEN = 0.56; // EFEM blade travel (load-lock centre → inside the EFEM
 
 const dx = (th: number) => Math.cos(th);
 const dz = (th: number) => -Math.sin(th);
-const LLW: V2 = [HUB[0] + R_LL * dx(TH.ll), HUB[1] + R_LL * dz(TH.ll)];
-const PC2: V2 = [HUB[0], HUB[1] - R_PC];
+/** Robot headings (rotation.y) from the hub: 0 is +x; the load lock is in front (+z). */
+const TH_LL = -Math.PI / 2;
+/** Process-chamber slots around the transfer chamber (left: the swing from the load lock goes via the front-left). */
+const SLOT_TH = { right: 0, back: Math.PI / 2, left: -Math.PI } as const;
+type Slot = keyof typeof SLOT_TH;
+const slotPos = (s: Slot): V2 => [HUB[0] + R_PC * dx(SLOT_TH[s]), HUB[1] + R_PC * dz(SLOT_TH[s])];
+const LLW: V2 = [HUB[0] + R_LL * dx(TH_LL), HUB[1] + R_LL * dz(TH_LL)];
+
+/** Equipment front end: walls (x0..x1, z0 back .. z1 front face), load-port centres and robot. */
+const EFEM = { x0: -2.412, x1: 0.588, z0: 1.06, z1: 1.96, floor: 0.1 } as const;
+const PORT_X = [-1.812, -0.912, -0.012];
+const PORTS_WITH_POD = [0, 2]; // as the bay model
+const E_L1 = 0.33;
+const E_L2 = 0.33;
+const E_TH = Math.PI / 2; // the EFEM robot's blade points into the load lock (−z)
+const E_BASE: V2 = [LLW[0], LLW[1] + EXT_LEN + BLADE + D_RET];
 
 /** Cutaway of the process chamber: centre angle (from +z toward +x) and width, radians. */
 const CUT: [number, number] = [0.48, 1.95];
@@ -68,6 +89,10 @@ const SILICON = new THREE.MeshStandardMaterial({ color: '#50555e', metalness: 0.
 const QUARTZ_RING = new THREE.MeshStandardMaterial({ color: '#e9ecef', metalness: 0, roughness: 0.2 });
 const PUCK = new THREE.MeshStandardMaterial({ color: '#b9bcbf', metalness: 0.05, roughness: 0.35 });
 const CABLE = new THREE.MeshStandardMaterial({ color: '#232427', metalness: 0.1, roughness: 0.7 });
+const GATE = new THREE.MeshStandardMaterial({ color: '#aeb3ba', metalness: 0.9, roughness: 0.3 });
+// front-opening pods: the same pale grey as the bay model's pods
+const POD = new THREE.MeshStandardMaterial({ color: '#b4bcc5', metalness: 0.05, roughness: 0.45 });
+const POD_DOOR = new THREE.MeshStandardMaterial({ color: '#9aa3ad', metalness: 0.05, roughness: 0.5 });
 
 // ───────────────────────────── geometry helpers ─────────────────────────────
 
@@ -337,6 +362,8 @@ interface GlowWin {
 type Top = 'icp' | 'ccp' | 'ash';
 interface Recipe {
   top: Top;
+  /** The chamber the recipe runs in: etches on the right, the resist strip in the ash chamber on the left. */
+  slot: 'right' | 'left';
   start: Station;
   moves: Move[];
   plasma: GlowWin[];
@@ -360,9 +387,10 @@ const CHEM_RAW = Object.fromEntries(Object.entries(HEX).map(([k, h]) => [k, new 
 // colour-managed versions for built-in materials and lights
 const CHEM_LIN = Object.fromEntries(Object.entries(HEX).map(([k, h]) => [k, new THREE.Color(h)])) as Record<Chem, THREE.Color>;
 
-function recipe(r: Omit<Recipe, 'th0'>): Recipe {
+function recipe(r: Omit<Recipe, 'th0' | 'slot'> & { slot?: Recipe['slot'] }): Recipe {
+  const slot = r.slot ?? 'right';
   const first = r.moves.find((m) => m.from !== 'out' && m.to !== 'out');
-  return { ...r, th0: first ? TH[first.from as 'll' | 'pc'] : TH.ll };
+  return { ...r, slot, th0: first ? (first.from === 'll' ? TH_LL : SLOT_TH[slot]) : TH_LL };
 }
 
 const RECIPES: Record<string, Recipe> = {
@@ -408,6 +436,7 @@ const RECIPES: Record<string, Recipe> = {
   }),
   strip: recipe({
     top: 'ash',
+    slot: 'left',
     start: 'll',
     moves: [
       { a: 0.05, b: 0.32, from: 'll', to: 'pc' },
@@ -437,26 +466,36 @@ interface FrameState {
 }
 
 const pinTop = (v: number) => PIN_LO + (PIN_UP - PIN_LO) * v;
-const STN = {
-  ll: { x: LLW[0], z: LLW[1], base: LL_PLATE, dist: R_LL },
-  pc: { x: 0, z: 0, base: ESC_Y, dist: R_PC },
-};
 
-function atStation(f: FrameState, s: 'll' | 'pc', y: number) {
+/** Where the robot finds the load lock and the recipe's process chamber. */
+interface Layout {
+  th: { ll: number; pc: number };
+  stn: Record<'ll' | 'pc', { x: number; z: number; base: number; dist: number }>;
+}
+
+function layoutFor(slot: Slot): Layout {
+  const [x, z] = slotPos(slot);
+  return {
+    th: { ll: TH_LL, pc: SLOT_TH[slot] },
+    stn: { ll: { x: LLW[0], z: LLW[1], base: LL_PLATE, dist: R_LL }, pc: { x, z, base: ESC_Y, dist: R_PC } },
+  };
+}
+
+function atStation(f: FrameState, s: 'll' | 'pc', y: number, L: Layout) {
   f.wvis = true;
-  f.wx = STN[s].x;
-  f.wz = STN[s].z;
+  f.wx = L.stn[s].x;
+  f.wz = L.stn[s].z;
   f.wy = y;
-  f.wrot = TH[s] - TH.pc;
+  f.wrot = L.th[s] - L.th.pc;
 }
 
 /** Robot, lift pins and valves for a vacuum transfer A → B at local time u ∈ [0, 1]. */
-function vacMove(u: number, A: 'll' | 'pc', B: 'll' | 'pc', thPrev: number, f: FrameState) {
-  const thA = TH[A];
-  const thB = TH[B];
+function vacMove(u: number, A: 'll' | 'pc', B: 'll' | 'pc', thPrev: number, f: FrameState, L: Layout) {
+  const thA = L.th[A];
+  const thB = L.th[B];
   f.th = u < 0.1 ? lerp(thPrev, thA, smooth(u, 0, 0.1)) : u < 0.5 ? thA : lerp(thA, thB, smooth(u, 0.5, 0.6));
-  const dA = STN[A].dist - BLADE;
-  const dB = STN[B].dist - BLADE;
+  const dA = L.stn[A].dist - BLADE;
+  const dB = L.stn[B].dist - BLADE;
   f.d = D_RET + (dA - D_RET) * (smooth(u, 0.1, 0.26) - smooth(u, 0.34, 0.48)) + (dB - D_RET) * (smooth(u, 0.6, 0.76) - smooth(u, 0.84, 0.94));
   const vA = smooth(u, 0.03, 0.1) - smooth(u, 0.5, 0.56);
   const vB = smooth(u, 0.52, 0.59) - smooth(u, 0.95, 1);
@@ -477,45 +516,45 @@ function vacMove(u: number, A: 'll' | 'pc', B: 'll' | 'pc', thPrev: number, f: F
     f.slitPC = vA;
     f.slitLL = vB;
   }
-  if (u < 0.26) atStation(f, A, Math.max(STN[A].base, pinTop(pA)));
-  else if (u < 0.34) atStation(f, A, Math.max(XFER_Y, pinTop(pA)));
+  if (u < 0.26) atStation(f, A, Math.max(L.stn[A].base, pinTop(pA)), L);
+  else if (u < 0.34) atStation(f, A, Math.max(XFER_Y, pinTop(pA)), L);
   else if (u < 0.76) {
     f.wvis = true;
     const r = f.d + BLADE;
     f.wx = HUB[0] + dx(f.th) * r;
     f.wz = HUB[1] + dz(f.th) * r;
     f.wy = XFER_Y;
-    f.wrot = f.th - TH.pc;
-  } else if (u < 0.84) atStation(f, B, Math.max(XFER_Y, pinTop(pB)));
-  else atStation(f, B, Math.max(STN[B].base, pinTop(pB)));
+    f.wrot = f.th - L.th.pc;
+  } else if (u < 0.84) atStation(f, B, Math.max(XFER_Y, pinTop(pB)), L);
+  else atStation(f, B, Math.max(L.stn[B].base, pinTop(pB)), L);
 }
 
-function onExtBlade(f: FrameState, e: number) {
+function onExtBlade(f: FrameState, e: number, L: Layout) {
   f.wvis = e > 0.015;
-  f.wx = LLW[0] + dx(TH.ll) * (1 - e) * EXT_LEN;
-  f.wz = LLW[1] + dz(TH.ll) * (1 - e) * EXT_LEN;
+  f.wx = LLW[0] + dx(TH_LL) * (1 - e) * EXT_LEN;
+  f.wz = LLW[1] + dz(TH_LL) * (1 - e) * EXT_LEN;
   f.wy = XFER_Y;
-  f.wrot = TH.ll - TH.pc;
+  f.wrot = TH_LL - L.th.pc;
 }
 
-/** The EFEM blade passes the wafer through the load lock's outer door. */
-function atmMove(u: number, inward: boolean, f: FrameState) {
+/** The EFEM robot passes the wafer through the load lock's outer door. */
+function atmMove(u: number, inward: boolean, f: FrameState, L: Layout) {
   f.doorLL = smooth(u, 0, 0.12) - smooth(u, 0.88, 1);
   if (inward) {
     f.ext = smooth(u, 0.12, 0.42) - smooth(u, 0.6, 0.86);
     f.pinsLL = 1 - smooth(u, 0, 0.1) + smooth(u, 0.44, 0.58);
-    if (u < 0.44) onExtBlade(f, f.ext);
-    else atStation(f, 'll', Math.max(XFER_Y, pinTop(f.pinsLL)));
+    if (u < 0.44) onExtBlade(f, f.ext, L);
+    else atStation(f, 'll', Math.max(XFER_Y, pinTop(f.pinsLL)), L);
   } else {
     f.ext = smooth(u, 0.12, 0.38) - smooth(u, 0.56, 0.86);
     f.pinsLL = 1 - smooth(u, 0.4, 0.54) + smooth(u, 0.88, 0.98);
-    if (u < 0.4) atStation(f, 'll', pinTop(f.pinsLL));
-    else if (u < 0.54) atStation(f, 'll', Math.max(XFER_Y, pinTop(f.pinsLL)));
-    else onExtBlade(f, f.ext);
+    if (u < 0.4) atStation(f, 'll', pinTop(f.pinsLL), L);
+    else if (u < 0.54) atStation(f, 'll', Math.max(XFER_Y, pinTop(f.pinsLL)), L);
+    else onExtBlade(f, f.ext, L);
   }
 }
 
-function simulate(p: number, R: Recipe, f: FrameState) {
+function simulate(p: number, R: Recipe, f: FrameState, L: Layout) {
   f.pinsPC = 0;
   f.pinsLL = 1;
   f.slitPC = 0;
@@ -533,20 +572,23 @@ function simulate(p: number, R: Recipe, f: FrameState) {
     const vac = m.from !== 'out' && m.to !== 'out';
     if (p >= m.b) {
       loc = m.to;
-      if (vac) th = TH[m.to as 'll' | 'pc'];
+      if (vac) th = L.th[m.to as 'll' | 'pc'];
       continue;
     }
     const u = (p - m.a) / (m.b - m.a);
     f.th = th;
-    if (vac) vacMove(u, m.from as 'll' | 'pc', m.to as 'll' | 'pc', th, f);
-    else atmMove(u, m.from === 'out', f);
+    if (vac) vacMove(u, m.from as 'll' | 'pc', m.to as 'll' | 'pc', th, f, L);
+    else atmMove(u, m.from === 'out', f, L);
     active = true;
     break;
   }
   if (!active) {
     f.th = th;
-    if (loc === 'out') f.wvis = false;
-    else atStation(f, loc, loc === 'pc' ? ESC_Y : pinTop(1));
+    if (loc === 'out') {
+      // not here yet: the (hidden) wafer marks the chuck, so shots of it look where the etch happens
+      atStation(f, 'pc', ESC_Y, L);
+      f.wvis = false;
+    } else atStation(f, loc, loc === 'pc' ? ESC_Y : pinTop(1), L);
   }
   // plasma: windows that share a boundary cross-fade, so the glow stays lit between recipe steps
   f.glow = 0;
@@ -577,12 +619,12 @@ function simulate(p: number, R: Recipe, f: FrameState) {
 }
 
 /** SCARA inverse kinematics: wrist at signed distance d along heading th, blade along th. */
-function ik(th: number, d: number, out: { b: number; e: number; w: number }) {
+function ik(th: number, d: number, out: { b: number; e: number; w: number }, l1 = L1, l2 = L2) {
   const dist = Math.max(0.02, Math.abs(d));
   const ang = d >= 0 ? th : th + Math.PI;
-  const c = Math.max(-1, Math.min(1, (dist * dist - L1 * L1 - L2 * L2) / (2 * L1 * L2)));
+  const c = Math.max(-1, Math.min(1, (dist * dist - l1 * l1 - l2 * l2) / (2 * l1 * l2)));
   const e = Math.acos(c);
-  const alpha = Math.atan2(L2 * Math.sin(e), L1 + L2 * Math.cos(e));
+  const alpha = Math.atan2(l2 * Math.sin(e), l1 + l2 * Math.cos(e));
   out.b = ang - alpha;
   out.e = e;
   out.w = th - out.b - out.e;
@@ -591,7 +633,7 @@ function ik(th: number, d: number, out: { b: number; e: number; w: number }) {
 // ───────────────────────────── parts ─────────────────────────────
 
 /** A slit valve: a housing around a slot and a gate that drops to open (local +x = passage). */
-function SlitValve({ length, gate, bonnet = true }: { length: number; gate: React.RefObject<THREE.Mesh | null>; bonnet?: boolean }) {
+function SlitValve({ length, gate, bonnet = true }: { length: number; gate?: React.RefObject<THREE.Mesh | null>; bonnet?: boolean }) {
   const yc = 1.01;
   return (
     <group>
@@ -600,9 +642,8 @@ function SlitValve({ length, gate, bonnet = true }: { length: number; gate: Reac
       <Box size={[length, 0.07, 0.05]} position={[length / 2, yc, 0.205]} m="aluminum" radius={0.006} />
       <Box size={[length, 0.07, 0.05]} position={[length / 2, yc, -0.205]} m="aluminum" radius={0.006} />
       {bonnet && <Box size={[length * 0.7, 0.08, 0.4]} position={[length / 2, yc - 0.105, 0]} m="black" radius={0.008} />}
-      <mesh ref={gate} position={[length / 2, yc, 0]} castShadow>
+      <mesh ref={gate} position={[length / 2, yc, 0]} material={GATE} castShadow>
         <boxGeometry args={[0.014, 0.066, 0.36]} />
-        <meshStandardMaterial color="#aeb3ba" metalness={0.9} roughness={0.3} />
       </mesh>
     </group>
   );
@@ -761,9 +802,11 @@ function AshTop({ cut }: { cut: [number, number] | null }) {
       {/* quartz source tube, helical coil and Faraday cage posts */}
       <mesh geometry={domeGeo} material={MAT.quartz} renderOrder={2} />
       <mesh geometry={coil} material={MAT.copper} castShadow />
-      {[0.6, 2.2, 3.8, 5.4].map((a) => (
-        <Cyl key={a} r={0.008} h={0.28} position={[Math.sin(a) * 0.19, 1.38, Math.cos(a) * 0.19]} m="steelSatin" />
-      ))}
+      {[0.6, 2.2, 3.8, 5.4]
+        .filter((a) => !cut || Math.abs(((a - cut[0] + 3 * Math.PI) % TAU) - Math.PI) > cut[1] / 2)
+        .map((a) => (
+          <Cyl key={a} r={0.008} h={0.28} position={[Math.sin(a) * 0.19, 1.38, Math.cos(a) * 0.19]} m="steelSatin" />
+        ))}
       <Turned profile={[[0.17, 1.515], [0.2, 1.515], [0.2, 1.53], [0.17, 1.53]]} m="steelSatin" />
       <Cyl r={0.02} h={0.05} position={[0, 1.495, 0]} m="steel" />
       <Box size={[0.22, 0.14, 0.18]} position={[0.02, 1.32, -0.3]} m="panel" radius={0.012} />
@@ -850,7 +893,7 @@ function Undercarriage({ cut, rotor }: { cut: [number, number] | null; rotor?: R
   );
 }
 
-function OesViewport({ glow }: { glow: React.RefObject<THREE.MeshBasicMaterial | null> }) {
+function OesViewport({ glow }: { glow?: React.RefObject<THREE.MeshBasicMaterial | null> }) {
   const phi = 1.95;
   return (
     <group rotation={[0, phi, 0]}>
@@ -858,7 +901,7 @@ function OesViewport({ glow }: { glow: React.RefObject<THREE.MeshBasicMaterial |
       <Cyl r={0.04} h={0.012} position={[0, 1.1, 0.314]} rotation={[Math.PI / 2, 0, 0]} m="steel" />
       <mesh position={[0, 1.1, 0.3205]}>
         <circleGeometry args={[0.022, 32]} />
-        <meshBasicMaterial ref={glow} color="#000000" toneMapped={false} />
+        {glow ? <meshBasicMaterial ref={glow} color="#000000" toneMapped={false} /> : <meshBasicMaterial color="#000000" />}
       </mesh>
       <mesh position={[0, 1.1, 0.3215]} material={MAT.glassDark}>
         <circleGeometry args={[0.024, 32]} />
@@ -891,63 +934,38 @@ function Robot({ b, e, w }: { b: React.RefObject<THREE.Group | null>; e: React.R
   );
 }
 
-/** One face of the transfer chamber: a wall with a slit opening, or a low cut-away wall. */
-function Face({ rot, slit }: { rot: number; slit: boolean }) {
+/** One face of the transfer chamber: a wall with a slit opening to a chamber or the load lock. */
+function Face({ rot }: { rot: number }) {
   const H = 1.12;
   const y0 = DECK_Y;
   return (
     <group rotation={[0, rot, 0]}>
-      {slit ? (
-        <>
-          <Box size={[0.04, H - y0, 0.38]} position={[0.54, (H + y0) / 2, 0.37]} m={ANODISED} radius={0.005} />
-          <Box size={[0.04, H - y0, 0.38]} position={[0.54, (H + y0) / 2, -0.37]} m={ANODISED} radius={0.005} />
-          <Box size={[0.04, 0.975 - y0, 0.36]} position={[0.54, (0.975 + y0) / 2, 0]} m={ANODISED} radius={0.005} />
-          <Box size={[0.04, H - 1.045, 0.36]} position={[0.54, (H + 1.045) / 2, 0]} m={ANODISED} radius={0.005} />
-        </>
-      ) : (
-        <Box size={[0.04, 0.975 - y0, 1.12]} position={[0.54, (0.975 + y0) / 2, 0]} m={ANODISED} radius={0.005} />
-      )}
+      <Box size={[0.04, H - y0, 0.38]} position={[0.54, (H + y0) / 2, 0.37]} m={ANODISED} radius={0.005} />
+      <Box size={[0.04, H - y0, 0.38]} position={[0.54, (H + y0) / 2, -0.37]} m={ANODISED} radius={0.005} />
+      <Box size={[0.04, 0.975 - y0, 0.36]} position={[0.54, (0.975 + y0) / 2, 0]} m={ANODISED} radius={0.005} />
+      <Box size={[0.04, H - 1.045, 0.36]} position={[0.54, (H + 1.045) / 2, 0]} m={ANODISED} radius={0.005} />
     </group>
   );
 }
 
-/** Transfer chamber (open at the front, cut away), load lock and EFEM. */
-function TransferModule({
-  slitLL,
-  doorLL,
-  slitPC2,
-  pinsLL,
-  extBlade,
-}: {
-  slitLL: React.RefObject<THREE.Mesh | null>;
-  doorLL: React.RefObject<THREE.Mesh | null>;
-  slitPC2: React.RefObject<THREE.Mesh | null>;
-  pinsLL: React.RefObject<(THREE.Mesh | null)[]>;
-  extBlade: React.RefObject<THREE.Group | null>;
-}) {
-  const blade = useMemo(bladeGeometry, []);
+/** Transfer chamber (lid off) on its mainframe, with the load lock in front of it. */
+function TransferModule({ slitLL, doorLL, pinsLL }: { slitLL: React.RefObject<THREE.Mesh | null>; doorLL: React.RefObject<THREE.Mesh | null>; pinsLL: React.RefObject<(THREE.Mesh | null)[]> }) {
   return (
     <group position={[HUB[0], 0, HUB[1]]}>
       {/* mainframe plinth under the transfer chamber and load lock */}
-      <Box size={[1.62, DECK_Y - 0.08, 1.16]} position={[-0.23, 0.04 + (DECK_Y - 0.08) / 2, 0]} m="panelGray" radius={0.02} />
-      <Box size={[1.6, 0.08, 1.14]} position={[-0.23, 0.04, 0]} m="panelDark" radius={0.01} />
-      {[-0.62, -0.08, 0.3].map((x) => (
-        <Box key={x} size={[0.008, 0.78, 0.01]} position={[x, 0.47, 0.581]} m="panelDark" radius={0.002} castShadow={false} />
+      <Box size={[1.16, DECK_Y - 0.08, 1.62]} position={[0, 0.04 + (DECK_Y - 0.08) / 2, 0.23]} m="panelGray" radius={0.02} />
+      <Box size={[1.14, 0.08, 1.6]} position={[0, 0.04, 0.23]} m="panelDark" radius={0.01} />
+      {[-0.3, 0.26, 0.74].map((z) => (
+        <Box key={z} size={[0.01, 0.78, 0.008]} position={[0.581, 0.47, z]} m="panelDark" radius={0.002} castShadow={false} />
       ))}
-      <Box size={[0.3, 0.16, 0.012]} position={[0.1, 0.62, 0.582]} m="glassDark" radius={0.004} castShadow={false} />
+      <Box size={[0.012, 0.16, 0.3]} position={[0.582, 0.62, 0.0]} m="glassDark" radius={0.004} castShadow={false} />
       <Box size={[1.12, 0.03, 1.12]} position={[0, DECK_Y - 0.015, 0]} m="aluminum" radius={0.006} />
-      <Face rot={0} slit />
-      <Face rot={Math.PI} slit />
-      <Face rot={Math.PI / 2} slit />
-      <Face rot={-Math.PI / 2} slit={false} />
-      <Box size={[0.07, 1.12 - DECK_Y, 0.07]} position={[0.53, (1.12 + DECK_Y) / 2, -0.53]} m={ANODISED} radius={0.01} />
-      <Box size={[0.07, 1.12 - DECK_Y, 0.07]} position={[-0.53, (1.12 + DECK_Y) / 2, -0.53]} m={ANODISED} radius={0.01} />
-      {/* slit valve to the second (closed) process chamber, at the back */}
-      <group position={[0, 0, -0.56]} rotation={[0, Math.PI / 2, 0]}>
-        <SlitValve length={R_PC - 0.27 - 0.56 + 0.004} gate={slitPC2} />
-      </group>
-      {/* load lock: its local +z points away from the transfer chamber */}
-      <group position={[-R_LL, 0, 0]} rotation={[0, -Math.PI / 2, 0]}>
+      {[0, Math.PI / 2, Math.PI, -Math.PI / 2].map((r) => (
+        <Face key={r} rot={r} />
+      ))}
+      {[-0.53, 0.53].flatMap((x) => [-0.53, 0.53].map((z) => <Box key={`${x}${z}`} size={[0.07, 1.12 - DECK_Y, 0.07]} position={[x, (1.12 + DECK_Y) / 2, z]} m={ANODISED} radius={0.01} />))}
+      {/* load lock (its local +z points away from the transfer chamber, toward the EFEM) */}
+      <group position={[0, 0, R_LL]}>
         <group position={[0, 0, -0.24]} rotation={[0, -Math.PI / 2, 0]}>
           <SlitValve length={0.03} gate={slitLL} bonnet={false} />
         </group>
@@ -962,25 +980,163 @@ function TransferModule({
         <group position={[0, 0, 0.21]} rotation={[0, -Math.PI / 2, 0]}>
           <SlitValve length={0.05} gate={doorLL} bonnet={false} />
         </group>
-        {/* equipment front end (atmospheric robot inside) */}
-        <Box size={[1.0, 1.28, 0.46]} position={[0, 0.64, 0.49]} m="panel" radius={0.02} />
-        <Box size={[1.0, 0.1, 0.46]} position={[0, 1.33, 0.49]} m="panelGray" radius={0.02} />
-        <Box size={[0.012, 0.3, 0.3]} position={[0.502, 1.02, 0.49]} m="glassDark" radius={0.004} castShadow={false} />
-        <group ref={extBlade} visible={false}>
-          <mesh geometry={blade} material={MAT.ceramicGray} rotation={[0, Math.PI / 2, 0]} position={[0, XFER_Y, BLADE]} />
+      </group>
+    </group>
+  );
+}
+
+/** A front-opening pod (FOUP) seated on a load port, its door against the port. */
+function Pod({ x }: { x: number }) {
+  // just inside the bay model's pod, which it replaces when the housing opens
+  return (
+    <group position={[x, 0.9, EFEM.z1 + 0.24]}>
+      <Box size={[0.386, 0.306, 0.416]} position={[0, 0.155, 0]} m={POD} radius={0.035} />
+      <Box size={[0.36, 0.27, 0.012]} position={[0, 0.15, -0.206]} m={POD_DOOR} radius={0.006} />
+      <Box size={[0.216, 0.026, 0.146]} position={[0, 0.325, 0]} m="panelGray" radius={0.008} />
+      <Box size={[0.3, 0.012, 0.3]} position={[0, 0.006, 0]} m="panelGray" radius={0.004} />
+    </group>
+  );
+}
+
+/** A load port on the EFEM's front face: mounting plate with the pod opener's door, stage and pedestal. */
+function LoadPort({ x, pod }: { x: number; pod: boolean }) {
+  const zf = EFEM.z1;
+  return (
+    <group>
+      <Box size={[0.49, 0.61, 0.033]} position={[x, 1.06, zf + 0.018]} m="steelSatin" radius={0.01} />
+      <Box size={[0.4, 0.34, 0.006]} position={[x, 1.07, zf + 0.037]} m="panelDark" radius={0.006} castShadow={false} />
+      <Box size={[0.496, 0.056, 0.436]} position={[x, 0.87, zf + 0.22]} m="panelGray" radius={0.01} />
+      <Box size={[0.416, 0.796, 0.056]} position={[x, 0.43, zf + 0.1]} m="panelGray" radius={0.01} />
+      {[-0.1, 0.1].map((k) => (
+        <Cyl key={k} r={0.006} h={0.008} position={[x + k, 0.902, zf + 0.26]} m="steel" seg={12} />
+      ))}
+      {pod && <Pod x={x} />}
+    </group>
+  );
+}
+
+/** Atmospheric SCARA robot inside the EFEM; it hands wafers through the load lock's outer door. */
+function EfemRobot({ b, e, w }: { b: React.RefObject<THREE.Group | null>; e: React.RefObject<THREE.Group | null>; w: React.RefObject<THREE.Group | null> }) {
+  const blade = useMemo(bladeGeometry, []);
+  const y0 = EFEM.floor;
+  return (
+    <group position={[E_BASE[0], 0, E_BASE[1]]}>
+      <Box size={[0.3, 0.05, 0.3]} position={[0, y0 + 0.025, 0]} m="panelGray" radius={0.01} />
+      <Cyl r={0.085} h={ARM_Y - 0.009 - y0 - 0.05} position={[0, (ARM_Y - 0.009 + y0 + 0.05) / 2, 0]} m="panel" />
+      <group ref={b} position={[0, ARM_Y, 0]}>
+        <Cyl r={0.055} h={0.02} m="steelSatin" />
+        <Box size={[E_L1 + 0.09, 0.018, 0.075]} position={[E_L1 / 2, 0, 0]} m="panel" radius={0.009} />
+        <group ref={e} position={[E_L1, 0.017, 0]}>
+          <Cyl r={0.034} h={0.016} m="steelSatin" />
+          <Box size={[E_L2 + 0.06, 0.014, 0.06]} position={[E_L2 / 2, 0, 0]} m="panel" radius={0.007} />
+          <group ref={w} position={[E_L2, 0.013, 0]}>
+            <Cyl r={0.027} h={0.012} m="steelSatin" />
+            <mesh geometry={blade} material={MAT.ceramicGray} position={[0, XFER_Y - (ARM_Y + 0.03), 0]} castShadow />
+          </group>
         </group>
       </group>
     </group>
   );
 }
 
-/** A second process chamber on the cluster, closed. */
-function SideChamber() {
+/**
+ * Equipment front end, drawn cut open: its fan-filter roof is removed and the walls are cut
+ * at stepped heights (front above the load ports, back below the transfer plane) so the robot
+ * and the hand-off into the load lock can be seen. Walls sit just inside the bay model's.
+ */
+function Efem({ robot }: { robot: { b: React.RefObject<THREE.Group | null>; e: React.RefObject<THREE.Group | null>; w: React.RefObject<THREE.Group | null> } }) {
+  const { x0, x1, z0, z1, floor } = EFEM;
+  const k = 0.012; // inset from the bay model's panels
+  const t = 0.03;
+  const w = x1 - x0 - 2 * k;
+  const xc = (x0 + x1) / 2;
+  const zF = z1 - k - t / 2;
+  const topF = 1.45;
+  const topS = 1.1;
+  const topB = 0.98;
+  // front-wall piers between the load-port openings
+  const edges = [x0 + k, ...PORT_X.flatMap((px) => [px - 0.25, px + 0.25]), x1 - k];
+  const piers: [number, number][] = [];
+  for (let i = 0; i < edges.length; i += 2) piers.push([edges[i], edges[i + 1]]);
   return (
-    <group position={[PC2[0], 0, PC2[1]]}>
-      <ChamberBody cut={null} slit={false} />
-      <IcpTop cut={null} closed />
+    <group>
+      {/* front wall: below the ports, piers between them, a band above them */}
+      <Box size={[w, 0.75 - floor, t]} position={[xc, (0.75 + floor) / 2, zF]} m="panel" radius={0.006} />
+      {piers.map(([a, b]) => (
+        <Box key={a} size={[b - a, 1.37 - 0.75, t]} position={[(a + b) / 2, (1.37 + 0.75) / 2, zF]} m="panel" radius={0.006} />
+      ))}
+      <Box size={[w, topF - 1.37, t]} position={[xc, (topF + 1.37) / 2, zF]} m="panel" radius={0.006} />
+      <Box size={[w, 0.012, t + 0.004]} position={[xc, topF - 0.006, zF]} m="panelGray" radius={0.003} castShadow={false} />
+      {/* side walls and the low back wall */}
+      {[x0 + k + t / 2, x1 - k - t / 2].map((x) => (
+        <Box key={x} size={[t, topS - floor, z1 - z0 - 2 * k]} position={[x, (topS + floor) / 2, (z0 + z1) / 2]} m="panel" radius={0.006} />
+      ))}
+      <Box size={[w, topB - floor, t]} position={[xc, (topB + floor) / 2, z0 + k + t / 2]} m="panel" radius={0.006} />
+      {/* floor grating (air returns through it) */}
+      <Box size={[w - 0.06, 0.012, z1 - z0 - 0.08]} position={[xc, floor + 0.006, (z0 + z1) / 2]} m="panelGray" radius={0.003} castShadow={false} />
+      {PORT_X.map((x, i) => (
+        <LoadPort key={x} x={x} pod={PORTS_WITH_POD.includes(i)} />
+      ))}
+      {/* pre-aligner at the right-hand end */}
+      <group position={[x1 - 0.32, 0, (z0 + z1) / 2]}>
+        <Box size={[0.22, 0.86 - floor, 0.22]} position={[0, (0.86 + floor) / 2, 0]} m="panelGray" radius={0.01} />
+        <Cyl r={0.03} h={0.05} position={[0, 0.885, 0]} m="steelSatin" />
+        <Cyl r={0.05} h={0.01} position={[0, 0.915, 0]} m="ceramicGray" />
+        <Box size={[0.05, 0.06, 0.08]} position={[0.1, 0.92, 0]} m="black" radius={0.006} />
+      </group>
+      <EfemRobot b={robot.b} e={robot.e} w={robot.w} />
+    </group>
+  );
+}
+
+/** Process-chamber group transform: the chamber's slit (local −x) faces the transfer chamber. */
+function slotTransform(s: Slot): { position: V3; rotation: V3; scale: V3 } {
+  const [x, z] = slotPos(s);
+  // the left chamber is the right one mirrored, so its cutaway still faces the aisle
+  if (s === 'left') return { position: [x, 0, z], rotation: [0, 0, 0], scale: [-1, 1, 1] };
+  return { position: [x, 0, z], rotation: [0, s === 'back' ? Math.PI / 2 : 0, 0], scale: [1, 1, 1] };
+}
+
+const GAS_LINE: Record<Top, V3[]> = {
+  // from the gas feed on the top down behind the chamber to the sub-fab
+  icp: [[0.05, 1.33, -0.29], [0.05, 1.33, -0.42], [0.22, 1.33, -0.42], [0.22, 0.02, -0.42]],
+  ccp: [[0.06, 1.245, -0.26], [0.06, 1.3, -0.26], [0.06, 1.3, -0.42], [0.22, 1.3, -0.42], [0.22, 0.02, -0.42]],
+  ash: [[0.0, 1.52, 0.0], [0.0, 1.62, 0.0], [0.0, 1.62, -0.42], [0.22, 1.62, -0.42], [0.22, 0.02, -0.42]],
+};
+const RF_CABLE: Record<Top, V3[]> = {
+  // from the matching network down to the RF generator in the sub-fab
+  icp: [[0.08, 1.5, -0.14], [0.08, 1.5, -0.4], [-0.2, 1.5, -0.4], [-0.2, 0.02, -0.4]],
+  ccp: [[0.08, 1.38, -0.14], [0.08, 1.38, -0.4], [-0.2, 1.38, -0.4], [-0.2, 0.02, -0.4]],
+  ash: [[0.08, 1.32, -0.38], [0.08, 1.32, -0.44], [-0.2, 1.32, -0.44], [-0.2, 0.02, -0.44]],
+};
+
+/** Gas line, RF cable and side gas injection of a chamber (chamber frame). */
+function ChamberLines({ top }: { top: Top }) {
+  return (
+    <>
+      <Pipe pts={[[-0.12, 0.02, -0.6], [-0.12, 1.12, -0.6], [0.16, 1.12, -0.6], [0.16, 1.12, -0.235]]} r={0.0045} m="steel" />
+      <Pipe pts={GAS_LINE[top]} r={0.0055} m="steel" />
+      <Pipe pts={RF_CABLE[top]} r={0.012} bend={0.06} m={CABLE} />
+    </>
+  );
+}
+
+/** A process chamber that is not in use: closed, its slit valve shut. */
+function ClosedChamber({ slot, top }: { slot: Slot; top: Top }) {
+  return (
+    <group {...slotTransform(slot)}>
+      <ChamberBody cut={null} />
+      {top === 'icp' && <IcpTop cut={null} closed />}
+      {top === 'ccp' && <CcpTop cut={null} />}
+      {top === 'ash' && <AshTop cut={null} />}
+      <group rotation={[0, SLIT_PHI - Math.PI / 2, 0]}>
+        <group position={[0.262, 0, 0]}>
+          <SlitValve length={R_PC - 0.56 - 0.262 + 0.004} />
+        </group>
+      </group>
+      <OesViewport />
       <Undercarriage cut={null} />
+      <ChamberLines top={top} />
     </group>
   );
 }
@@ -1008,19 +1164,21 @@ export default function Etch({ variant }: ToolProps) {
   const R = RECIPES[id] ?? (variant === 'ash' ? RECIPES.strip : RECIPES['gate-etch']);
   const top = R.top;
   const cut = CUT;
+  const L = useMemo(() => layoutFor(R.slot), [R.slot]);
 
   const wafer = useRef<THREE.Group>(null);
   const jb = useRef<THREE.Group>(null);
   const je = useRef<THREE.Group>(null);
   const jw = useRef<THREE.Group>(null);
+  const eb = useRef<THREE.Group>(null);
+  const ee = useRef<THREE.Group>(null);
+  const ew = useRef<THREE.Group>(null);
+  const efemRobot = useMemo(() => ({ b: eb, e: ee, w: ew }), []);
   const slitPC = useRef<THREE.Mesh>(null);
   const slitLL = useRef<THREE.Mesh>(null);
   const doorLL = useRef<THREE.Mesh>(null);
-  const slitPC2 = useRef<THREE.Mesh>(null);
   const pinsPC = useRef<(THREE.Mesh | null)[]>([]);
   const pinsLL = useRef<(THREE.Mesh | null)[]>([]);
-  const extBlade = useRef<THREE.Group>(null);
-  const rotor1 = useRef<THREE.Group>(null);
   const glowMats = useMemo(
     () =>
       GLOWS[top].map((g) => {
@@ -1055,13 +1213,19 @@ export default function Etch({ variant }: ToolProps) {
     [],
   );
   const joints = useMemo(() => ({ b: 0, e: 0, w: 0 }), []);
+  const jointsE = useMemo(() => ({ b: 0, e: 0, w: 0 }), []);
 
   useProgressFrame((p, t) => {
-    simulate(p, R, f);
+    simulate(p, R, f, L);
     ik(f.th, f.d, joints);
     if (jb.current) jb.current.rotation.y = joints.b;
     if (je.current) je.current.rotation.y = joints.e;
     if (jw.current) jw.current.rotation.y = joints.w;
+    // the EFEM robot reaches through the load lock's outer door as far as the hand-off needs
+    ik(E_TH, D_RET + f.ext * EXT_LEN, jointsE, E_L1, E_L2);
+    if (eb.current) eb.current.rotation.y = jointsE.b;
+    if (ee.current) ee.current.rotation.y = jointsE.e;
+    if (ew.current) ew.current.rotation.y = jointsE.w;
     if (wafer.current) {
       wafer.current.visible = f.wvis;
       wafer.current.position.set(f.wx, f.wy, f.wz);
@@ -1070,18 +1234,12 @@ export default function Etch({ variant }: ToolProps) {
     if (slitPC.current) slitPC.current.position.y = 1.01 - 0.085 * f.slitPC;
     if (slitLL.current) slitLL.current.position.y = 1.01 - 0.085 * f.slitLL;
     if (doorLL.current) doorLL.current.position.y = 1.01 - 0.085 * f.doorLL;
-    if (slitPC2.current) slitPC2.current.position.y = 1.01;
     for (let i = 0; i < 4; i++) {
       const a = pinsPC.current[i];
       const b = pinsLL.current[i];
       if (a) a.position.y = pinTop(f.pinsPC) - 0.025;
       if (b) b.position.y = pinTop(f.pinsLL) - 0.025;
     }
-    if (extBlade.current) {
-      extBlade.current.visible = f.ext > 0.01;
-      extBlade.current.position.z = (1 - f.ext) * EXT_LEN;
-    }
-    if (rotor1.current) rotor1.current.rotation.y = t * 2.2;
     // plasma: real visible light, with a gentle flicker
     const flick = 1 + 0.03 * Math.sin(t * 23.1) + 0.02 * Math.sin(t * 57.7 + 1.3);
     const I = f.glow * flick;
@@ -1094,26 +1252,12 @@ export default function Etch({ variant }: ToolProps) {
     if (viewGlow.current) viewGlow.current.color.copy(f.colLin).multiplyScalar(0.9 * I);
   });
 
-  const gas: V3[] =
-    top === 'icp'
-      ? [[0.5, 1.6, -0.5], [0.5, 1.68, -0.5], [0.05, 1.68, -0.5], [0.05, 1.33, -0.5], [0.05, 1.33, -0.29]]
-      : top === 'ccp'
-        ? [[0.5, 1.6, -0.5], [0.5, 1.66, -0.5], [0.06, 1.66, -0.5], [0.06, 1.3, -0.5], [0.06, 1.3, -0.26], [0.06, 1.245, -0.26]]
-        : [[0.5, 1.6, -0.5], [0.5, 1.66, -0.5], [0.0, 1.66, -0.5], [0.0, 1.66, 0.0], [0.0, 1.52, 0.0]];
-
-  const rf: V3[] =
-    top === 'icp'
-      ? [[0.08, 1.5, -0.14], [0.08, 1.5, -0.44], [0.41, 1.5, -0.44]]
-      : top === 'ccp'
-        ? [[0.08, 1.38, -0.14], [0.08, 1.38, -0.44], [0.41, 1.38, -0.44]]
-        : [[0.08, 1.32, -0.38], [0.08, 1.32, -0.44], [0.41, 1.32, -0.44]];
-
   return (
     <group>
       <CleanFloor size={12} />
 
-      {/* ── process chamber (cutaway) ── */}
-      <group>
+      {/* ── the process chamber in use (cutaway) ── */}
+      <group {...slotTransform(R.slot)}>
         <ChamberBody cut={cut} />
         <Pedestal kind={top === 'ash' ? 'heater' : 'esc'} cut={cut} pins={pinsPC} />
         {top === 'icp' && <IcpTop cut={cut} />}
@@ -1128,27 +1272,30 @@ export default function Etch({ variant }: ToolProps) {
           </group>
         </group>
         <OesViewport glow={viewGlow} />
-        <Undercarriage cut={cut} rotor={rotor1} />
-        {/* side gas injection */}
-        <Pipe pts={[[-0.12, 1.12, -1.08], [-0.12, 1.12, -0.6], [0.16, 1.12, -0.6], [0.16, 1.12, -0.235]]} r={0.0045} m="steel" />
-        <Pipe pts={gas} r={0.0055} m="steel" />
+        <Undercarriage cut={cut} />
+        <ChamberLines top={top} />
       </group>
+      {/* the other chambers, closed: etch on the right and behind, the ash chamber on the left */}
+      {R.slot !== 'right' && <ClosedChamber slot="right" top="icp" />}
+      <ClosedChamber slot="back" top="icp" />
+      {R.slot !== 'left' && <ClosedChamber slot="left" top="ash" />}
 
-      {/* ── transfer chamber, robot, load lock, EFEM ── */}
-      <TransferModule slitLL={slitLL} doorLL={doorLL} slitPC2={slitPC2} pinsLL={pinsLL} extBlade={extBlade} />
+      {/* ── transfer chamber and robot, load lock, EFEM ── */}
+      <TransferModule slitLL={slitLL} doorLL={doorLL} pinsLL={pinsLL} />
       <Robot b={jb} e={je} w={jw} />
-      <SideChamber />
+      <Efem robot={efemRobot} />
 
-      {/* gas box and RF generators behind the chamber */}
-      <group position={[-0.35, 0, -1.35]}>
-        <Box size={[0.5, 1.6, 0.54]} position={[0, 0.8, 0]} m="panelWarm" radius={0.02} />
-        <Box size={[0.36, 0.5, 0.012]} position={[0, 1.15, 0.271]} m="glassDark" radius={0.004} castShadow={false} />
-        {Array.from({ length: 6 }, (_, i) => (
-          <Box key={i} size={[0.4, 0.008, 0.01]} position={[0, 0.3 + i * 0.03, 0.271]} m="black" radius={0.002} castShadow={false} />
-        ))}
-        <StatusTower R={R} position={[0.16, 1.6, -0.18]} />
-      </group>
-      <Pipe pts={rf} r={0.012} bend={0.06} m={CABLE} />
+      {/* gas box and RF generators behind the cluster (in the bay, the housing's own cabinet) */}
+      <StandaloneOnly>
+        <group position={[HUB[0], 0, -1.565]}>
+          <Box size={[2.6, 2.2, 0.55]} position={[0, 1.1, 0]} m="panelWarm" radius={0.02} />
+          <Box size={[0.9, 0.5, 0.012]} position={[-0.5, 1.4, 0.276]} m="glassDark" radius={0.004} castShadow={false} />
+          {Array.from({ length: 6 }, (_, i) => (
+            <Box key={i} size={[1.0, 0.008, 0.01]} position={[0.6, 0.3 + i * 0.03, 0.276]} m="black" radius={0.002} castShadow={false} />
+          ))}
+          <StatusTower R={R} position={[1.1, 2.2, -0.18]} />
+        </group>
+      </StandaloneOnly>
 
       {/* the simulated wafer */}
       <group ref={wafer} visible={false}>

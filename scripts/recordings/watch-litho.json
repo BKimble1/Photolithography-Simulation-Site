@@ -1,0 +1,5 @@
+{ "name": "watch-litho", "w": 960, "h": 540, "url": "http://127.0.0.1:5173/?watch&virt=1", "film": true,
+  "setup": [ {"wait": 3000}, {"advance": 20},
+             {"eval": "(() => { const p = window.__fabFilm.filmPlayer(); const s = p.tl.segments.find((x) => x.def.id === 'expose'); window.__fabFilm.filmControls.seek(s.start - 0.5); window.__fabFilm.filmControls.play(); })()"},
+             {"advance": 45} ],
+  "frames": 1050, "out": "docs/recordings/04-watch-expose-to-develop.mp4" }

@@ -7,20 +7,30 @@
  *             so the fixed illumination spot traces a spiral from the edge to the centre.
  *  - 'review' patterned-wafer inspection: serpentine swaths under the objective, then a small
  *             SEM review column visits each defect found.
+ *  - 'plan'   the die map (step 'diemap'): the wafer rests on the stage at its load position,
+ *             clear of the optics, with the planned die grid and your die outlined; the
+ *             monitor shows the same map, and tapping a die names it.
  *
  * The map is drawn from the simulated wafer's particles (x, y in mm on the 300 mm wafer); a
  * particle appears once the scan has passed over it. The laser and electron beams are
  * invisible, so they are drawn only as the optional beam-path overlay. Every motion is a
  * pure function of step progress.
+ *
+ * In the fab this is the inside of the inspection tool's housing (`inspection` in Fab.tsx):
+ * placed there, the housing provides the enclosure, the monitor sits on the housing's screen
+ * arm, and a parked robot stands in the front end behind the load ports.
  */
-import { useEffect, useMemo, useRef } from 'react';
+import type { ThreeEvent } from '@react-three/fiber';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
-import { DIES, WAFER } from '../../sim/dies';
+import { DIES, FIELDS, WAFER, YOUR_DIE } from '../../sim/dies';
 import type { Particle } from '../../sim/types';
 import { useSimState, useStep } from '../../state/sim';
 import { lerp, seg, smooth, useProgressBucket, useProgressFrame } from '../anim';
 import { MAT } from '../materials';
-import { Box, CleanFloor, Cyl, LightTower } from '../kit/parts';
+import { Box, CleanFloor, Cyl, LightTower, ScaraRobot, StandaloneOnly } from '../kit/parts';
+import { Label } from '../labels';
+import { useStationEnv } from '../stage/context';
 import { Wafer } from '../wafer/Wafer';
 import type { ToolProps } from './index';
 import { useOverlay } from '../../state/presentation';
@@ -39,6 +49,11 @@ const SWATH: [number, number] = [0.05, 0.62]; // 'review': serpentine window
 const REVIEW: [number, number] = [0.66, 0.93]; // 'review': SEM visits
 const N_SWATH = 10;
 const SWATH_MM = (2 * R_MM) / N_SWATH;
+/** 'plan': where the stage parks the wafer (its load position, clear of the optical head). */
+const PLAN_X = 0.28;
+const PLAN_Z = 0.05;
+/** In the bay: the housing's operator screen (Fab.tsx `inspection`), in this tool frame. */
+const BAY_SCREEN: V3 = [0.82, 1.55, 1.77];
 
 // ───────────────────────────── scan geometry (pure functions of progress) ─────────────────────────────
 
@@ -275,7 +290,58 @@ function drawMap(ctx: CanvasRenderingContext2D, W: number, H: number, s: MapStat
   }
 }
 
-function MapScreen({ mode, position, rotation }: { mode: 'scan' | 'review'; position: V3; rotation: V3 }) {
+/** The planned die map ('plan'): complete and partial dies, exposure fields, your die. */
+function drawPlan(ctx: CanvasRenderingContext2D, W: number, H: number) {
+  ctx.fillStyle = '#0c111b';
+  ctx.fillRect(0, 0, W, H);
+  const pad = 22;
+  const rPx = (H - 2 * pad) / 2;
+  const cx = pad + rPx;
+  const cy = H / 2;
+  const k = rPx / R_MM;
+  const X = (mm: number) => cx + mm * k;
+  const Y = (mm: number) => cy - mm * k;
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(cx, cy, rPx, 0, TAU);
+  ctx.clip();
+  ctx.fillStyle = '#1a2436';
+  ctx.fillRect(cx - rPx, cy - rPx, 2 * rPx, 2 * rPx);
+  ctx.lineWidth = 1;
+  for (const d of DIES) {
+    ctx.strokeStyle = d.full ? 'rgba(200, 215, 235, 0.55)' : 'rgba(160, 180, 210, 0.2)';
+    ctx.strokeRect(X(d.x - WAFER.dieW / 2) + 0.5, Y(d.y + WAFER.dieH / 2) + 0.5, WAFER.dieW * k - 1, WAFER.dieH * k - 1);
+  }
+  ctx.strokeStyle = 'rgba(122, 108, 255, 0.55)';
+  ctx.lineWidth = 1.5;
+  for (const f of FIELDS) ctx.strokeRect(X(f.x - f.w / 2), Y(f.y + f.h / 2), f.w * k, f.h * k);
+  const you = DIES[YOUR_DIE];
+  ctx.fillStyle = '#7a6cff';
+  ctx.fillRect(X(you.x - WAFER.dieW / 2), Y(you.y + WAFER.dieH / 2), WAFER.dieW * k, WAFER.dieH * k);
+  ctx.restore();
+  ctx.strokeStyle = 'rgba(200, 215, 235, 0.7)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.arc(cx, cy, rPx, Math.PI / 2 + 0.035, Math.PI / 2 + TAU - 0.035);
+  ctx.stroke();
+  const x0 = 2 * rPx + 2 * pad + 6;
+  ctx.fillStyle = 'rgba(200, 212, 230, 0.55)';
+  ctx.font = '600 13px sans-serif';
+  ctx.fillText('DIE MAP', x0, 40);
+  ctx.fillStyle = '#e8edf5';
+  ctx.font = '600 44px sans-serif';
+  ctx.fillText(String(DIES.filter((d) => d.full).length), x0, 96);
+  ctx.fillStyle = 'rgba(200, 212, 230, 0.7)';
+  ctx.font = '14px sans-serif';
+  ctx.fillText('complete dies', x0, 118);
+  ctx.fillText(`${DIES.length} die sites`, x0, 150);
+  ctx.fillText(`${FIELDS.length} fields`, x0, 172);
+  ctx.fillStyle = '#b9b0ff';
+  ctx.font = '600 14px sans-serif';
+  ctx.fillText('Your die', x0, 210);
+}
+
+function MapScreen({ mode, position, rotation }: { mode: 'scan' | 'review' | 'plan'; position: V3; rotation: V3 }) {
   const state = useSimState();
   const b = useProgressBucket(120);
   const parts = state.wafer.particles;
@@ -289,7 +355,8 @@ function MapScreen({ mode, position, rotation }: { mode: 'scan' | 'review'; posi
     return { canvas: c, tex: t };
   }, []);
   useEffect(() => () => tex.dispose(), [tex]);
-  const ms = useMemo<MapState>(() => {
+  const ms = useMemo<MapState | null>(() => {
+    if (mode === 'plan') return null;
     const scanR = mode === 'scan' ? spiralR(b) : R_MM;
     const seen = parts.map((q) => (mode === 'scan' ? Math.hypot(q.x, q.y) >= scanR - 0.5 && b > SCAN[0] : swathSeen(q, b) && b > SWATH[0]));
     const sp = { x: 0, y: 0, k: 0, along: 0, active: false };
@@ -306,7 +373,8 @@ function MapScreen({ mode, position, rotation }: { mode: 'scan' | 'review'; posi
   useEffect(() => {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
-    drawMap(ctx, canvas.width, canvas.height, ms);
+    if (ms) drawMap(ctx, canvas.width, canvas.height, ms);
+    else drawPlan(ctx, canvas.width, canvas.height);
     tex.needsUpdate = true;
   }, [ms, canvas, tex]);
   return (
@@ -399,7 +467,8 @@ function OpticalHead() {
           </group>
         );
       })}
-      <Box size={[0.2, 0.012, 0.2]} position={[0, Y0 + 0.095, 0]} m="steelDark" radius={0.004} />
+      {/* collector mounting ring: just wide enough for the lenses, so it hides little of the wafer */}
+      <Cyl r={0.095} h={0.01} position={[0, Y0 + 0.095, 0]} m="steelSatin" seg={48} />
       {/* oblique illumination module */}
       <group position={[-0.24, Y0 + 0.2, 0]}>
         <Box size={[0.14, 0.1, 0.12]} m="panelWarm" radius={0.012} />
@@ -429,12 +498,62 @@ function SemColumn() {
   );
 }
 
+/**
+ * 'plan': tap (or point at) a die to name it; your die is outlined in violet. Lives in the
+ * wafer's frame (origin at the wafer's underside centre): the tool is mounted in the bay, so
+ * the world-space hit is brought into this frame before it is compared with the die grid.
+ */
+function DiePicker({ position }: { position: V3 }) {
+  const ref = useRef<THREE.Group>(null);
+  const [hit, setHit] = useState<{ id: number; pos: V3 } | null>(null);
+  const pick = (e: ThreeEvent<PointerEvent | MouseEvent>) => {
+    const g = ref.current;
+    if (!g) return;
+    e.stopPropagation();
+    const local = g.worldToLocal(e.point.clone());
+    const x = local.x * 1000;
+    const y = -local.z * 1000; // mm on the wafer, notch at −y
+    const d = DIES.find((dd) => Math.abs(dd.x - x) <= WAFER.dieW / 2 && Math.abs(dd.y - y) <= WAFER.dieH / 2);
+    if (!d) {
+      setHit(null);
+      return;
+    }
+    const w = g.localToWorld(new THREE.Vector3(d.x / 1000, 0.01, -d.y / 1000));
+    setHit((h) => (h && h.id === d.id ? h : { id: d.id, pos: [w.x, w.y, w.z] }));
+  };
+  const d = hit ? DIES[hit.id] : null;
+  return (
+    <group ref={ref} position={position}>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.0022, 0]} onPointerMove={pick} onClick={pick} onPointerOut={() => setHit(null)}>
+        <circleGeometry args={[WAFER.radius / 1000, 64]} />
+        <meshBasicMaterial transparent opacity={0} depthWrite={false} />
+      </mesh>
+      {d && hit && (
+        <Label pos={hit.pos} tone="chip" priority={3}>
+          <b>{d.id === YOUR_DIE ? 'Your die' : `Die ${d.col}, ${d.row}`}</b> · {d.full ? 'complete' : 'partial edge die (not tested)'}
+        </Label>
+      )}
+    </group>
+  );
+}
+
+/** In the bay: the front end's wafer robot, parked behind the load ports. */
+function FrontEndRobot() {
+  return (
+    <group position={[0.1, 0, 1.18]}>
+      <Box size={[0.24, 0.78, 0.24]} position={[0, 0.39, 0]} m="panelGray" radius={0.012} />
+      <ScaraRobot position={[0, 0.78, 0]} base={2.4} elbow={-2.5} wrist={2.2} lift={0.02} />
+    </group>
+  );
+}
+
 // ───────────────────────────── scene ─────────────────────────────
 
 export default function Inspect({ variant }: ToolProps) {
   const { id, content } = useStep();
-  const mode: 'scan' | 'review' = variant === 'review' || id === 'inspect' ? 'review' : 'scan';
+  const mode: 'scan' | 'review' | 'plan' = variant === 'diemap' || id === 'diemap' ? 'plan' : variant === 'review' || id === 'inspect' ? 'review' : 'scan';
   const dur = content.duration;
+  const { placed } = useStationEnv();
   const state = useSimState();
   const lightPath = useOverlay('lightPath');
   const parts = state.wafer.particles;
@@ -456,7 +575,11 @@ export default function Inspect({ variant }: ToolProps) {
     let ang = 0;
     let scanning = false;
     let semOn = false;
-    if (mode === 'scan') {
+    if (mode === 'plan') {
+      // the wafer rests at the stage's load position while its die grid is laid out
+      sx = PLAN_X;
+      sz = PLAN_Z;
+    } else if (mode === 'scan') {
       // spot fixed at the origin; the chuck centre travels along +x as the radius shrinks
       sx = (spiralR(p) / 1000) * (p < SCAN[0] ? smooth(p, 0, SCAN[0]) : 1);
       ang = spinAngle(p, dur);
@@ -523,7 +646,16 @@ export default function Inspect({ variant }: ToolProps) {
         x={stageX}
         y={stageY}
         spin={spin}
-        wafer={<Wafer anchor look={{ summary: state.wafer, showParticles: true }} position={[0, WAFER_Y, 0]} size={768} />}
+        wafer={
+          mode === 'plan' ? (
+            <>
+              <Wafer anchor look={{ summary: state.wafer, showParticles: true, highlightDie: true, planGrid: true, fields: FIELDS }} position={[0, WAFER_Y, 0]} size={1024} metalness={0.82} roughness={0.12} />
+              <DiePicker position={[0, WAFER_Y, 0]} />
+            </>
+          ) : (
+            <Wafer anchor look={{ summary: state.wafer, showParticles: true }} position={[0, WAFER_Y, 0]} size={768} />
+          )
+        }
       />
       <OpticalHead />
       {mode === 'review' && <SemColumn />}
@@ -547,11 +679,24 @@ export default function Inspect({ variant }: ToolProps) {
           <cylinderGeometry args={[0.001, 0.008, WAFER_Y + 0.03 - beamY, 12, 1, true]} />
         </mesh>
       </group>
-      <MapScreen mode={mode} position={[0.84, 1.36, 0.3]} rotation={[-0.06, -0.12, 0]} />
-      <Box size={[0.04, 0.5, 0.04]} position={[0.84, 1.05, 0.26]} m="steelSatin" radius={0.006} />
-      <LightTower position={[0.72, GRANITE_TOP + 0.66, -0.36]} on="green" />
-      {/* enclosure back panel */}
-      <Box size={[1.6, 1.6, 0.03]} position={[0.1, 0.8, -0.62]} m="panelWarm" radius={0.01} />
+      {placed ? (
+        <>
+          {/* the live map on the housing's operator screen, and the arm above the cut */}
+          <MapScreen mode={mode} position={BAY_SCREEN} rotation={[-0.08, 0, 0]} />
+          <Box size={[0.046, 0.36, 0.046]} position={[BAY_SCREEN[0], 1.27, BAY_SCREEN[2] - 0.03]} m="steelDark" radius={0.006} />
+          <FrontEndRobot />
+        </>
+      ) : (
+        <>
+          <MapScreen mode={mode} position={[0.84, 1.36, 0.3]} rotation={[-0.06, -0.12, 0]} />
+          <Box size={[0.04, 0.5, 0.04]} position={[0.84, 1.05, 0.26]} m="steelSatin" radius={0.006} />
+        </>
+      )}
+      <StandaloneOnly>
+        <LightTower position={[0.72, GRANITE_TOP + 0.66, -0.36]} on="green" />
+        {/* enclosure back panel */}
+        <Box size={[1.6, 1.6, 0.03]} position={[0.1, 0.8, -0.62]} m="panelWarm" radius={0.01} />
+      </StandaloneOnly>
     </group>
   );
 }

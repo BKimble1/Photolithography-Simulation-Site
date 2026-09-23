@@ -141,7 +141,7 @@ export function resolve(ref: CamRef, ctx: ResolveCtx, out: CamPose): CamPose {
       v1.normalize();
       const top = ref.framing === 'top';
       const elev = top ? 0.95 : 1.15; // radians above the wafer plane
-      const dist = top ? 0.56 : 0.075;
+      const dist = top ? 0.56 : 0.13; // 'die': your die and its neighbours fill the view
       const centre = top ? wf.centre : wf.die;
       v2.copy(v1).multiplyScalar(Math.cos(elev)).addScaledVector(wf.up, Math.sin(elev)).multiplyScalar(dist);
       out.space = 'world';
@@ -256,6 +256,29 @@ export function evalTrack(track: Key[], p: number, ctx: ResolveCtx, out: CamSamp
   }
   if (A.space === 'world') return worldToDevice(A, B, t, ctx.station, out);
   return deviceToWorld(A, B, t, ctx.station, out);
+}
+
+/**
+ * Reduced motion: hold each framing still and cross-fade to the next one just before its key,
+ * instead of moving the camera. The fade is short in progress terms (under a second).
+ */
+export function evalTrackStill(track: Key[], p: number, ctx: ResolveCtx, out: CamSample): CamSample {
+  out.mix = 0;
+  if (!track.length) {
+    setPose(out.a, 'world', FAB_POSE);
+    return out;
+  }
+  let i = 0;
+  for (let k = 0; k < track.length; k++) if (p >= track[k].p) i = k;
+  resolve(track[i].cam, ctx, out.a);
+  const next = track[i + 1];
+  if (!next) return out;
+  const fade = Math.min(0.05, (next.p - track[i].p) / 2);
+  const t = (p - (next.p - fade)) / fade;
+  if (t <= 0) return out;
+  resolve(next.cam, ctx, out.b);
+  out.mix = Math.min(1, t);
+  return out;
 }
 
 /** Which space a track is in at p (the cut happens halfway through a space change). */

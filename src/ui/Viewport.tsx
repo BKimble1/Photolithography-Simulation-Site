@@ -10,7 +10,8 @@ import { columnStack } from '../sim/metrology';
 import { useSimState, useStep } from '../state/sim';
 import { useApp, useClock, type ScaleId } from '../state/store';
 import { LabelLayer } from '../three/labels';
-import { directorCommands, useStageInfo } from '../three/stage/Director';
+import { directorCommands, useStageInfo } from '../three/stage/info';
+import { Caption } from './Caption';
 import { PauseIcon, PlayIcon } from './Chrome';
 import { CrossSection } from './CrossSection';
 import { ErrorBoundary, HAS_WEBGL } from './ErrorBoundary';
@@ -215,6 +216,7 @@ export function LearnHud() {
       </div>
       <div className="vp-bottom">
         <ResumePrompt />
+        <Caption where="overlay" />
         <div className="vp-bottom__row">
           <Scrubber />
           {space !== 'device' && <LayerInset />}

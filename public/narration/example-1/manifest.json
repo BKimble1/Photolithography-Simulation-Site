@@ -1,0 +1,104 @@
+{
+  "version": "example-1",
+  "voice": "bm_george",
+  "speed": 1.0,
+  "model": {
+    "package": "expo-kokoro",
+    "version": "1.1.9",
+    "sha256": "fbae9257e1e05ffc727e951ef9b9c98418e6d79f1c9b6b13bd59f5c9028a1478",
+    "name": "Kokoro-82M v1.0",
+    "license": "Apache-2.0",
+    "engine": "float-conv",
+    "engineSha256": "2e83328bed32c73a02614d7405cc78a8f9e5ad9588c5f179e34569c99cdc949d"
+  },
+  "generatedAt": "2026-09-23T04:18:27Z",
+  "audio": {
+    "codec": "mp3",
+    "sampleRate": 24000,
+    "channels": 1,
+    "bitrateKbps": 64,
+    "loudnessLufs": -18.0,
+    "truePeakCeilingDb": -1.5,
+    "fileBase": "segment file names are relative to this manifest",
+    "timing": "startMs/endMs are sample positions of each cue clip in the segment (clip = speech plus 40 ms before and ~80 ms after); durationMs is the decoded length of the MP3. Measured with ffmpeg decoding, which honours the LAME gapless header (encoder delay and padding removed)."
+  },
+  "segments": [
+    {
+      "id": "intro",
+      "file": "intro.mp3",
+      "bytes": 82560,
+      "sha256": "96a56cedc75ed9f98e150c17da4d43d75f38f20c32dbc459d7b9775e5b287b73",
+      "durationMs": 10240,
+      "cues": [
+        {
+          "id": "title",
+          "text": "This is FAB / ONE.",
+          "startMs": 300,
+          "endMs": 1770
+        },
+        {
+          "id": "premise",
+          "text": "We follow one silicon wafer through a simplified CMOS process, from bare substrate to a working inverter.",
+          "startMs": 2270,
+          "endMs": 9440
+        }
+      ]
+    },
+    {
+      "id": "litho-expose",
+      "file": "litho-expose.mp3",
+      "bytes": 142464,
+      "sha256": "6fa4427f0623764d1e99b5ac464500c0573f4ff22e61782d7f2a128406b67b63",
+      "durationMs": 17730,
+      "cues": [
+        {
+          "id": "light",
+          "text": "In the scanner, 193-nanometre deep ultraviolet light passes through the reticle.",
+          "startMs": 200,
+          "endMs": 6220
+        },
+        {
+          "id": "shrink",
+          "text": "The pattern is shrunk four times and projected onto the photoresist.",
+          "startMs": 6570,
+          "endMs": 11170
+        },
+        {
+          "id": "latent",
+          "text": "Nothing is etched yet. The exposed resist holds only a hidden, latent image.",
+          "startMs": 11620,
+          "endMs": 16930
+        }
+      ]
+    }
+  ],
+  "licenses": [
+    {
+      "component": "Kokoro-82M v1.0 model weights and voice styles (generated this audio)",
+      "author": "hexgrad",
+      "license": "Apache-2.0",
+      "source": "https://huggingface.co/hexgrad/Kokoro-82M (ONNX export bundled in the npm package expo-kokoro@1.1.9)",
+      "text": "tools/narration/LICENSES/Kokoro-82M-Apache-2.0.txt"
+    },
+    {
+      "component": "expo-kokoro 1.1.9 (npm package that ships the ONNX export)",
+      "author": "Dane Madsen",
+      "license": "MIT",
+      "text": "tools/narration/LICENSES/expo-kokoro-MIT.txt"
+    },
+    {
+      "component": "misaki 0.9.4 (English G2P rules and British lexicon; build time only)",
+      "author": "hexgrad",
+      "license": "Apache-2.0",
+      "text": "tools/narration/LICENSES/misaki-Apache-2.0.txt"
+    },
+    {
+      "component": "espeak-ng 1.52.0 via espeakng-loader and phonemizer-fork (fallback G2P; build time only, not distributed)",
+      "license": "GPL-3.0-or-later"
+    },
+    {
+      "component": "FFmpeg with LAME (MP3 encoding; build time only, not distributed)",
+      "license": "GPL (static build from imageio-ffmpeg); LAME is LGPL-2.0"
+    }
+  ]
+}

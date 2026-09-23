@@ -5,19 +5,23 @@
  * sweeps from centre to edge, then a DI-water rinse arm. A high-speed spin then dries it.
  * Skipping the clean (the learner's choice) leaves the arms parked and the wafer untouched.
  * Every motion is a pure function of the step progress p; only spray flicker uses the clock.
+ *
+ * The chamber is one of a stack: it sits in the upper tier (deck at 1.3 m) of the wet-clean
+ * tool at its fab station (`wetClean` in Fab.tsx), whose housing provides the cabinet below
+ * and the panels around; placed there, only the chamber itself is drawn.
  */
 import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { useSimState } from '../../state/sim';
 import { seg, smooth, useProgressFrame } from '../anim';
 import { MAT } from '../materials';
-import { Box, CleanFloor, Cyl, Lathe, LightTower } from '../kit/parts';
+import { Box, CleanFloor, Cyl, Lathe, LightTower, StandaloneOnly } from '../kit/parts';
 import { Wafer } from '../wafer/Wafer';
 import type { ToolProps } from './index';
 import { useRunChoices } from '../../state/presentation';
 
 const DUR = 11; // step length (s), for the spin integral
-const DECK_Y = 0.9;
+const DECK_Y = 1.3; // upper-tier chamber floor
 const BASE_Y = DECK_Y + 0.07; // top of the spin base
 const WAFER_Y = BASE_Y + 0.014; // wafer underside, resting on the chuck pins
 const SURF_Y = WAFER_Y + 0.0016;
@@ -283,15 +287,17 @@ export default function WetClean({ variant }: ToolProps) {
   return (
     <group>
       <CleanFloor size={12} />
-      {/* base cabinet with chemical supply behind two doors */}
-      <Box size={[CH.x1 - CH.x0, 0.08, CH.z1 - CH.z0]} position={[0, 0.04, 0]} m="panelGray" radius={0.01} />
-      <Box size={[CH.x1 - CH.x0, DECK_Y - 0.1, CH.z1 - CH.z0 - 0.02]} position={[0, 0.08 + (DECK_Y - 0.1) / 2, -0.01]} m="panel" radius={0.02} />
-      {[-0.255, 0.255].map((x) => (
-        <group key={x}>
-          <Box size={[0.5, 0.66, 0.012]} position={[x, 0.47, CH.z1 - 0.01]} m="panelWarm" radius={0.008} />
-          <Box size={[0.012, 0.16, 0.02]} position={[x + (x < 0 ? 0.21 : -0.21), 0.6, CH.z1 + 0.004]} m="steelSatin" radius={0.005} />
-        </group>
-      ))}
+      {/* base cabinet with chemical supply behind two doors (in the bay: the tool's lower tier) */}
+      <StandaloneOnly>
+        <Box size={[CH.x1 - CH.x0, 0.08, CH.z1 - CH.z0]} position={[0, 0.04, 0]} m="panelGray" radius={0.01} />
+        <Box size={[CH.x1 - CH.x0, DECK_Y - 0.1, CH.z1 - CH.z0 - 0.02]} position={[0, 0.08 + (DECK_Y - 0.1) / 2, -0.01]} m="panel" radius={0.02} />
+        {[-0.255, 0.255].map((x) => (
+          <group key={x}>
+            <Box size={[0.5, 0.66, 0.012]} position={[x, 0.47, CH.z1 - 0.01]} m="panelWarm" radius={0.008} />
+            <Box size={[0.012, 0.16, 0.02]} position={[x + (x < 0 ? 0.21 : -0.21), 0.6, CH.z1 + 0.004]} m="steelSatin" radius={0.005} />
+          </group>
+        ))}
+      </StandaloneOnly>
       {/* deck */}
       <Box size={[CH.x1 - CH.x0, 0.04, CH.z1 - CH.z0]} position={[0, DECK_Y - 0.02, 0]} m={WM.deck} radius={0.008} />
       {/* chamber: back, side walls and ceiling (front cut away) */}
@@ -318,7 +324,9 @@ export default function WetClean({ variant }: ToolProps) {
           </mesh>
         </group>
       ))}
-      <LightTower position={[CH.x1 - 0.09, CH.top + 0.07, CH.z0 + 0.09]} on={cleanOn ? 'violet' : 'amber'} />
+      <StandaloneOnly>
+        <LightTower position={[CH.x1 - 0.09, CH.top + 0.07, CH.z0 + 0.09]} on={cleanOn ? 'violet' : 'amber'} />
+      </StandaloneOnly>
 
       <Cup />
       {/* spin base + wafer (spins together) */}

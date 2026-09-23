@@ -3,7 +3,8 @@ import { MACHINE_INFO } from './content/machines';
 import { STEPS } from './content/steps';
 import { FLOW } from './sim/flow';
 import { installHistorySync, useApp, useClock } from './state/store';
-import { directorCommands, useStageInfo } from './three/stage/Director';
+import { directorCommands, useStageInfo } from './three/stage/info';
+import { Caption } from './ui/Caption';
 import { Header } from './ui/Chrome';
 import { EquipmentList, ExploreHud } from './ui/Explore';
 import { HomeIntro } from './ui/Home';
@@ -134,6 +135,7 @@ export default function App() {
           {mode === 'learn' && !HAS_WEBGL && <p className="sr-only">3D is unavailable; the cross-section shows your die.</p>}
         </section>
         {mode === 'home' ? <HomeIntro /> : null}
+        {mode === 'learn' ? <Caption where="strip" /> : null}
       </main>
       {panel === 'chapters' && <Chapters />}
       {panel === 'equipment' && <EquipmentList />}

@@ -7,13 +7,19 @@
  *  - 'oxidize': dry oxidation (hot), then a cooler LPCVD nitride step with a different gas mix.
  *  - 'anneal': a shorter, calmer cycle in nitrogen.
  * Heater glow is real thermal emission, kept subtle. Motion is a pure function of progress p.
+ *
+ * In the fab this is the middle furnace of the bank at its station (`furnace` in Fab.tsx),
+ * built into the unit's tall back tower: placed there it stands on a raised floor (BAY_LIFT) so
+ * the tube and heater fill the tower above the load port and FOUP stocker in front, and the
+ * tower's own status light replaces the cabinet's.
  */
 import { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { useSimState } from '../../state/sim';
 import { clamp01, lerp, smooth, useProgressFrame } from '../anim';
 import { MAT } from '../materials';
-import { Box, CleanFloor, Cyl, Lathe, LightTower } from '../kit/parts';
+import { Box, CleanFloor, Cyl, Lathe, LightTower, StandaloneOnly } from '../kit/parts';
+import { useStationEnv } from '../stage/context';
 import { Wafer } from '../wafer/Wafer';
 import type { ToolProps } from './index';
 
@@ -32,6 +38,8 @@ const N_WAFERS = 50;
 const W_PITCH = 0.0115;
 const W_Y0 = 0.27; // first wafer above the seal cap
 const TOP_SLOT_Y = W_Y0 + (N_WAFERS - 1) * W_PITCH;
+/** In the bay the load area sits on a raised floor inside the unit's back tower (see above). */
+const BAY_LIFT = 1.0;
 // cutaway wedge of the heater jacket, centred toward the camera (front-right)
 const CUT_MID = Math.atan2(0.62, 0.78);
 const CUT_HALF = Math.PI / 4;
@@ -119,6 +127,11 @@ const FM = {
   quartzSolid: new THREE.MeshPhysicalMaterial({ color: '#eef3f6', roughness: 0.12, transparent: true, opacity: 0.42, clearcoat: 1, depthWrite: false }),
   insulation: new THREE.MeshStandardMaterial({ color: '#e7ddcc', roughness: 0.92, metalness: 0 }),
   insulationCut: new THREE.MeshStandardMaterial({ color: '#efe6d6', roughness: 0.95, metalness: 0, side: THREE.DoubleSide }),
+  capCut: (() => {
+    const m = (MAT.panelGray as THREE.MeshStandardMaterial).clone();
+    m.side = THREE.DoubleSide;
+    return m;
+  })(),
   si: new THREE.MeshStandardMaterial({ color: '#9aa1ad', metalness: 0.72, roughness: 0.14, emissive: '#ff7a1c', emissiveIntensity: 0 }),
 };
 
@@ -216,7 +229,10 @@ function HeaterJacket({ glowMat, coilMat }: { glowMat: THREE.Material; coilMat: 
       <mesh position={[0, h + 0.03, 0]} rotation={[-Math.PI / 2, 0, 0]} material={MAT.steelSatin}>
         <ringGeometry args={[0.06, HEAT.rOut + 0.012, 72, 1, JACKET_START - Math.PI / 2, JACKET_LEN]} />
       </mesh>
-      <Cyl r={HEAT.rOut + 0.02} h={0.05} position={[0, h + 0.055, 0]} m="panelGray" seg={72} />
+      {/* top insulation cap, cut like the jacket so the top of the boat can be seen from above */}
+      <mesh position={[0, h + 0.055, 0]} material={FM.capCut} castShadow>
+        <cylinderGeometry args={[HEAT.rOut + 0.02, HEAT.rOut + 0.02, 0.05, 72, 1, false, JACKET_START, JACKET_LEN]} />
+      </mesh>
       <mesh position={[0, -0.001, 0]} rotation={[Math.PI / 2, 0, 0]} material={MAT.steelSatin}>
         <ringGeometry args={[TUBE_R + 0.03, HEAT.rOut + 0.012, 72, 1, -(JACKET_START - Math.PI / 2) - JACKET_LEN, JACKET_LEN]} />
       </mesh>
@@ -306,7 +322,18 @@ function Boat({ waferMat, children }: { waferMat: THREE.Material; children?: Rea
       <instancedMesh ref={fins} args={[finGeo, FM.quartzSolid, 6]} frustumCulled={false} />
       {/* boat end plates and slotted rods (open toward the loading side, +z) */}
       <Cyl r={0.17} h={0.012} position={[0, 0.246, 0]} m={FM.quartzSolid} seg={64} />
-      <Cyl r={0.17} h={0.012} position={[0, boatTop, 0]} m={FM.quartzSolid} seg={64} />
+      {/* top end plate: a ring, so the wafer in the top slot shows through it */}
+      <Lathe
+        profile={[
+          [0.1, boatTop - 0.006],
+          [0.17, boatTop - 0.006],
+          [0.17, boatTop + 0.006],
+          [0.1, boatTop + 0.006],
+          [0.1, boatTop - 0.006],
+        ]}
+        m={FM.quartzSolid}
+        seg={64}
+      />
       {rods.map((a) => (
         <Cyl key={a} r={0.009} h={boatTop - 0.246} position={[Math.cos(a) * 0.158, (boatTop + 0.246) / 2, Math.sin(a) * 0.158]} m={FM.quartzSolid} seg={12} />
       ))}
@@ -395,7 +422,9 @@ function Cabinet() {
       <Cyl r={0.07} h={0.3} position={[-0.2, CAB.top + 0.35, CAB.z0 + 0.25]} m="steelSatin" seg={32} />
       {/* control screen on the left wall inside the load area, facing out */}
       <Box size={[0.012, 0.2, 0.28]} position={[CAB.x0 + 0.036, 1.05, 0.38]} m="screen" radius={0.006} castShadow={false} />
-      <LightTower position={[CAB.x0 + 0.1, CAB.top + 0.07, CAB.z1 - 0.12]} on="violet" />
+      <StandaloneOnly>
+        <LightTower position={[CAB.x0 + 0.1, CAB.top + 0.07, CAB.z1 - 0.12]} on="violet" />
+      </StandaloneOnly>
     </group>
   );
 }
@@ -477,6 +506,7 @@ function LoadAreaRobot() {
 export default function Furnace({ variant }: ToolProps) {
   const state = useSimState();
   const cyc = CYCLES[variant === 'anneal' ? 'anneal' : 'oxidize'];
+  const { placed } = useStationEnv();
 
   const boat = useRef<THREE.Group>(null);
   const boatSpin = useRef<THREE.Group>(null);
@@ -524,7 +554,7 @@ export default function Furnace({ variant }: ToolProps) {
   });
 
   return (
-    <group>
+    <group position={[0, placed ? BAY_LIFT : 0, 0]}>
       <CleanFloor size={14} />
       <Cabinet />
       <GasSystem leds={mats.leds} />

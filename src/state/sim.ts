@@ -5,6 +5,7 @@
  * learning run.
  */
 import { useMemo, useSyncExternalStore } from 'react';
+import { TEST_HOOKS } from '../three/stage/time';
 import { STEPS, type StepContent } from '../content/steps';
 import { Engine } from '../sim/engine';
 import { FLOW, type StepId } from '../sim/flow';
@@ -13,7 +14,7 @@ import type { Choices, SimState } from '../sim/types';
 import { waferMaps } from '../sim/waferMapClient';
 import type { WaferMapResult } from '../sim/waferMap';
 import { usePresentation, useProgressSource, useRunChoices } from './presentation';
-import { useApp } from './store';
+import { useApp, useClock } from './store';
 
 export const engine = new Engine(96);
 
@@ -73,4 +74,16 @@ export function useWaferMap(choices: Choices, enabled = true): WaferMapResult | 
 
 export function useStepById(id: StepId): number {
   return FLOW.findIndex((s) => s.id === id);
+}
+
+/** Identifies the learning run's simulated state right now (tests: scale changes must not alter it). */
+export function learnStateKey(): string {
+  const a = useApp.getState();
+  const plan = engine.plan(a.choices);
+  const n = opCountAt(plan, a.step, useClock.getState().progress, STEPS[FLOW[a.step].id].at);
+  return plan.prefix[n];
+}
+
+if (TEST_HOOKS) {
+  (window as unknown as { __fabSim: unknown }).__fabSim = { learnStateKey };
 }

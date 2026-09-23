@@ -1,0 +1,3 @@
+{ "name": "phone-coat", "w": 390, "h": 844, "dpr": 2, "mobile": true, "touch": true, "url": "http://127.0.0.1:5173/?step=coat&virt=1",
+  "setup": [ {"wait": 3000}, {"advance": 60} ],
+  "frames": 270, "out": "docs/recordings/05-phone-coat.mp4" }

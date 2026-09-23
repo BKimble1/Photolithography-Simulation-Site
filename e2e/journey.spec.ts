@@ -10,7 +10,7 @@ test('first run: home → every step → working inverter → recap', async ({ p
   const errors = watchErrors(page);
   await freshStart(page);
   await expect(page.getByRole('heading', { level: 1 })).toContainText('Build a chip');
-  await press(page.getByRole('button', { name: /Start the journey/ }), hasTouch);
+  await press(page.getByRole('button', { name: /Start learning/ }), hasTouch);
   await waitForCanvas(page);
 
   for (let i = 0; i < FLOW.length; i++) {
@@ -39,11 +39,11 @@ test('first run: home → every step → working inverter → recap', async ({ p
   expect(errors).toEqual([]);
 });
 
-test('keyboard: start, advance, open stages, switch zoom level', async ({ page, isMobile }) => {
+test('keyboard: start, advance, chapters, inspect layers', async ({ page, isMobile }) => {
   test.skip(isMobile, 'keyboard flow is for desktop and tablet');
   const errors = watchErrors(page);
   await freshStart(page);
-  const startBtn = page.getByRole('button', { name: /Start the journey/ });
+  const startBtn = page.getByRole('button', { name: /Start learning/ });
   for (let i = 0; i < 8 && !(await startBtn.evaluate((el) => el === document.activeElement)); i++) await page.keyboard.press('Tab');
   await expect(startBtn).toBeFocused();
   await page.keyboard.press('Enter');
@@ -54,25 +54,11 @@ test('keyboard: start, advance, open stages, switch zoom level', async ({ page, 
   await expect(page.locator('h1.step-title')).toHaveText(STEPS.transfer.title);
   await page.keyboard.press('ArrowLeft');
   await expect(page.locator('h1.step-title')).toHaveText(STEPS.arrive.title);
-  await page.keyboard.press('3');
-  await expect(page.getByRole('button', { name: 'Wafer', exact: true })).toHaveAttribute('aria-pressed', 'true');
-  await page.keyboard.press('s');
-  await expect(page.getByRole('dialog')).toBeVisible();
+  await page.keyboard.press('i');
+  await expect(page.getByRole('button', { name: 'Back to equipment' })).toBeVisible({ timeout: 60_000 });
+  await page.keyboard.press('c');
+  await expect(page.getByRole('dialog', { name: 'Chapters' })).toBeVisible();
   await page.keyboard.press('Escape');
   await expect(page.getByRole('dialog')).toHaveCount(0);
-  expect(errors).toEqual([]);
-});
-
-test('reduced motion: steps land on their end state without playing', async ({ page, hasTouch }) => {
-  await page.emulateMedia({ reducedMotion: 'reduce' });
-  const errors = watchErrors(page);
-  await freshStart(page, '/?step=coat');
-  await expect(page.locator('h1.step-title')).toHaveText(STEPS.coat.title);
-  const scrub = page.getByRole('slider', { name: /Scrub through/ });
-  await expect(scrub).toHaveValue('1');
-  await expect(page.getByRole('button', { name: 'Play', exact: true })).toBeVisible();
-  await press(page.getByRole('button', { name: 'Continue', exact: true }), hasTouch);
-  await expect(page.locator('h1.step-title')).toHaveText(STEPS.softbake.title);
-  await expect(scrub).toHaveValue('1');
   expect(errors).toEqual([]);
 });

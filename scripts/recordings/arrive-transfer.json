@@ -1,0 +1,4 @@
+{ "name": "arrive-transfer", "w": 960, "h": 540, "url": "http://127.0.0.1:5173/?step=arrive&virt=1",
+  "setup": [ {"wait": 3000}, {"advance": 150}, {"wait": 500}, {"advance": 60} ],
+  "during": [ {"frame": 90, "eval": "window.__fabStores.useApp.getState().next()"} ],
+  "frames": 420, "out": "docs/recordings/01-arrive-to-transfer.mp4" }
