@@ -60,8 +60,11 @@ also run on machines without a GPU. If Playwright's browser isn't installed yet,
   "Why it matters" appear as the animation plays. **Replay** plays the step again, and the
   scrubber seeks within it.
 * **Zoom levels**: Fab · Tool · Wafer · Device. In the device view you can switch the
-  cutaway and x-ray (transparent insulators) on and off. At the scanner you can show the
-  light path.
+  cutaway and x-ray (transparent insulators) on and off. In the scanner, implanter,
+  inspection and metrology tools you can show the light, laser or beam path; invisible
+  radiation is never drawn unless you ask for it.
+* **New words** are defined in the step where they first appear; hover, focus or tap any
+  dotted term for its definition later on.
 * **Look closer** opens a labelled cross-section, a short explanation and one source.
   **What changed?** compares the step's before and after. **Legend** explains the colours.
 * **Experiments**: skip the particle clean, change spin speed, under- or over-expose,
