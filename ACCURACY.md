@@ -131,6 +131,26 @@ source. "Model" says how the simulation reflects it.
   [Semiconductor Engineering, overlay](https://semiengineering.com/how-overlay-keeps-pace-with-euv-patterning/)
   *Model:* alignment and overlay metrology are separate steps; rework is offered only
   between develop and etch.
+* *Round three.* A coater/developer track is a line of blocks — a cassette (carrier) block
+  where pods are docked, process blocks, and an interface block that hands wafers to and
+  from the scanner — with robots carrying each wafer between modules (adhesion/prime, coat
+  cups, hot and chill plates, develop cups). Hot plates raise the wafer on lift pins for the
+  robot; spin chucks sit in a cup that catches the flung liquid.
+  [TEL, LITHIUS coater/developer](https://www.tel.com/product/lithius.html) ·
+  [EPFL CMI, TEL Clean Track ACT 8](https://www.epfl.ch/research/facilities/cmi/equipment/photolithography/tel-cleantrack-act-8/) ·
+  [US 7,204,888 B2, lift pins raise the wafer above the pedestal for the robot](https://patents.google.com/patent/US7204888B2/en) ·
+  [US 6,551,400 B2, coating apparatus (spin chuck in a cup, wafers from the main arm)](https://patents.google.com/patent/US6551400B2/en)
+  *Model:* one row of four modules and one robot on a rail along the front, a carrier block
+  at one end and the scanner interface at the other; the spin chuck rises above its cup for
+  the hand-off (some coaters lower the cup instead). Reference-informed schematic, not any
+  vendor's layout; robot speeds are brisk (peak 2.7 m/s) but not measured.
+* *Round three.* Dual-stage scanners measure (align and map) one wafer on one chuck while
+  exposing another on the second; the two chucks then swap places.
+  [ASML, TWINSCAN: 20 years of lithography innovation](https://www.asml.com/en/news/stories/2021/twinscan-20-years-innovation) ·
+  [ASML, dual wafer stage technology (2000)](https://www.asml.com/en/news/press-releases/2000/asml-introduces-dual-wafer-stage-technology-on-its-twinscantm-300mm-lithography-platform)
+  *Model:* the learner's wafer is measured (and waits during the reticle load) on the
+  measure side; at the start of the exposure the chucks swap, passing around each other.
+  The swap path is schematic.
 * Thin transparent films on silicon show interference colours that depend on thickness and
   viewing angle.
   [BYU oxide/nitride colour chart](https://www.cleanroom.byu.edu/color_chart)
@@ -208,6 +228,7 @@ source. "Model" says how the simulation reflects it.
 | **CMP tool** | One platen; the wafer is flipped in the load cup. In the metal steps the wafer reaches the polisher shortly before its copper is plated (the plating happens, face-down and out of sight, while it waits in the head); the camera shows the plating in the cross-section. | Production polishers have several platens and usually flip the wafer with the robot. Copper is electroplated in a separate tool before the wafer goes to the polisher. |
 | **Furnace** | Pad oxide and nitride are grown in the same tube, one after the other. | Fabs usually use separate furnaces for oxidation and LPCVD nitride. |
 | **Implanter and other tools** | A generic medium-current beamline; the FOUP shell is drawn translucent so the wafers show; spin speeds and robot motions are visual, not real rpm or timing. | Tool layouts differ by vendor and application. |
+| **Track transfers** *(round three)* | Each track lesson opens with the robot carrying the wafer from where the last one left it (1–2.4 s); spins are nudged to stop on whole turns so the next lesson picks the wafer up as it lay. The coat spreading and thinning between the model's operations is presentation interpolation that ends exactly on the simulated film. | Transfers, chill plates and queueing add minutes; spin motors stop wherever they stop, and the robot or aligner re-orients the wafer by its notch. |
 | **Back end** | Probe needles, dicing blade (0.8 mm drawn), bond wires and loops are drawn much larger than real; the lead frame is a generic 4-lead strip (VDD, IN, OUT, GND); the prober touches down on every complete die in sequence. | Blades are tens of micrometres thick; probe cards contact many dies at once; packages follow standard outlines. |
 | **Fab bay** | One bay about 50 m long holds every tool of the journey, with the back end behind a glass wall; the explorer says the layout is conceptual. | Front-end fabs are far larger, tools are grouped by type in separate bays, and packaging and test usually happen at other sites. |
 | **Housings and cutaways** *(round two)* | Each machine has one enclosure in the bay; when the story reaches it, the upper front is cut away to show a stylised interior sized to fit. | Real tools are fully enclosed (mini-environments, interlocked covers); nobody sees inside while they run. The cutaway is an explanatory reveal, like a textbook illustration. |
@@ -257,6 +278,11 @@ image is invisible. The Legend says so.
 * Package-level effects (bond wire parasitics, mold stress) and final-test programs.
 
 ## 4. How the sources were checked
+
+The round-three additions (track transfers, the dual-stage exchange) were checked the same
+way in September 2026: fetches of www.asml.com, www.epfl.ch and patents.google.com were
+refused by the build environment's network proxy, so the claims rest on the search engine's
+excerpts of those pages and are worded no more specifically than those excerpts support.
 
 The facts in section 1 were researched in September 2026. Direct page fetches were blocked
 from the build environment for most domains (ASML, imec, Samsung, Wikipedia,

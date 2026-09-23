@@ -16,9 +16,9 @@
  */
 import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
-import { DIES, type Die } from '../../sim/dies';
+import { DIES, WAFER, type Die } from '../../sim/dies';
 import { useSimState, useWaferMap } from '../../state/sim';
-import { clamp01, lerp, smooth, useProgressBucket, useProgressFrame } from '../anim';
+import { clamp01, lerp, smooth, useProgressFrame } from '../anim';
 import { Box, CleanFloor, Cyl, LightTower, mat, StandaloneOnly } from '../kit/parts';
 import { MAT, type MatKey } from '../materials';
 import { useWaferGeometry } from '../wafer/Wafer';
@@ -211,41 +211,91 @@ function Cable({ points, r, m = 'rubber' }: { points: V3[]; r: number; m?: MatKe
 
 const edgeMat = new THREE.MeshStandardMaterial({ color: '#8f949c', metalness: 0.9, roughness: 0.25 });
 
+/** Each die's place in the probing order, on the die grid (for the wafer's shader). */
+const ORDER_GRID = (() => {
+  const cols = DIES.map((d) => d.col);
+  const rows = DIES.map((d) => d.row);
+  const c0 = Math.min(...cols);
+  const r0 = Math.min(...rows);
+  const w = Math.max(...cols) - c0 + 1;
+  const h = Math.max(...rows) - r0 + 1;
+  const data = new Float32Array(w * h).fill(1e6);
+  ORDER.forEach((d, i) => (data[(d.row - r0) * w + (d.col - c0)] = i));
+  const d = DIES[0];
+  return { data, w, h, c0, r0, x0: d.x - d.col * WAFER.dieW, y0: d.y - d.row * WAFER.dieH };
+})();
+
 /**
- * The simulated wafer with the wafer map revealed die by die. Drawn with the shared wafer
- * painter; the texture is repainted whenever the number of revealed dies changes.
+ * The simulated wafer with the wafer map revealed die by die. The wafer is painted twice
+ * (without the map, and with all of it), once; the shader shows each die from the second
+ * picture once the prober has tested it, so nothing is repainted as the map fills in.
  */
 function MapWafer({ groupRef }: { groupRef: React.RefObject<THREE.Group | null> }) {
   const state = useSimState();
   const choices = useRunChoices();
   const map = useWaferMap(choices);
-  const b = useProgressBucket(240);
-  const n = revealCount(b);
   const size = 768;
-  const look: WaferLook = useMemo(
-    () => ({ summary: state.wafer, showParticles: true, map, mapReveal: map ? Math.min(1, (n + 0.5) / ORDER.length) : 0, highlightDie: true }),
-    [state.wafer, map, n],
-  );
+  const bare: WaferLook = useMemo(() => ({ summary: state.wafer, showParticles: true, highlightDie: true }), [state.wafer]);
+  const full: WaferLook = useMemo(() => ({ summary: state.wafer, showParticles: true, map, mapReveal: 1, highlightDie: true }), [state.wafer, map]);
   const geo = useWaferGeometry(0.15);
-  const { canvas, tex } = useMemo(() => makeCanvasTexture(size), []);
-  const topMat = useMemo(() => new THREE.MeshStandardMaterial({ map: tex, roughness: 0.16, metalness: 0.55, envMapIntensity: 1.1 }), [tex]);
-  const key = lookKey(look, size) + '|' + n;
-  const last = useRef('');
-  useEffect(() => {
+  const a = useMemo(() => makeCanvasTexture(size), []);
+  const b = useMemo(() => makeCanvasTexture(size), []);
+  const grid = useMemo(() => {
+    const t = new THREE.DataTexture(ORDER_GRID.data, ORDER_GRID.w, ORDER_GRID.h, THREE.RedFormat, THREE.FloatType);
+    t.magFilter = THREE.NearestFilter;
+    t.minFilter = THREE.NearestFilter;
+    t.needsUpdate = true;
+    return t;
+  }, []);
+  const uniforms = useMemo(() => ({ uFull: { value: b.tex }, uOrder: { value: grid }, uReveal: { value: 0 }, uHasMap: { value: 0 } }), [b, grid]);
+  const topMat = useMemo(() => {
+    const m = new THREE.MeshStandardMaterial({ map: a.tex, roughness: 0.16, metalness: 0.55, envMapIntensity: 1.1 });
+    const G = ORDER_GRID;
+    m.onBeforeCompile = (sh) => {
+      Object.assign(sh.uniforms, uniforms);
+      sh.fragmentShader = sh.fragmentShader
+        .replace('#include <common>', '#include <common>\nuniform sampler2D uFull;\nuniform sampler2D uOrder;\nuniform float uReveal;\nuniform float uHasMap;')
+        .replace(
+          '#include <map_fragment>',
+          `#include <map_fragment>
+if (uHasMap > 0.5) {
+  vec2 mm = (vMapUv * 2.0 - 1.0) * ${WAFER.radius.toFixed(1)};
+  vec2 cell = floor((mm - vec2(${G.x0.toFixed(4)}, ${G.y0.toFixed(4)})) / vec2(${WAFER.dieW.toFixed(4)}, ${WAFER.dieH.toFixed(4)}) + 0.5) - vec2(${G.c0.toFixed(1)}, ${G.r0.toFixed(1)});
+  if (cell.x >= 0.0 && cell.y >= 0.0 && cell.x < ${G.w.toFixed(1)} && cell.y < ${G.h.toFixed(1)}) {
+    float order = texture2D(uOrder, (cell + 0.5) / vec2(${G.w.toFixed(1)}, ${G.h.toFixed(1)})).r;
+    if (order < uReveal) diffuseColor.rgb = texture2D(uFull, vMapUv).rgb;
+  }
+}`,
+        );
+    };
+    m.customProgramCacheKey = () => 'prober-map';
+    return m;
+  }, [a, uniforms]);
+  const paint = (t: { canvas: HTMLCanvasElement; tex: THREE.CanvasTexture }, look: WaferLook, last: React.MutableRefObject<string>) => {
+    const key = lookKey(look, size);
     if (last.current === key) return;
     last.current = key;
-    const ctx = canvas.getContext('2d');
+    const ctx = t.canvas.getContext('2d');
     if (!ctx) return;
     drawWafer(ctx, size, look);
-    tex.needsUpdate = true;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key]);
+    t.tex.needsUpdate = true;
+  };
+  const lastA = useRef('');
+  const lastB = useRef('');
+  useEffect(() => paint(a, bare, lastA), [bare]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => paint(b, full, lastB), [full]); // eslint-disable-line react-hooks/exhaustive-deps
+  useProgressFrame((p) => {
+    uniforms.uHasMap.value = map ? 1 : 0;
+    uniforms.uReveal.value = map ? revealCount(p) : 0;
+  });
   useEffect(
     () => () => {
-      tex.dispose();
+      a.tex.dispose();
+      b.tex.dispose();
+      grid.dispose();
       topMat.dispose();
     },
-    [tex, topMat],
+    [a, b, grid, topMat],
   );
   return (
     <group ref={groupRef}>

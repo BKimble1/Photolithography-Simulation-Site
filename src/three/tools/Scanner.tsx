@@ -19,7 +19,7 @@ import { useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { FIELDS, WAFER } from '../../sim/dies';
 import { useSimState, useStep } from '../../state/sim';
-import { lerp, seg, smooth, useProgressBucket, useProgressFrame } from '../anim';
+import { lerp, seg, smooth, useProgressFrame } from '../anim';
 import { MAT, type MatKey } from '../materials';
 import { Box, Cyl, Lathe, LightTower, ScaraRobot, StandaloneOnly } from '../kit/parts';
 import { Wafer } from '../wafer/Wafer';
@@ -365,7 +365,6 @@ export default function Scanner({ variant }: ToolProps) {
   const state = useSimState();
   const { id } = useStep();
   const lightPath = useOverlay('lightPath');
-  const bucket = useProgressBucket(80);
   const v = variant ?? 'expose';
   const exposing = v === 'expose';
   const aligning = v === 'align';
@@ -383,15 +382,17 @@ export default function Scanner({ variant }: ToolProps) {
   const beam = useRef<THREE.Group>(null);
   const alignSpot = useRef<THREE.Mesh>(null);
 
-  // Exposure schedule: fields exposed over p ∈ [0.08, 0.86]
+  // Exposure schedule: fields exposed over p ∈ [0.08, 0.86]; the wafer shows each field as
+  // the slit sweeps it (live, in its shader: no repaint per field)
   const nF = FIELD_M.length;
-  const fieldsDone = exposing ? Math.floor(seg(bucket, 0.08, 0.86) * nF) : 0;
+  const liveFields = useMemo(() => ({ on: false, done: 0 }), []);
   const libDx = LIB_X - LENS_X;
 
   useProgressFrame((p) => {
     stageBases(v, p, bases.ours, bases.other);
     ourBase.current?.position.copy(bases.ours);
     otherBase.current?.position.copy(bases.other);
+    liveFields.on = exposing;
     // ── exposure: step and scan ──
     if (exposeStage.current) {
       let x = 0,
@@ -413,6 +414,7 @@ export default function Scanner({ variant }: ToolProps) {
         scanning = within >= 0.3 && p > 0.08 && p < 0.86;
         const dir = i % 2 === 0 ? 1 : -1;
         const scanOffset = scanning ? (scanFrac - 0.5) * fld.h * dir : 0;
+        liveFields.done = p >= 0.86 ? nF : p < 0.08 ? 0 : i + scanFrac;
         // The stage moves so that the point under the lens is (field centre + scan offset)
         x = -sx;
         z = sy + scanOffset;
@@ -484,7 +486,7 @@ export default function Scanner({ variant }: ToolProps) {
       <group ref={ourBase} position={[MEAS_X, 0, 0]}>
         <group ref={exposeStage}>
           <Stage>
-            <Wafer anchor look={{ summary: state.wafer, showParticles: true, exposedFields: exposing ? fieldsDone : 0, fields: FIELDS }} position={[0, WAFER_Y, 0]} size={768} />
+            <Wafer anchor look={{ summary: state.wafer, showParticles: true }} liveFields={liveFields} fieldRects={FIELDS} position={[0, WAFER_Y, 0]} size={768} />
           </Stage>
         </group>
       </group>

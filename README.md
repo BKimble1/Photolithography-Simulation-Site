@@ -64,6 +64,9 @@ npm run preview        # http://127.0.0.1:4173
 | `node scripts/record.mjs scripts/recordings/<name>.json` | render a recording frame by frame (dev server running) |
 | `node scripts/stats.mjs` | draw calls, triangles, per-frame CPU cost and JS heap for a set of views (dev server running) |
 | `node scripts/cue-alignment.mjs` | decode the narration in the browser and compare where speech starts and ends with the film's cue times |
+| `node scripts/perf.mjs <baseUrl> <out.json> [--scenarios a,b] [--video dir]` | real-time measurements on a production build: frame intervals (median, p95, p99, long frames), long tasks, draw calls and triangles over all passes, resource counts, per scenario; `--video` also records them in real time |
+| `node scripts/probe.mjs <baseUrl> <out.json> [--cases a,b]` | frame-by-frame checks of transitions on any build (jumps, the learner's wafer, interrupted fades, loading, film moves, shadow redraws, texture uploads) — the round-three findings, measured the same way before and after |
+| `node scripts/frames.mjs <baseUrl> "/?step=coat&virt=1" <dir> p=0 p=0.1 …` | save canvas frames at chosen lesson points |
 
 The browser tests use Playwright's Chromium with software WebGL (SwiftShader), so they
 also run on machines without a GPU. If Playwright's browser isn't installed yet, run
@@ -142,7 +145,11 @@ Review parameters, read once on a lesson link: `p` (freeze at a progress 0–1),
 (start in the cross-section), `clean`, `spin`, `dose`, `overlay` (experiment choices),
 `lp`, `xray`, `in` (light path, x-ray, final-test input), `panel` (`closer`, `compare`,
 `chapters`, `legend`, `recap`, `euv`), `motion=reduce`, `fast=1` (six times faster), `flat=1`
-(the 2D fallback). Test harness: `virt=1` (frame-stepped rendering) and `hooks=1`.
+(the 2D fallback). Rendering: `quality=high|medium|low` forces a quality tier (otherwise it
+is chosen from the device and adjusted from measured frame rates), `diag=1` shows a developer
+overlay (tier, renderer, frame times, draw calls; buttons to switch tiers), `capture=1` keeps
+the canvas's drawing buffer for capture tools. Test harness: `virt=1` (frame-stepped
+rendering) and `hooks=1`.
 
 Progress, choices and answers are saved in `localStorage` (`fab-one:v2`; round-one saves are
 migrated), so a reload resumes where you left off.
@@ -157,6 +164,11 @@ controls. Without WebGL the lesson shows a 2D cross-section of the same simulate
 explorer its list, and the film its narration and captions. `prefers-reduced-motion` is
 respected: the camera never travels (it holds still compositions and cross-fades between
 them), while lessons and the film keep their timing, captions and narration.
+
+Frame rates were **not** measured on real graphics hardware: the build machine renders with
+SwiftShader (software WebGL on four CPU cores), where every scene runs at about 1 frame per
+second. [`docs/ROUND3.md`](docs/ROUND3.md#measure-it-on-your-hardware) has a short benchmark
+to run on a laptop or phone (`?diag=1` shows the numbers live).
 
 ## Recordings
 
@@ -181,13 +193,17 @@ src/
   ui/         header, home, lesson panel and HUD, explorer, film controls, overlays
 public/       narration audio and manifest, service worker
 tools/        narration pipeline (Kokoro, offline)
-scripts/      capture, sequence, record, stats
+scripts/      capture, sequence, record, stats, perf (real time), probe (frame by frame)
 e2e/          Playwright tests
-docs/         round-two notes, plan, scene guide, screenshots, recordings, audio auditions
+docs/         round-two and round-three notes, plan, scene guide, screenshots, recordings,
+              audio auditions
 ```
 
 ## Documentation
 
+* [`docs/ROUND3.md`](docs/ROUND3.md): round three — smooth playback, continuous
+  transitions, machinery: what was reproduced, how it was fixed, before/after measurements,
+  and what still needs real hardware.
 * [`docs/ROUND2.md`](docs/ROUND2.md): what changed in round two, how it was verified, and
   what is still not right.
 * [`IMPLEMENTATION.md`](IMPLEMENTATION.md): state model, modes and navigation, the stage and

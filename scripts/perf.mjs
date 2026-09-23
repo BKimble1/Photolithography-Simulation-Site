@@ -1,6 +1,6 @@
 // Real-time playback measurements on a running build (normal wall-clock time, never ?virt=1).
 //
-//   node scripts/perf.mjs <baseUrl> <out.json> [--scenarios a,b,c] [--video dir] [--label text]
+//   node scripts/perf.mjs <baseUrl> <out.json> [--scenarios a,b,c] [--video dir] [--label text] [--query k=v&k2=v2]
 //
 // Each scenario drives the app the way a learner would (clicks, keys) and records, per phase:
 // the interval between animation frames (median, p95, p99, max, frames over 50 and 100 ms),
@@ -24,6 +24,8 @@ const opt = (k) => {
 const only = opt('--scenarios')?.split(',');
 const videoDir = opt('--video');
 const label = opt('--label') ?? '';
+/** Extra address parameters for every page (e.g. quality=high to compare at one tier). */
+const extra = opt('--query') ? '&' + opt('--query') : '';
 
 // ───────────────────────────── in-page instrumentation ─────────────────────────────
 
@@ -108,14 +110,14 @@ async function press(page, name, exact = true) {
 const scenarios = {
   // First visit: the bay, the home view's slow establishing move.
   'home-idle': async (page) => {
-    await page.goto(`${base}/?hooks=1`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`${base}/?hooks=1${extra}`, { waitUntil: 'domcontentloaded' });
     await stageReady(page);
     await mark(page, 'idle');
     await sleep(HOLD);
   },
   // A cold lesson, then two machine changes (load port → robot → inspection).
   'arrive-transfer-scan': async (page) => {
-    await page.goto(`${base}/?step=arrive&hooks=1`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`${base}/?step=arrive&hooks=1${extra}`, { waitUntil: 'domcontentloaded' });
     await mark(page, 'cold-load');
     await stageReady(page);
     await settled(page);
@@ -136,7 +138,7 @@ const scenarios = {
   },
   // Three steps on one machine (the track), then on to the scanner.
   'prime-coat-softbake': async (page) => {
-    await page.goto(`${base}/?step=prime&hooks=1`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`${base}/?step=prime&hooks=1${extra}`, { waitUntil: 'domcontentloaded' });
     await stageReady(page);
     await settled(page);
     await mark(page, 'play-prime');
@@ -156,7 +158,7 @@ const scenarios = {
   },
   // Scanner → track (post-exposure bake) → develop, down to the cross-section.
   'expose-peb-develop': async (page) => {
-    await page.goto(`${base}/?step=expose&hooks=1`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`${base}/?step=expose&hooks=1${extra}`, { waitUntil: 'domcontentloaded' });
     await stageReady(page);
     await settled(page);
     await mark(page, 'play-expose');
@@ -177,7 +179,7 @@ const scenarios = {
   },
   // Inspect layers / Back to equipment, interrupted mid-fade, six times.
   'layers-interrupt': async (page) => {
-    await page.goto(`${base}/?step=gate-etch&p=0.5&hooks=1`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`${base}/?step=gate-etch&p=0.5&hooks=1${extra}`, { waitUntil: 'domcontentloaded' });
     await stageReady(page);
     await settled(page);
     await mark(page, 'toggles');
@@ -191,7 +193,7 @@ const scenarios = {
   },
   // A lesson → the whole fab → the etch cluster → its demonstration → back to the lesson.
   'explore-roundtrip': async (page) => {
-    await page.goto(`${base}/?step=coat&hooks=1`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`${base}/?step=coat&hooks=1${extra}`, { waitUntil: 'domcontentloaded' });
     await stageReady(page);
     await settled(page);
     await sleep(1500);
@@ -216,7 +218,7 @@ const scenarios = {
   },
   // Twelve steps forward and back with the arrow keys, then the resource counts again.
   'nav-loop': async (page) => {
-    await page.goto(`${base}/?step=arrive&hooks=1`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`${base}/?step=arrive&hooks=1${extra}`, { waitUntil: 'domcontentloaded' });
     await stageReady(page);
     await settled(page);
     const r0 = await resources(page);
@@ -241,7 +243,7 @@ const scenarios = {
   },
   // A lesson on a phone (portrait, pixel ratio 2), then the explorer's whole-fab view.
   'phone-coat-explore': async (page) => {
-    await page.goto(`${base}/?step=coat&hooks=1`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`${base}/?step=coat&hooks=1${extra}`, { waitUntil: 'domcontentloaded' });
     await stageReady(page);
     await settled(page);
     await mark(page, 'play-coat');
@@ -255,7 +257,7 @@ const scenarios = {
   },
   // The film, from the lithography chapter, for a minute.
   'watch-minute': async (page) => {
-    await page.goto(`${base}/?hooks=1`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`${base}/?hooks=1${extra}`, { waitUntil: 'domcontentloaded' });
     await stageReady(page);
     await press(page, 'Watch the film');
     await page.waitForFunction(() => window.__fabFilm?.useFilm.getState().status === 'playing', null, { timeout: 60_000 });
@@ -308,7 +310,7 @@ const sha = (() => {
 })();
 
 const browser = await chromium.launch({ args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist', '--enable-webgl', '--enable-precise-memory-info'] });
-const report = { label, base, sha, date: new Date().toISOString(), host: { cpus: os.cpus().length, cpu: os.cpus()[0]?.model, memGB: Math.round(os.totalmem() / 2 ** 30) }, scenarios: {} };
+const report = { label, base, query: extra.slice(1), sha, date: new Date().toISOString(), host: { cpus: os.cpus().length, cpu: os.cpus()[0]?.model, memGB: Math.round(os.totalmem() / 2 ** 30) }, scenarios: {} };
 const viewports = { desktop: { width: 1280, height: 800, deviceScaleFactor: 1 }, phone: { width: 390, height: 844, deviceScaleFactor: 2, isMobile: true, hasTouch: true } };
 const list = Object.keys(scenarios).filter((k) => !only || only.includes(k));
 if (videoDir) mkdirSync(videoDir, { recursive: true });

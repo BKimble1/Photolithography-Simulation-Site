@@ -11,6 +11,7 @@ import { filmsColor } from '../../sim/filmColor';
 import { WAFER } from '../../sim/dies';
 import { M } from '../../sim/materials';
 import type { Film } from '../../sim/types';
+import type { MatId } from '../../sim/materials';
 
 /**
  * A 300 mm wafer (radius 0.15 m) with a notch. The top face shows the simulated surface;
@@ -67,23 +68,37 @@ export interface LiveCoat {
 
 export const makeLiveCoat = (): LiveCoat => ({ on: false, coverage: 0, nm: 0, edgeRise: 0, rim: 0, ebr: false });
 
+/** What a live film is made of: its material, label (a film with the same label below it
+ * grows thicker instead of stacking) and the thickest it gets, nm. Resist by default. */
+export interface LiveFilmSpec {
+  mat: MatId;
+  label?: string;
+  max: number;
+}
+
 const LUT_N = 256;
-/** Above this the resist is a thick liquid puddle (no interference colours, just its tint). */
-const LUT_MAX = 1800;
+/** Resist beyond this thickness is a liquid puddle (no interference colours, just its tint). */
+const RESIST_SPEC: LiveFilmSpec = { mat: M.RES, max: 1800 };
 const PUDDLE: [number, number, number] = [0.55, 0.47, 0.95];
 
+/** The film stack with `nm` of the live film added (on top, or thickening the same layer). */
+function withFilm(films: Film[], spec: LiveFilmSpec, nm: number): Film[] {
+  const last = films[films.length - 1];
+  if (last && spec.label !== undefined && last.mat === spec.mat && last.label === spec.label) return [...films.slice(0, -1), { ...last, nm: last.nm + nm }];
+  return [...films, { mat: spec.mat, nm, label: spec.label ?? '' }];
+}
+
 /**
- * Resist-thickness lookup: how a resist film of each thickness changes the colour of the
- * film stack beneath it (thin-film interference, from the same colour model as the texture),
- * as a per-channel ratio the shader multiplies the painted surface by.
+ * Thickness lookup: how the live film at each thickness changes the colour of the stack the
+ * texture shows (thin-film interference, from the same colour model as the texture), as a
+ * per-channel ratio the shader multiplies the painted surface by.
  */
-function coatLut(films: Film[]): { tex: THREE.DataTexture; puddle: THREE.Vector3 } {
+function filmLut(films: Film[], spec: LiveFilmSpec): { tex: THREE.DataTexture; puddle: THREE.Vector3 } {
   const base = filmsColor(films);
   const data = new Uint16Array(LUT_N * 4);
   const ratio = (c: [number, number, number], i: number) => c[i] / Math.max(1e-4, base[i]);
   for (let k = 0; k < LUT_N; k++) {
-    const nm = (k / (LUT_N - 1)) * LUT_MAX;
-    const c = filmsColor([...films, { mat: M.RES, nm }]);
+    const c = filmsColor(withFilm(films, spec, (k / (LUT_N - 1)) * spec.max));
     for (let i = 0; i < 3; i++) data[k * 4 + i] = THREE.DataUtils.toHalfFloat(ratio(c, i));
     data[k * 4 + 3] = THREE.DataUtils.toHalfFloat(1);
   }
@@ -95,17 +110,56 @@ function coatLut(films: Film[]): { tex: THREE.DataTexture; puddle: THREE.Vector3
   return { tex, puddle: new THREE.Vector3(ratio(pud, 0), ratio(pud, 1), ratio(pud, 2)) };
 }
 
+/**
+ * Exposure fields being printed, set by the scanner every frame: fields [0, done) are
+ * exposed, the one being scanned fades in as the slit sweeps it (presentation of the latent
+ * image, which the model only records once the exposure operation has run).
+ */
+export interface LiveFields {
+  on: boolean;
+  done: number;
+}
+const MAX_FIELDS = 128;
+
+function fieldsTexture(fields: readonly { x: number; y: number; w: number; h: number }[]): THREE.DataTexture {
+  const data = new Float32Array(MAX_FIELDS * 4);
+  fields.slice(0, MAX_FIELDS).forEach((f, i) => data.set([f.x, f.y, f.w, f.h], i * 4));
+  const tex = new THREE.DataTexture(data, MAX_FIELDS, 1, THREE.RGBAFormat, THREE.FloatType);
+  tex.magFilter = THREE.NearestFilter;
+  tex.minFilter = THREE.NearestFilter;
+  tex.needsUpdate = true;
+  return tex;
+}
+
+const R_MM = WAFER.radius.toFixed(1);
 const COAT_GLSL = /* glsl */ `
 if (uCoatOn > 0.5) {
   float u = length(vMapUv * 2.0 - 1.0);
   if (u <= uCoat.x) {
-    float r = u * ${WAFER.radius.toFixed(1)};
+    float r = u * ${R_MM};
     float ue = min(1.0, r / ${(WAFER.radius - WAFER.edgeExclusion).toFixed(1)});
     float nm = uCoat.y * (1.0 + uCoat.z * ue * ue * ue) * (1.0 + uCoat.w * pow(u, 6.0) * 2.5);
     if (uEbr > 0.5 && r > ${(WAFER.radius - 2.2).toFixed(1)}) nm = 0.0;
-    vec3 k = nm > ${LUT_MAX.toFixed(1)} ? uPuddle : texture2D(uLut, vec2(clamp(nm / ${LUT_MAX.toFixed(1)}, 0.0, 1.0) * ${((LUT_N - 1) / LUT_N).toFixed(6)} + ${(0.5 / LUT_N).toFixed(6)}, 0.5)).rgb;
+    vec3 k = (uPuddleOn > 0.5 && nm > uLutMax) ? uPuddle : texture2D(uLut, vec2(clamp(nm / uLutMax, 0.0, 1.0) * ${((LUT_N - 1) / LUT_N).toFixed(6)} + ${(0.5 / LUT_N).toFixed(6)}, 0.5)).rgb;
     diffuseColor.rgb *= k;
   }
+}
+if (uFieldsOn > 0.5) {
+  vec2 mm = (vMapUv * 2.0 - 1.0) * ${R_MM};
+  float fill = 0.0;
+  float edge = 0.0;
+  for (int i = 0; i < ${MAX_FIELDS}; i++) {
+    if (float(i) >= uFieldsDone) break;
+    vec4 f = texture2D(uFields, vec2((float(i) + 0.5) / ${MAX_FIELDS.toFixed(1)}, 0.5));
+    vec2 d = abs(mm - f.xy) - f.zw * 0.5;
+    float m = max(d.x, d.y);
+    if (m > 0.0) continue;
+    float k = clamp(uFieldsDone - float(i), 0.0, 1.0);
+    fill = max(fill, k);
+    edge = max(edge, k * step(-0.45, m));
+  }
+  diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.672, 0.617, 1.0), 0.28 * fill);
+  diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.144, 0.102, 0.947), 0.55 * edge);
 }
 `;
 
@@ -119,6 +173,9 @@ export function Wafer({
   metalness = 0.55,
   anchor = false,
   live,
+  liveFilm = RESIST_SPEC,
+  liveFields,
+  fieldRects,
 }: {
   look: WaferLook;
   /** This is the learner's wafer: register it so camera shots can frame it and your die. */
@@ -129,8 +186,13 @@ export function Wafer({
   rotation?: [number, number, number];
   roughness?: number;
   metalness?: number;
-  /** A resist coat going on, updated by the tool every frame (see LiveCoat). */
+  /** A film going on (a resist coat, a deposition), updated by the tool every frame. */
   live?: LiveCoat;
+  /** What that film is (resist unless given). */
+  liveFilm?: LiveFilmSpec;
+  /** Exposure fields being printed, updated by the tool every frame, and where they are (mm). */
+  liveFields?: LiveFields;
+  fieldRects?: readonly { x: number; y: number; w: number; h: number }[];
 }) {
   // From the die map on, the learner's wafer always shows "your die" outlined in violet, so it
   // can be picked out wherever the wafer goes (and the camera can close in on it).
@@ -146,7 +208,12 @@ export function Wafer({
       uCoat: { value: new THREE.Vector4() },
       uEbr: { value: 0 },
       uLut: { value: null as THREE.Texture | null },
+      uLutMax: { value: 1 },
+      uPuddleOn: { value: 0 },
       uPuddle: { value: new THREE.Vector3(1, 1, 1) },
+      uFieldsOn: { value: 0 },
+      uFieldsDone: { value: 0 },
+      uFields: { value: null as THREE.Texture | null },
     }),
     [],
   );
@@ -155,7 +222,10 @@ export function Wafer({
     m.onBeforeCompile = (sh) => {
       Object.assign(sh.uniforms, uniforms);
       sh.fragmentShader = sh.fragmentShader
-        .replace('#include <common>', '#include <common>\nuniform float uCoatOn;\nuniform vec4 uCoat;\nuniform float uEbr;\nuniform sampler2D uLut;\nuniform vec3 uPuddle;')
+        .replace(
+          '#include <common>',
+          '#include <common>\nuniform float uCoatOn;\nuniform vec4 uCoat;\nuniform float uEbr;\nuniform sampler2D uLut;\nuniform float uLutMax;\nuniform float uPuddleOn;\nuniform vec3 uPuddle;\nuniform float uFieldsOn;\nuniform float uFieldsDone;\nuniform sampler2D uFields;',
+        )
         .replace('#include <map_fragment>', '#include <map_fragment>\n' + COAT_GLSL);
     };
     m.customProgramCacheKey = () => 'wafer-coat';
@@ -163,16 +233,28 @@ export function Wafer({
   }, [tex, roughness, metalness, uniforms]);
   const films = look.summary.films;
   const filmsKey = films.map((f) => `${f.mat}:${Math.round(f.nm)}`).join(',');
-  const lut = useMemo(() => (live ? coatLut(films) : null), [!!live, filmsKey]); // eslint-disable-line react-hooks/exhaustive-deps
+  const specKey = `${liveFilm.mat}:${liveFilm.label ?? ''}:${liveFilm.max}`;
+  const lut = useMemo(() => (live ? filmLut(films, liveFilm) : null), [!!live, filmsKey, specKey]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => () => lut?.tex.dispose(), [lut]);
+  const fieldsTex = useMemo(() => (fieldRects ? fieldsTexture(fieldRects) : null), [fieldRects]);
+  useEffect(() => () => fieldsTex?.dispose(), [fieldsTex]);
   useFrame(() => {
     const on = !!live?.on && !!lut;
     uniforms.uCoatOn.value = on ? 1 : 0;
-    if (!on || !live || !lut) return;
-    uniforms.uCoat.value.set(live.coverage, live.nm, live.edgeRise, live.rim);
-    uniforms.uEbr.value = live.ebr ? 1 : 0;
-    uniforms.uLut.value = lut.tex;
-    uniforms.uPuddle.value.copy(lut.puddle);
+    if (on && live && lut) {
+      uniforms.uCoat.value.set(live.coverage, live.nm, live.edgeRise, live.rim);
+      uniforms.uEbr.value = live.ebr ? 1 : 0;
+      uniforms.uLut.value = lut.tex;
+      uniforms.uLutMax.value = liveFilm.max;
+      uniforms.uPuddleOn.value = liveFilm.mat === M.RES ? 1 : 0;
+      uniforms.uPuddle.value.copy(lut.puddle);
+    }
+    const fOn = !!liveFields?.on && !!fieldsTex && liveFields.done > 0;
+    uniforms.uFieldsOn.value = fOn ? 1 : 0;
+    if (fOn && liveFields && fieldsTex) {
+      uniforms.uFieldsDone.value = Math.min(fieldRects!.length, liveFields.done);
+      uniforms.uFields.value = fieldsTex;
+    }
   });
   const key = lookKey(look, size);
   const last = useRef('');

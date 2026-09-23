@@ -273,8 +273,35 @@ of every machine, merged and pre-lit so the whole bay costs about 50 draw calls.
 machines the story needs are **mounted** as their detailed scenes at their stations
 (`MountedStation`: station matrix × the tool's `mount` from its pose file), with the current
 presentation; the next lesson's machine is preloaded, and the last few stay mounted (idle)
-so going back is instant. A machine only counts as ready a few frames after its model has
-mounted, and the camera waits (up to 3 s) for the destination before it travels.
+so going back is instant.
+
+*Round three* — **readiness and hand-overs** (`stage/handover.ts`, `Stage.tsx`):
+
+* A machine counts as **ready** once its model has mounted, drawn its textures and been
+  prepared for the GPU (`renderer.compileAsync` for its shader programs, `initTexture` for its
+  textures), one model at a time. The camera waits for the destination **however long it
+  takes** (no timeout); after 250 ms the page says what it is waiting for. A model that fails
+  to load (a module that cannot be fetched) is caught by its own error boundary: the machine
+  is framed from outside (`machinePose`), a notice offers a reload, and the rest of the stage
+  keeps working. Until the first picture has its machine ready, a veil covers the canvas, so
+  a deep link never shows a half-built scene; the lesson clock starts after that. The
+  clipped housing materials are compiled once, up front (`Fab.tsx`), so a housing's first
+  opening does not stall.
+* A machine the story **leaves** keeps its real last frame — its lesson, run choices,
+  overlays and progress, frozen — until it is out of view (outside the camera frustum, or
+  hidden by level of detail) and the camera has settled; at most two are held.
+* **One wafer.** The learner's wafer has one owner: the director moves ownership to the next
+  machine halfway along the first leg that travels between machines (the camera is in the
+  aisle), and each side of a cross-fade shows the wafer where that side of the move has it;
+  in Watch the film's timeline does the same. Anchor wafers of other machines are hidden, so
+  the wafer is never on screen twice.
+* **Same machine, next lesson.** Consecutive lessons whose tool animations are designed to
+  join (`BRIDGED` in `tools/index.tsx`: arrive→transfer, prime→coat→softbake, peb→develop,
+  reticle→align→expose, contact-align→contact-print) switch directly when the first lesson
+  has finished. Any other change of what a machine shows (going back, jumping, leaving
+  half-way, a different chamber) is held until the director has **captured the picture as
+  displayed**; the machine then switches, and the director dissolves from the captured
+  picture (0.35 s) before the camera moves.
 
 **Housings.** A machine's bay model is its housing. For machines whose pose file sets
 `cutaway: { z, y }` (station-local: toward the aisle and above the given height), the housing
@@ -311,9 +338,12 @@ The director owns the camera and the render loop in every mode:
   empty holder.
 * **World ↔ device**: an anchored, matched cross-fade. The world camera closes in on your die
   while the device camera starts far out along the same direction relative to the wafer's
-  axes (the device block's axes follow the wafer's), and the two views are blended through
-  an offscreen render target (linear half-float, tone-mapped on the way to the screen, so
-  the outgoing view looks exactly as it did). Labels appear only once the new view settles.
+  axes (the device block's axes follow the wafer's), and the two views are blended.
+  *Round three:* each side is drawn to the screen exactly as it would be on its own and
+  copied (`copyFramebufferToTexture`), then the other side is drawn and the copy blended over
+  it: the blend is of the displayed pictures, so nothing changes brightness, sharpness or
+  tone at either end of a fade (the round-two half-float target tone-mapped after blending).
+  Labels appear only once the new view settles.
 * **Flights** (`flights.ts`) between framings: short moves are direct; moves between
   machines step back into the central aisle (clear of equipment, through the doorway to the
   back-end room), travel along it looking ahead (a centripetal Catmull-Rom path, eased by
@@ -323,6 +353,28 @@ The director owns the camera and the render loop in every mode:
   a superseded flight never completes. With reduced motion every flight is a 0.35 s
   cross-fade between still compositions, and tracks hold each framing and cross-fade to the
   next (`evalTrackStill`).
+* *Round three — continuity.* A replaced flight hands its motion over to the new one over
+  0.45 s (velocity continuous), instead of stopping dead. A request that arrives mid-fade,
+  mid-dissolve or while a machine is about to change is **captured as displayed** and
+  dissolved from, so the composite never snaps to one side; the latest request always wins.
+  Tracks pass through intermediate framings without stopping (cubic Hermite through the
+  keys, tangents limited against overshoot); consecutive keys with the same framing are a
+  deliberate hold; a single move still eases in and out. The **field of view** is part of
+  each pose (the home and overview framings are composed for the viewport) and
+  interpolates with it, so no move or film gap switches it suddenly. No track frames your
+  die while its wafer turns (spins happen while the camera frames the machine or the whole
+  wafer, a framing that does not depend on the wafer's rotation), and spins stop on whole
+  turns, so the next lesson finds the die where it was. The key light and shadows follow the
+  story to the next machine at the wafer hand-over, while the camera is between machines.
+* **Clocks** (`stage/time.ts`): flights, the lesson clock and the demonstration clock run on
+  the stage clock, which stops while the page is hidden, and lesson progress is measured
+  from when playback (re)started rather than accumulated from frame deltas, so a slow frame
+  never slows a lesson and a hidden tab resumes where it was. Decorative motion (fans,
+  flicker, the overhead vehicles, the signal glow) reads one decorative time: the stage
+  clock, or the film's own time in Watch (so a seek shows exactly the frame playing would);
+  it stops under reduced motion. The harness clock (`?virt=1`) passes seconds to three.js'
+  clock (round two passed milliseconds, which made decorative motion 1000× too fast in
+  recordings).
 * **Free look**: dragging, pinching or scrolling hands the camera to the learner (Learn and
   Explore); *Guided view* / *Reset view* flies back. Explore keeps the camera inside the
   building (camera-controls boundary).
@@ -432,6 +484,29 @@ test explains the cause.
   least 44 px tall.
 
 ## Performance
+
+*Round three* (details and measurements in [`docs/ROUND3.md`](docs/ROUND3.md)):
+
+* **Quality tiers** (`stage/quality.ts`): high, medium, low — pixel-ratio cap, shadow-map
+  size and shadow refresh — chosen from the renderer, cores, memory and screen, and stepped
+  from measured frame rates; `?quality=` forces one, `?diag=1` shows a developer overlay with
+  buttons to switch. A tier never changes what is shown or when.
+* **Shadow maps are redrawn only when something that casts them may have moved** (a mounted
+  machine's presented progress changed, a housing is opening, the lit machine changed, a
+  model mounted), with a periodic refresh for decorative motion; a camera move alone never
+  redraws them.
+* **The cross-section is meshed in a worker** (`device/mesh.worker.ts`, which also computes
+  the process state), cached (12 geometries) and prepared ahead for the rest of the step;
+  the previous geometry stays on screen until the next arrives. The mesher itself now
+  writes typed buffers (identical output, about 1.6× faster).
+* **The resist coat is drawn in the wafer's shader** from the exact lesson progress, with
+  thin-film colours from a 256-entry lookup computed once per film stack; the texture is no
+  longer repainted and re-uploaded as the coat spreads.
+* Cross-fades copy the displayed picture instead of rendering into a 4-sample half-float
+  target; the canvas no longer preserves its drawing buffer (capture tools ask for it with
+  `?capture=1`).
+* The film plans each silent move once and reuses it (it re-planned, building two
+  Catmull-Rom curves, every frame of every gap).
 
 * A full replay of all 125 ops takes ~200 ms; seeking inside a step replays at most a few
   ops from a cached checkpoint. Electrical extraction ~30 ms. Device meshing 50–100 ms per

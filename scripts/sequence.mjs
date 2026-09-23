@@ -9,6 +9,8 @@
 // "film" captures count frames, advancing `step` frames before each (for smooth recordings).
 import { chromium } from '@playwright/test';
 import { mkdirSync, readFileSync } from 'node:fs';
+/** Screenshots of the canvas are read after its frame: keep the drawing buffer (?capture=1). */
+const withCapture = (u) => (u.includes('capture=1') ? u : u + (u.includes('?') ? '&' : '?') + 'capture=1');
 
 const [, , outDir, specFile] = process.argv;
 const spec = JSON.parse(readFileSync(specFile, 'utf8'));
@@ -27,7 +29,7 @@ const log = [];
 page.on('pageerror', (e) => log.push('pageerror: ' + e.message));
 page.on('console', (m) => (m.type() === 'error' || m.type() === 'warning') && log.push(m.type() + ': ' + m.text()));
 if (spec.clear !== false) await page.addInitScript(() => { try { if (!sessionStorage.getItem('__seq')) { localStorage.clear(); sessionStorage.setItem('__seq', '1'); } } catch {} });
-await page.goto(spec.url, { waitUntil: 'networkidle' }).catch(() => {});
+await page.goto(withCapture(spec.url), { waitUntil: 'networkidle' }).catch(() => {});
 await page.evaluate(() => document.fonts.ready).catch(() => {});
 const t0 = Date.now();
 const advance = async (n) => {
@@ -39,7 +41,7 @@ const advance = async (n) => {
 const stamp = () => ((Date.now() - t0) / 1000).toFixed(1) + 's';
 for (const st of spec.steps) {
   if (st.wait) await page.waitForTimeout(st.wait);
-  if (st.goto) await page.goto(st.goto, { waitUntil: 'networkidle' }).catch(() => {});
+  if (st.goto) await page.goto(withCapture(st.goto), { waitUntil: 'networkidle' }).catch(() => {});
   if (st.click) {
     const loc = st.click.startsWith('text=') ? page.getByText(st.click.slice(5), { exact: false }).first() : page.locator(st.click).first();
     await loc.click({ timeout: 10000 }).catch((e) => log.push('click failed: ' + st.click + ' ' + e.message.split('\n')[0]));

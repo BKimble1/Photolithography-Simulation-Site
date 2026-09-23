@@ -15,6 +15,8 @@ import { execFileSync } from 'node:child_process';
 import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
+/** Screenshots of the canvas are read after its frame: keep the drawing buffer (?capture=1). */
+const withCapture = (u) => (u.includes('capture=1') ? u : u + (u.includes('?') ? '&' : '?') + 'capture=1');
 
 const spec = JSON.parse(readFileSync(process.argv[2], 'utf8'));
 const tmp = join(tmpdir(), `fabrec-${spec.name}`);
@@ -41,7 +43,7 @@ await page.addInitScript(() => {
     }
   } catch {}
 });
-await page.goto(spec.url, { waitUntil: 'networkidle' });
+await page.goto(withCapture(spec.url), { waitUntil: 'networkidle' });
 await page.evaluate(() => document.fonts.ready);
 const advance = async (n) => {
   for (let i = 0; i < n; i++) {

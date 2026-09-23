@@ -23,13 +23,13 @@ import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { M } from '../../sim/materials';
-import type { Film, WaferSummary } from '../../sim/types';
+import type { Film } from '../../sim/types';
 import { useSimState, useStep } from '../../state/sim';
 import { lerp, seg, smooth, useProgressBucket, useProgressFrame } from '../anim';
 import { MAT, type MatKey } from '../materials';
 import { Box, CleanFloor, Cyl, LightTower, mat, StandaloneOnly } from '../kit/parts';
 import { useStationEnv } from '../stage/context';
-import { Wafer } from '../wafer/Wafer';
+import { makeLiveCoat, Wafer } from '../wafer/Wafer';
 import type { ToolProps } from './index';
 
 type V2 = [number, number];
@@ -777,25 +777,24 @@ function LoadLocks({ door, slitLL, ext }: { door: React.RefObject<THREE.Mesh | n
   );
 }
 
-/** The simulated wafer, with the film growing during deposition. */
+/**
+ * The simulated wafer, with the film growing during deposition: drawn in the wafer's shader
+ * from the exact progress (presentation interpolation up to the deposition operation, which
+ * adds the film to the simulated state), instead of repainting the texture as it thickens.
+ */
 function DepoWafer({ R, group }: { R: Recipe; group: React.RefObject<THREE.Group | null> }) {
   const state = useSimState();
-  const b = useProgressBucket(160);
   const [d0, d1] = R.depo;
-  const growing = b > d0 && b < d1;
-  const frac = growing ? seg(b, d0, d1) : 0;
-  const summary = useMemo<WaferSummary>(() => {
-    if (!growing) return state.wafer;
-    const films = state.wafer.films.map((x) => ({ ...x }));
-    const nm = R.film.nm * frac;
-    const last = films[films.length - 1];
-    if (last && last.mat === R.film.mat && last.label === R.film.label) last.nm += nm;
-    else films.push({ ...R.film, nm });
-    return { ...state.wafer, films };
-  }, [state.wafer, growing, frac, R]);
+  const live = useMemo(makeLiveCoat, []);
+  const spec = useMemo(() => ({ mat: R.film.mat, label: R.film.label, max: R.film.nm }), [R]);
+  useProgressFrame((p) => {
+    live.on = p > d0 && p < d1;
+    live.coverage = 1;
+    live.nm = R.film.nm * seg(p, d0, d1);
+  });
   return (
     <group ref={group} visible={false}>
-      <Wafer anchor look={{ summary, showParticles: true }} size={768} />
+      <Wafer anchor look={{ summary: state.wafer, showParticles: true }} live={live} liveFilm={spec} size={768} />
     </group>
   );
 }
