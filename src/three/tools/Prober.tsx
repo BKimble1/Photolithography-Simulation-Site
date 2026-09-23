@@ -169,6 +169,7 @@ function sectorGeometry(rIn: number, rOut: number, h: number, a0: number, a1: nu
 
 function Sector({ rIn, rOut, h, y, a0 = KEEP0, a1 = KEEP1, m, castShadow = true }: { rIn: number; rOut: number; h: number; y: number; a0?: number; a1?: number; m: MatKey | THREE.Material; castShadow?: boolean }) {
   const geo = useMemo(() => sectorGeometry(rIn, rOut, h, a0, a1), [rIn, rOut, h, a0, a1]);
+  useEffect(() => () => geo.dispose(), [geo]);
   return <mesh geometry={geo} position={[0, y, 0]} material={mat(m)} castShadow={castShadow} receiveShadow />;
 }
 
@@ -200,6 +201,7 @@ function Cable({ points, r, m = 'rubber' }: { points: V3[]; r: number; m?: MatKe
     return new THREE.TubeGeometry(curve, 48, r, 10, false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [JSON.stringify(points), r]);
+  useEffect(() => () => geo.dispose(), [geo]);
   return <mesh geometry={geo} material={mat(m)} castShadow receiveShadow />;
 }
 
@@ -215,7 +217,7 @@ function MapWafer({ groupRef }: { groupRef: React.RefObject<THREE.Group | null> 
   const state = useSimState();
   const choices = useApp((s) => s.choices);
   const map = useWaferMap(choices);
-  const b = useProgressBucket(500);
+  const b = useProgressBucket(240);
   const n = revealCount(b);
   const size = 768;
   const look: WaferLook = useMemo(

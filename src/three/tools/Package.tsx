@@ -14,7 +14,7 @@
  * Wires, loop height and bond sizes are exaggerated so they read at this scale.
  * Motion is a pure function of step progress p.
  */
-import { useLayoutEffect, useMemo, useRef } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
@@ -136,10 +136,18 @@ function useDieMaterials(summary: WaferSummary) {
     // the die look only depends on the finished films and pattern level
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [summary.films.map((f) => `${f.mat}:${Math.round(f.nm)}`).join(','), summary.pattern]);
-  return useMemo(() => {
+  const mats = useMemo(() => {
     const top = new THREE.MeshStandardMaterial({ map: tex, metalness: 0.35, roughness: 0.28 });
     return [dieSideMat, dieSideMat, top, dieSideMat, dieSideMat, dieSideMat];
   }, [tex]);
+  useEffect(
+    () => () => {
+      mats[2].dispose();
+      tex.dispose();
+    },
+    [mats, tex],
+  );
+  return mats;
 }
 
 // ───────────────────────────── static geometry ─────────────────────────────
@@ -350,6 +358,13 @@ export default function Package({ variant }: ToolProps) {
       if (m) m.geometry.setDrawRange(0, Infinity);
     });
   }, [wires]);
+  useEffect(
+    () => () => {
+      wires.forEach((w) => w.geo.dispose());
+      [dieGeo, chaseGeo, lf.copper, lf.plating, lf.holes].forEach((g) => g.dispose());
+    },
+    [wires, dieGeo, chaseGeo, lf],
+  );
 
   useProgressFrame((p) => {
     // ── attach ──

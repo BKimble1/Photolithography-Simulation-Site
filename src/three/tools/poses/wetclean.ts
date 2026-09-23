@@ -1,4 +1,4 @@
 import type { ToolPose } from '../../poses';
 
 /** Camera pose(s) for the WetClean scene (metres). Variant poses override the default. */
-export const POSE: ToolPose = { pos: [0.8, 1.45, 1.05], target: [0, 1.0, 0] };
+export const POSE: ToolPose = { pos: [0.78, 2.12, 1.12], target: [0, 0.97, -0.06] };

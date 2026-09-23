@@ -12,7 +12,7 @@
  * readable pace, the rest fast-forward. Motion is a pure function of progress p (water
  * droplets use wall-clock time as idle motion).
  */
-import { useLayoutEffect, useMemo, useRef } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { WAFER } from '../../sim/dies';
 import { useSimState } from '../../state/sim';
@@ -265,6 +265,7 @@ function Spindle({ groupRef, bladeRef, waterRef, dropsRef }: {
     g.rotateX(Math.PI / 2);
     return g;
   }, []);
+  useEffect(() => () => hood.dispose(), [hood]);
   return (
     <group ref={groupRef}>
       {/* origin = blade centre; spindle axis along z, housing extends toward −z */}
@@ -332,6 +333,7 @@ export default function Dicing({ variant }: ToolProps) {
   void variant;
   const state = useSimState();
   const frameGeo = useRingFrameGeometry();
+  useEffect(() => () => frameGeo.dispose(), [frameGeo]);
   const table = useRef<THREE.Group>(null);
   const rot = useRef<THREE.Group>(null);
   const spindle = useRef<THREE.Group>(null);

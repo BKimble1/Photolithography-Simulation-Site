@@ -47,7 +47,9 @@ const R_MIN = 0.045;
 const COLUMN_TOP = 0.86;
 
 // Pre-aligner (chuck top = AL.y); edge sensor on its +x side.
-const AL = { x: 0.37, y: 1.02, z: -0.76 };
+const AL = { x: 0.37, y: 1.02, z: -0.74 };
+/** Direction (rotation.y) from the robot to the aligner; the edge sensor sits on the far side. */
+const SENSOR_ROT = Math.atan2(-(AL.z - -0.45), AL.x - 0);
 
 // Port-door motion (dock variant): unlatch, pull back, lower.
 const DOOR_BACK = 0.075;
@@ -515,7 +517,7 @@ function Efem() {
       <Box size={[0.2, 0.012, 0.004]} position={[0.32, 0.78, EF.z0 + 0.092]} m="panelGray" radius={0.002} castShadow={false} />
       {/* right side: only a low panel; the upper side is cut away to show the mechanism */}
       <Box size={[0.03, EF.deck + 0.02, D]} position={[EF.x1 - 0.015, (EF.deck + 0.02) / 2, zc]} m="panel" radius={0.008} />
-      <Box size={[0.04, 0.04, D]} position={[EF.x1, EF.top - 0.02, zc]} m="steelSatin" radius={0.006} />
+      <Box size={[0.04, 0.04, D]} position={[EF.x1, EF.top - 0.02, zc]} m="steelSatin" radius={0.006} castShadow={false} />
       {/* perforated deck (return air) */}
       <mesh position={[xc, EF.deck, zc]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
         <planeGeometry args={[W - 0.06, D - 0.06]} />
@@ -613,12 +615,14 @@ function Aligner({ chuckRef, children }: { chuckRef: Ref<THREE.Group>; children?
         </mesh>
         {children}
       </group>
-      {/* notch / edge sensor: emitter above and line sensor below the wafer edge (+x side) */}
-      <group position={[0.15, top, 0]}>
-        <Box size={[0.08, 0.03, 0.05]} position={[0, -0.03, 0]} m="black" radius={0.006} />
-        <Box size={[0.02, 0.1, 0.05]} position={[0.055, -0.005, 0]} m="black" radius={0.006} />
-        <Box size={[0.085, 0.018, 0.05]} position={[0.018, 0.03, 0]} m="black" radius={0.006} />
-        <Box size={[0.012, 0.003, 0.012]} position={[-0.012, 0.0205, 0]} m="glassDark" radius={0.001} castShadow={false} />
+      {/* notch / edge sensor: emitter above and line sensor below the wafer edge (far side from the robot) */}
+      <group rotation={[0, SENSOR_ROT, 0]}>
+        <group position={[0.15, top, 0]}>
+          <Box size={[0.08, 0.03, 0.05]} position={[0, -0.03, 0]} m="black" radius={0.006} />
+          <Box size={[0.02, 0.1, 0.05]} position={[0.055, -0.005, 0]} m="black" radius={0.006} />
+          <Box size={[0.085, 0.018, 0.05]} position={[0.018, 0.03, 0]} m="black" radius={0.006} />
+          <Box size={[0.012, 0.003, 0.012]} position={[-0.012, 0.0205, 0]} m="glassDark" radius={0.001} castShadow={false} />
+        </group>
       </group>
     </group>
   );
@@ -672,33 +676,41 @@ const PHI = (tx: number, tz: number) => Math.atan2(-(tz - RB.z), tx - RB.x);
 const RW = (tx: number, tz: number) => Math.hypot(tx - RB.x, tz - RB.z);
 const PHI_FOUP = PHI(PORT_X, DOCK_Z);
 const R_FOUP = RW(PORT_X, DOCK_Z) - BLADE_OFF;
-const PHI_AL = PHI(AL.x, AL.z);
-const PHI_PARK = PHI(-0.6, -0.55); // idle: blade toward the left wall, clear of the port
-const R_AL = RW(AL.x, AL.z) - BLADE_OFF;
 const TWO_PI = Math.PI * 2;
+/** The angle equivalent to a (mod 2π) closest to ref, so the arm turns the short way round. */
+const near = (a: number, ref: number) => a + TWO_PI * Math.round((ref - a) / TWO_PI);
+const PHI_AL = near(PHI(AL.x, AL.z), PHI_FOUP);
+const PHI_PARK = near(PHI(-0.5, -0.85), PHI_AL); // idle: blade toward the back-left corner, clear of the ports
+const PARK_Y = AL.y - 0.035; // idle blade height (below the aligner's wafer)
+const R_AL = RW(AL.x, AL.z) - BLADE_OFF;
 /** Notch angle at placement, and the pre-aligner turn that brings the notch to +z after a full scan. */
 const PSI_PLACE = PSI0 + (PHI_AL - PHI_FOUP);
 const ALIGN_TURN = TWO_PI + (((-PSI_PLACE % TWO_PI) + TWO_PI) % TWO_PI);
 
-/** Robot state for the 'robot' variant at progress p. */
+/** Robot state for the 'robot' variant at progress p (starts and ends in the parked pose). */
 function transferPose(p: number) {
   const inY = SLOT_Y - 0.003; // blade top when sliding in under the wafer
   const upY = SLOT_Y + 0.006; // after the pick lift
   const alHi = AL.y + 0.006;
   const alLo = AL.y - 0.005;
   let r = R_MIN;
-  if (p < 0.2) r = lerp(R_MIN, R_FOUP, smooth(p, 0.06, 0.2));
+  if (p < 0.2) r = lerp(R_MIN, R_FOUP, smooth(p, 0.07, 0.2));
   else if (p < 0.26) r = R_FOUP;
   else if (p < 0.4) r = lerp(R_FOUP, R_MIN, smooth(p, 0.26, 0.38));
   else if (p < 0.5) r = R_MIN;
   else if (p < 0.6) r = lerp(R_MIN, R_AL, smooth(p, 0.5, 0.58));
   else r = lerp(R_AL, R_MIN, smooth(p, 0.62, 0.71));
-  const phi = lerp(PHI_FOUP, PHI_AL, smooth(p, 0.38, 0.5));
-  let y = inY;
-  if (p < 0.26) y = lerp(inY, upY, smooth(p, 0.2, 0.26));
+  // turn from the park direction to the pod (the short way round), then to the aligner, then back to park
+  let phi: number;
+  if (p < 0.07) phi = lerp(PHI_PARK, near(PHI_FOUP, PHI_PARK), smooth(p, 0, 0.07));
+  else if (p < 0.71) phi = lerp(PHI_FOUP, PHI_AL, smooth(p, 0.38, 0.5));
+  else phi = lerp(PHI_AL, PHI_PARK, smooth(p, 0.71, 0.84));
+  let y: number;
+  if (p < 0.07) y = lerp(PARK_Y, inY, smooth(p, 0, 0.07));
+  else if (p < 0.26) y = lerp(inY, upY, smooth(p, 0.2, 0.26));
   else if (p < 0.5) y = lerp(upY, alHi, smooth(p, 0.38, 0.5));
-  else if (p < 0.62) y = lerp(alHi, alLo, smooth(p, 0.58, 0.62));
-  else y = lerp(alLo, alLo + 0.04, smooth(p, 0.74, 0.86));
+  else if (p < 0.71) y = lerp(alHi, alLo, smooth(p, 0.58, 0.62));
+  else y = lerp(alLo, PARK_Y, smooth(p, 0.74, 0.86));
   return { phi, r, y };
 }
 
@@ -760,7 +772,7 @@ export default function Foup({ variant }: ToolProps) {
         if (p < 0.5) podDoorRef.current.position.set(PORT_X, FOUP_Y + drop + 0.166, podZ + FRONT);
         else podDoorRef.current.position.set(PORT_X, FOUP_Y + 0.166 - down, DOCK_Z + FRONT - back);
       }
-      poseArm(arm, PHI_PARK, R_MIN, SLOT_Y - 0.16);
+      poseArm(arm, PHI_PARK, R_MIN, PARK_Y);
     } else {
       // ── robot: pick from the pod, place on the pre-aligner, find the notch ──
       const { phi, r, y } = transferPose(p);
