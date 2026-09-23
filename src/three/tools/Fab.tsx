@@ -1181,6 +1181,29 @@ interface CutMats {
   byBase: Map<THREE.Material, THREE.Material>;
 }
 
+/**
+ * A housing's material as drawn opened: clipped, and two-sided so the inside shows through
+ * the cut. Back faces are drawn a hair deeper than front faces (one pixel's depth slope, as a
+ * polygon offset would): where one part rests on another (a roof unit on the housing top, the
+ * housing on its plinth) the underside and the surface below lie in one plane, and without
+ * the offset the two would z-fight wherever the cut lets the camera see them.
+ */
+function cutMaterial(base: THREE.Material, planes: THREE.Plane[]): THREE.Material {
+  const cm = base.clone();
+  cm.side = THREE.DoubleSide;
+  cm.clippingPlanes = planes;
+  cm.clipIntersection = true;
+  cm.onBeforeCompile = (sh, r) => {
+    base.onBeforeCompile(sh, r);
+    sh.fragmentShader = sh.fragmentShader.replace(
+      '#include <clipping_planes_fragment>',
+      '#include <clipping_planes_fragment>\n\tgl_FragDepth = gl_FrontFacing ? gl_FragCoord.z : gl_FragCoord.z + fwidth(gl_FragCoord.z) + 2.5e-7;',
+    );
+  };
+  cm.customProgramCacheKey = () => base.customProgramCacheKey() + ':cut';
+  return cm;
+}
+
 export interface FabPicking {
   hovered: SceneId | null;
   selected: SceneId | null;
@@ -1314,10 +1337,7 @@ export function FabScene({ highlight, hero, picking }: { highlight?: SceneId; he
           mesh.userData.base = base;
           let cm = byBase.get(base);
           if (!cm) {
-            cm = base.clone();
-            cm.side = THREE.DoubleSide;
-            cm.clippingPlanes = planes;
-            cm.clipIntersection = true;
+            cm = cutMaterial(base, planes);
             byBase.set(base, cm);
           }
           mesh.material = cm;
@@ -1355,10 +1375,7 @@ export function FabScene({ highlight, hero, picking }: { highlight?: SceneId; he
       const warm = new THREE.Group();
       const planes = [new THREE.Plane(), new THREE.Plane()];
       bases.forEach((mesh, base) => {
-        const cm = base.clone();
-        cm.side = THREE.DoubleSide;
-        cm.clippingPlanes = planes;
-        cm.clipIntersection = true;
+        const cm = cutMaterial(base, planes);
         const m = new THREE.Mesh(mesh.geometry, cm);
         m.castShadow = mesh.castShadow;
         m.receiveShadow = mesh.receiveShadow;
