@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { STEPS } from '../../content/steps';
 import { BRIDGED } from '../tools';
 import { FORK_Z, makeFrame, ROUTES, spinProfile, transfer } from '../tools/trackMotion';
+import { exposurePose, FIELD_M, makeExposurePose, markPose, stageBases } from '../tools/scannerMotion';
 import { handoverAt, type Leg } from './flights';
 import { initialTier } from './quality';
 import { evalTrack, makeSample } from './tracks';
@@ -56,6 +57,61 @@ describe('track: one wafer, carried', () => {
       const total = 12 * ((0.39 - 0.31) / 2 + (0.84 - 0.39) + (0.97 - 0.84) / 2) * w;
       expect(Math.abs(nominal - total) / total).toBeLessThan(0.08);
     }
+  });
+});
+
+describe('scanner: the stages move, they never jump', () => {
+  /** Largest move of a path between two progress samples 1e-5 apart (a jump shows as a step). */
+  const worstStep = (at: (p: number) => [number, number, number]) => {
+    let prev = at(0);
+    let worst = 0;
+    for (let p = 1e-5; p <= 1; p += 1e-5) {
+      const q = at(p);
+      worst = Math.max(worst, dist(prev, q));
+      prev = q;
+    }
+    return worst;
+  };
+
+  it('step and scan is one continuous meander: each scan starts where the last one ended', () => {
+    const e = makeExposurePose();
+    const stage = worstStep((p) => {
+      exposurePose(p, e);
+      return [e.x, 0, e.z];
+    });
+    // at 1e-5 of an 11 s lesson the fastest step moves well under a millimetre; the old path
+    // jumped half a field (16.5 mm) at the start and end of every scan
+    expect(stage, 'wafer stage (m)').toBeLessThan(0.002);
+    const reticle = worstStep((p) => {
+      exposurePose(p, e);
+      return [0, 0, e.scan];
+    });
+    expect(reticle, 'reticle stage (m, wafer scale)').toBeLessThan(0.002);
+    // and every field is scanned: the fields exposed rise steadily to all of them
+    let last = 0;
+    for (let p = 0; p <= 1; p += 1e-3) {
+      exposurePose(p, e);
+      expect(e.done).toBeGreaterThanOrEqual(last);
+      last = e.done;
+    }
+    expect(last).toBe(FIELD_M.length);
+  });
+
+  it('the chuck exchange and the alignment-mark visits are continuous too', () => {
+    const a = { x: 0, y: 0, z: 0, set(x: number, y: number, z: number) { this.x = x; this.y = y; this.z = z; } };
+    const b = { ...a, set: a.set };
+    expect(
+      worstStep((p) => {
+        stageBases('expose', p, a, b);
+        return [a.x, a.y, a.z];
+      }),
+    ).toBeLessThan(0.002);
+    expect(
+      worstStep((p) => {
+        const m = markPose(p, 0.1, 0.8);
+        return [m.x, 0, m.z];
+      }),
+    ).toBeLessThan(0.002);
   });
 });
 

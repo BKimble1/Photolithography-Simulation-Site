@@ -19,12 +19,13 @@ import { useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { FIELDS, WAFER } from '../../sim/dies';
 import { useSimState, useStep } from '../../state/sim';
-import { lerp, seg, smooth, useProgressFrame } from '../anim';
+import { lerp, smooth, useProgressFrame } from '../anim';
 import { MAT, type MatKey } from '../materials';
 import { Box, Cyl, Lathe, LightTower, ScaraRobot, StandaloneOnly } from '../kit/parts';
-import { Wafer } from '../wafer/Wafer';
+import { Wafer, WaferFraming } from '../wafer/Wafer';
 import type { ToolProps } from './index';
 import { useOverlay } from '../../state/presentation';
+import { APPROACH_FROM, EXPOSE_TO, exposurePose, LENS_X, makeExposurePose, markPose, MEAS_X, stageBases } from './scannerMotion';
 
 // ───────────────────────────── layout (metres) ─────────────────────────────
 //
@@ -34,8 +35,6 @@ import { useOverlay } from '../../state/presentation';
 
 const GRANITE_TOP = 0.66;
 const WAFER_Y = GRANITE_TOP + 0.075;
-const LENS_X = 0.3;
-const MEAS_X = -0.4;
 const RETICLE_Y = 2.02;
 /** Underside of the last lens element (the water-filled gap is drawn far larger than it is). */
 const LENS_Y0 = WAFER_Y + 0.02;
@@ -323,44 +322,6 @@ function ReticleLibrary() {
   );
 }
 
-/** Field positions (m) relative to the wafer centre, in exposure order. */
-const FIELD_M = FIELDS.map((f) => ({ x: f.x / 1000, y: f.y / 1000, h: f.h / 1000 }));
-
-/** Alignment marks visited under the sensor (wafer-centre offsets, m) and the measure schedule. */
-const MARKS: [number, number][] = [
-  [0.1, 0.08],
-  [-0.1, 0.09],
-  [-0.09, -0.1],
-  [0.11, -0.08],
-];
-/**
- * The stage offset while marks are measured over p ∈ [a, b]: from the home position (wafer
- * centre under the sensor) to each mark in turn, and back home afterwards (by b + 0.13), so
- * the stage is where the next lesson finds it.
- */
-function markPose(p: number, a: number, b: number): { x: number; z: number; dwell: boolean } {
-  const u = seg(p, a, b) * MARKS.length;
-  const k = Math.min(MARKS.length - 1, Math.floor(u));
-  const [mx, my] = MARKS[k];
-  const prev: [number, number] = k === 0 ? [0, 0] : MARKS[k - 1];
-  const tt = smooth(u - k, 0, 0.5);
-  const home = smooth(p, b + 0.02, b + 0.13);
-  return { x: -lerp(prev[0], mx, tt) * (1 - home), z: lerp(prev[1], my, tt) * (1 - home), dwell: p > a && p < b && u - k > 0.55 };
-}
-
-/**
- * The dual-stage exchange: the scanner measures a wafer on one chuck while it exposes another
- * on the second, then the two swap places, passing around each other. Our wafer is measured
- * (and waits during the reticle load) on the measure side, and is swapped under the lens at the
- * start of the exposure. Returns the two chucks' positions at progress p of a lesson.
- */
-function stageBases(v: string, p: number, ours: THREE.Vector3, other: THREE.Vector3) {
-  const swap = v === 'expose' ? smooth(p, 0, 0.07) : 0;
-  const around = Math.sin(Math.PI * swap) * 0.32;
-  ours.set(lerp(MEAS_X, LENS_X, swap), 0, around);
-  other.set(lerp(LENS_X, MEAS_X, swap), 0, -around);
-}
-
 export default function Scanner({ variant }: ToolProps) {
   const state = useSimState();
   const { id } = useStep();
@@ -382,10 +343,10 @@ export default function Scanner({ variant }: ToolProps) {
   const beam = useRef<THREE.Group>(null);
   const alignSpot = useRef<THREE.Mesh>(null);
 
-  // Exposure schedule: fields exposed over p ∈ [0.08, 0.86]; the wafer shows each field as
-  // the slit sweeps it (live, in its shader: no repaint per field)
-  const nF = FIELD_M.length;
+  // Exposure schedule (scannerMotion.ts): the wafer shows each field as the slit sweeps it (live,
+  // in its shader: no repaint per field)
   const liveFields = useMemo(() => ({ on: false, done: 0 }), []);
+  const pose = useMemo(makeExposurePose, []);
   const libDx = LIB_X - LENS_X;
 
   useProgressFrame((p) => {
@@ -397,28 +358,16 @@ export default function Scanner({ variant }: ToolProps) {
     if (exposeStage.current) {
       let x = 0,
         z = 0,
-        scanFrac = 0,
         scanning = false;
       if (exposing) {
-        const f = seg(p, 0.08, 0.86) * nF;
-        const i = Math.min(nF - 1, Math.floor(f));
-        const within = f - i;
-        const fld = FIELD_M[i];
-        // step (first 30% of each field period), then scan (70%)
-        const stepT = Math.min(1, within / 0.3);
-        // (the first step starts from the home position the exchange delivered the wafer to)
-        const prev = i === 0 ? { x: 0, y: 0 } : FIELD_M[i - 1];
-        const sx = lerp(prev.x, fld.x, p < 0.08 ? 0 : smooth(stepT, 0, 1));
-        const sy = lerp(prev.y, fld.y, p < 0.08 ? 0 : smooth(stepT, 0, 1));
-        scanFrac = within < 0.3 ? 0 : (within - 0.3) / 0.7;
-        scanning = within >= 0.3 && p > 0.08 && p < 0.86;
-        const dir = i % 2 === 0 ? 1 : -1;
-        const scanOffset = scanning ? (scanFrac - 0.5) * fld.h * dir : 0;
-        liveFields.done = p >= 0.86 ? nF : p < 0.08 ? 0 : i + scanFrac;
-        // The stage moves so that the point under the lens is (field centre + scan offset)
-        x = -sx;
-        z = sy + scanOffset;
-        if (reticleStage.current) reticleStage.current.position.z = -scanOffset * 4 * 0.25; // 4× faster, drawn at 1/4 scale travel
+        // the stage moves so that the point under the lens is (field centre + scan offset); the
+        // reticle scans the other way, 4× faster (drawn at 1/4 scale travel)
+        exposurePose(p, pose);
+        x = pose.x;
+        z = pose.z;
+        scanning = pose.scanning;
+        liveFields.done = pose.done;
+        if (reticleStage.current) reticleStage.current.position.z = -pose.scan * 4 * 0.25;
       } else if (aligning) {
         // measure marks at a few positions under the alignment sensor
         const m = markPose(p, 0.1, 0.8);
@@ -430,7 +379,7 @@ export default function Scanner({ variant }: ToolProps) {
       if (slit.current) {
         slit.current.visible = scanning;
       }
-      if (beam.current) beam.current.visible = lightPath && (exposing ? scanning || p < 0.08 || p > 0.86 : true);
+      if (beam.current) beam.current.visible = lightPath && (exposing ? scanning || p < APPROACH_FROM || p > EXPOSE_TO : true);
     }
     // the other stage measures the next wafer while yours is exposed
     if (measStage.current) {
@@ -484,6 +433,8 @@ export default function Scanner({ variant }: ToolProps) {
       </group>
       {/* wafer stages (see stageBases) */}
       <group ref={ourBase} position={[MEAS_X, 0, 0]}>
+        {/* shots frame the wafer on its chuck's home position, not following each step and scan */}
+        <WaferFraming position={[0, WAFER_Y, 0]} />
         <group ref={exposeStage}>
           <Stage>
             <Wafer anchor look={{ summary: state.wafer, showParticles: true }} liveFields={liveFields} fieldRects={FIELDS} position={[0, WAFER_Y, 0]} size={768} />
