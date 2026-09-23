@@ -1,0 +1,110 @@
+import { expect, test, type Page } from '@playwright/test';
+import { advance, sampleFrame, sampleFrames, watchErrors, worstJump, pictureChange } from './helpers';
+
+/**
+ * Watch, frame by frame (round three): the silent moves between segments are planned once and
+ * reused (and planned again when the viewport changes); a seek shows exactly the frame that
+ * playing would; chapter jumps land on a loaded, consistent scene; the learner's wafer is
+ * never on screen twice.
+ */
+
+type FW = {
+  __fabFilm: {
+    filmPlayer: () => { tl: { segments: { start: number; dur: number; gapAfter: number; station: string | null }[]; chapters: { start: number }[] } } | null;
+    filmControls: { seek: (t: number) => void; play: () => void; pause: () => void };
+  };
+  __fab: { gapStats: { planned: number; reused: number }; readyStations: Set<string> };
+};
+
+async function openFilm(page: Page, t: number) {
+  await page.goto('/');
+  await page.evaluate(() => {
+    localStorage.clear();
+    sessionStorage.clear();
+  });
+  await page.goto(`/?watch&t=${t}&virt=1`);
+  await page.waitForFunction(() => !!(window as unknown as FW).__fabFilm?.filmPlayer() && !!(window as unknown as { __fabAdvance?: unknown }).__fabAdvance, undefined, { timeout: 120_000 });
+  await advance(page, 10);
+}
+
+const segments = (page: Page) => page.evaluate(() => (window as unknown as FW).__fabFilm.filmPlayer()!.tl.segments.map((s) => ({ start: s.start, dur: s.dur, gap: s.gapAfter, station: s.station })));
+
+test('a gap move is planned once and reused; a new viewport plans it again', async ({ page }, ti) => {
+  test.skip(ti.project.name !== 'desktop', 'once');
+  test.setTimeout(600_000);
+  const errors = watchErrors(page);
+  await openFilm(page, 0);
+  const segs = await segments(page);
+  const i = segs.findIndex((s, k) => k > 3 && segs[k + 1] && s.station && segs[k + 1].station && s.station !== segs[k + 1].station);
+  await page.evaluate((t) => {
+    const f = (window as unknown as FW).__fabFilm;
+    f.filmControls.seek(t);
+    f.filmControls.pause();
+  }, segs[i].start + segs[i].dur + 0.2);
+  await advance(page, 20);
+  const a = await page.evaluate(() => ({ ...(window as unknown as FW).__fab.gapStats }));
+  await page.evaluate(() => (window as unknown as FW).__fabFilm.filmControls.play());
+  await advance(page, 40);
+  const b = await page.evaluate(() => ({ ...(window as unknown as FW).__fab.gapStats }));
+  expect(b.planned - a.planned, 'no new plans while crossing the same gap').toBe(0);
+  expect(b.reused - a.reused, 'the plan is reused every frame').toBeGreaterThanOrEqual(30);
+  // a different viewport: the move is planned again for it
+  await page.evaluate(() => (window as unknown as FW).__fabFilm.filmControls.seek((window as unknown as { __t: number }).__t ?? 0));
+  await page.setViewportSize({ width: 900, height: 900 });
+  await page.evaluate((t) => (window as unknown as FW).__fabFilm.filmControls.seek(t), segs[i].start + segs[i].dur + 0.4);
+  await advance(page, 6);
+  const c = await page.evaluate(() => ({ ...(window as unknown as FW).__fab.gapStats }));
+  expect(c.planned - b.planned).toBeGreaterThanOrEqual(1);
+  expect(errors).toEqual([]);
+});
+
+test('a seek shows exactly the frame that playing would, and the moves are continuous', async ({ page }, ti) => {
+  test.skip(ti.project.name !== 'desktop', 'once');
+  test.setTimeout(900_000);
+  const errors = watchErrors(page);
+  await openFilm(page, 0);
+  const segs = await segments(page);
+  const i = segs.findIndex((s, k) => k > 5 && segs[k + 1] && s.station !== segs[k + 1].station);
+  const gapStart = segs[i].start + segs[i].dur;
+  // play from just before the move, through it
+  await page.evaluate((t) => {
+    const f = (window as unknown as FW).__fabFilm;
+    f.filmControls.seek(t);
+    f.filmControls.play();
+  }, gapStart - 1);
+  await advance(page, 20);
+  const played = await sampleFrames(page, 60);
+  for (const f of played) expect(f.wafers.filter((w) => w.onScreen).length, 'one learner wafer on screen at most').toBeLessThanOrEqual(1);
+  expect(worstJump(played, 1).ratio, 'the move is continuous').toBeLessThan(4);
+  // the time of the 40th played frame, reached by a seek instead
+  const t40 = gapStart - 1 + (20 + 40) / 30;
+  await page.evaluate((t) => {
+    const f = (window as unknown as FW).__fabFilm;
+    f.filmControls.pause();
+    f.filmControls.seek(t);
+  }, t40 - 1 / 30);
+  await advance(page, 1);
+  const sought = await sampleFrame(page);
+  expect(pictureChange(sought, played[39]), 'the sought frame matches the played one').toBeLessThan(1.5);
+  expect(errors).toEqual([]);
+});
+
+test('chapter jumps land on a loaded, consistent scene', async ({ page }, ti) => {
+  test.skip(ti.project.name !== 'desktop', 'once');
+  test.setTimeout(900_000);
+  const errors = watchErrors(page);
+  await openFilm(page, 0);
+  const chapters = await page.evaluate(() => (window as unknown as FW).__fabFilm.filmPlayer()!.tl.chapters.map((c) => c.start));
+  for (const t of [chapters[3], chapters[1], chapters[chapters.length - 2]]) {
+    await page.evaluate((x) => (window as unknown as FW).__fabFilm.filmControls.seek(x + 2), t);
+    // until the machines the new place needs are ready, the last picture is held
+    for (let k = 0; k < 40; k++) {
+      await advance(page, 3);
+      await page.waitForTimeout(100);
+    }
+    const f = await sampleFrames(page, 10);
+    for (const s of f) expect(s.wafers.filter((w) => w.onScreen).length).toBeLessThanOrEqual(1);
+    expect(worstJump(f, 1).ratio).toBeLessThan(4);
+  }
+  expect(errors).toEqual([]);
+});

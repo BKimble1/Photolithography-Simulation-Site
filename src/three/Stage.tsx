@@ -38,7 +38,7 @@ import { stageFocus, useStageInfo } from './stage/info';
 import { useExplore } from './stage/explore';
 import { DIAG, initialTier, quality, stepTier, TIERS, useQuality } from './stage/quality';
 import { stageTime, TEST_HOOKS, VIRTUAL_TIME } from './stage/time';
-import { toolComponent } from './tools';
+import { BRIDGED, toolComponent } from './tools';
 import { cutAmount, cutOpen, FabScene, proxyHidden, type FabPicking } from './tools/Fab';
 
 // ───────────────────────────── clocks ─────────────────────────────
@@ -187,11 +187,14 @@ function continuous(prev: Mount, next: Mount): boolean {
   const a = prev.pres;
   const b = next.pres;
   if (a.kind !== b.kind) return false;
-  if (b.kind === 'watch') return true;
+  const bridged = b.stepIndex === a.stepIndex + 1 && BRIDGED.has(`${FLOW[a.stepIndex].id}>${FLOW[b.stepIndex].id}`);
+  // the film plays every lesson through: a change of lesson is bridged or dissolved; within a
+  // lesson, it follows its own clock
+  if (b.kind === 'watch') return a.stepIndex === b.stepIndex || bridged;
   const pa = shownProgress(prev);
   const pb = b.progress.get();
   if (a.stepIndex === b.stepIndex) return Math.abs(pa - pb) < 0.02;
-  return b.kind === 'learn' && b.stepIndex === a.stepIndex + 1 && pa >= 0.999 && pb <= 0.001;
+  return b.kind === 'learn' && bridged && pa >= 0.999 && pb <= 0.001;
 }
 
 /** Decide which detailed machines are mounted, and what each one shows. */

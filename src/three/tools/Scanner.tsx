@@ -333,13 +333,32 @@ const MARKS: [number, number][] = [
   [-0.09, -0.1],
   [0.11, -0.08],
 ];
+/**
+ * The stage offset while marks are measured over p ∈ [a, b]: from the home position (wafer
+ * centre under the sensor) to each mark in turn, and back home afterwards (by b + 0.13), so
+ * the stage is where the next lesson finds it.
+ */
 function markPose(p: number, a: number, b: number): { x: number; z: number; dwell: boolean } {
   const u = seg(p, a, b) * MARKS.length;
   const k = Math.min(MARKS.length - 1, Math.floor(u));
   const [mx, my] = MARKS[k];
-  const prev = MARKS[Math.max(0, k - 1)];
+  const prev: [number, number] = k === 0 ? [0, 0] : MARKS[k - 1];
   const tt = smooth(u - k, 0, 0.5);
-  return { x: -lerp(prev[0], mx, k === 0 ? 1 : tt), z: lerp(prev[1], my, k === 0 ? 1 : tt), dwell: p > a && p < b && u - k > 0.55 };
+  const home = smooth(p, b + 0.02, b + 0.13);
+  return { x: -lerp(prev[0], mx, tt) * (1 - home), z: lerp(prev[1], my, tt) * (1 - home), dwell: p > a && p < b && u - k > 0.55 };
+}
+
+/**
+ * The dual-stage exchange: the scanner measures a wafer on one chuck while it exposes another
+ * on the second, then the two swap places, passing around each other. Our wafer is measured
+ * (and waits during the reticle load) on the measure side, and is swapped under the lens at the
+ * start of the exposure. Returns the two chucks' positions at progress p of a lesson.
+ */
+function stageBases(v: string, p: number, ours: THREE.Vector3, other: THREE.Vector3) {
+  const swap = v === 'expose' ? smooth(p, 0, 0.07) : 0;
+  const around = Math.sin(Math.PI * swap) * 0.32;
+  ours.set(lerp(MEAS_X, LENS_X, swap), 0, around);
+  other.set(lerp(LENS_X, MEAS_X, swap), 0, -around);
 }
 
 export default function Scanner({ variant }: ToolProps) {
@@ -354,6 +373,9 @@ export default function Scanner({ variant }: ToolProps) {
 
   const exposeStage = useRef<THREE.Group>(null);
   const measStage = useRef<THREE.Group>(null);
+  const ourBase = useRef<THREE.Group>(null);
+  const otherBase = useRef<THREE.Group>(null);
+  const bases = useMemo(() => ({ ours: new THREE.Vector3(), other: new THREE.Vector3() }), []);
   const reticleStage = useRef<THREE.Group>(null);
   const reticleHand = useRef<THREE.Group>(null);
   const fork = useRef<THREE.Group>(null);
@@ -367,6 +389,9 @@ export default function Scanner({ variant }: ToolProps) {
   const libDx = LIB_X - LENS_X;
 
   useProgressFrame((p) => {
+    stageBases(v, p, bases.ours, bases.other);
+    ourBase.current?.position.copy(bases.ours);
+    otherBase.current?.position.copy(bases.other);
     // ── exposure: step and scan ──
     if (exposeStage.current) {
       let x = 0,
@@ -380,9 +405,10 @@ export default function Scanner({ variant }: ToolProps) {
         const fld = FIELD_M[i];
         // step (first 30% of each field period), then scan (70%)
         const stepT = Math.min(1, within / 0.3);
-        const prev = FIELD_M[Math.max(0, i - 1)];
-        const sx = lerp(prev.x, fld.x, i === 0 ? 1 : smooth(stepT, 0, 1));
-        const sy = lerp(prev.y, fld.y, i === 0 ? 1 : smooth(stepT, 0, 1));
+        // (the first step starts from the home position the exchange delivered the wafer to)
+        const prev = i === 0 ? { x: 0, y: 0 } : FIELD_M[i - 1];
+        const sx = lerp(prev.x, fld.x, p < 0.08 ? 0 : smooth(stepT, 0, 1));
+        const sy = lerp(prev.y, fld.y, p < 0.08 ? 0 : smooth(stepT, 0, 1));
         scanFrac = within < 0.3 ? 0 : (within - 0.3) / 0.7;
         scanning = within >= 0.3 && p > 0.08 && p < 0.86;
         const dir = i % 2 === 0 ? 1 : -1;
@@ -424,8 +450,6 @@ export default function Scanner({ variant }: ToolProps) {
     }
   });
 
-  // The exposure stage carries the wafer; in 'align' view it sits under the sensor.
-  const stageBase: [number, number, number] = aligning ? [MEAS_X, 0, 0] : [LENS_X, 0, 0];
   return (
     <group>
       {/* floor */}
@@ -456,15 +480,15 @@ export default function Scanner({ variant }: ToolProps) {
           <meshBasicMaterial color="#ffd27a" transparent opacity={0.5} depthWrite={false} />
         </mesh>
       </group>
-      {/* wafer stages */}
-      <group position={stageBase}>
+      {/* wafer stages (see stageBases) */}
+      <group ref={ourBase} position={[MEAS_X, 0, 0]}>
         <group ref={exposeStage}>
           <Stage>
             <Wafer anchor look={{ summary: state.wafer, showParticles: true, exposedFields: exposing ? fieldsDone : 0, fields: FIELDS }} position={[0, WAFER_Y, 0]} size={768} />
           </Stage>
         </group>
       </group>
-      <group position={aligning ? [LENS_X, 0, 0] : [MEAS_X, 0, 0]}>
+      <group ref={otherBase} position={[LENS_X, 0, 0]}>
         <group ref={measStage}>
           <Stage>
             {exposing && (

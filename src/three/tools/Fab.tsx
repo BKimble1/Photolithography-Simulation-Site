@@ -18,8 +18,8 @@
  * violet status lens; the others show green. Vehicles move on wall-clock time (idle
  * motion) and stop under reduced motion.
  */
-import { useFrame } from '@react-three/fiber';
-import { useLayoutEffect, useMemo, useRef } from 'react';
+import { useFrame, useThree } from '@react-three/fiber';
+import { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 import { mergeGeometries, mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
@@ -1188,6 +1188,9 @@ export interface FabPicking {
   onSelect: (id: SceneId) => void;
 }
 
+/** Clipped material variants compiled in advance (kept, so their shader programs stay cached). */
+const warmMaterials: THREE.Material[] = [];
+
 export function FabScene({ highlight, hero, picking }: { highlight?: SceneId; hero?: boolean; picking?: FabPicking }) {
   const reduced = useReducedMotion();
   const built = useMemo(() => {
@@ -1327,6 +1330,50 @@ export function FabScene({ highlight, hero, picking }: { highlight?: SceneId; he
       c.planes[1].setFromNormalAndCoplanarPoint(cutTmp.n.set(0, -1, 0), cutTmp.p.set(0, yCut, 0)).applyMatrix4(cutTmp.m);
     });
   });
+  // The first time a housing opens, its clipped, two-sided materials would compile their
+  // shaders mid-approach (a stall on the way in). Compile those variants once, up front, while
+  // the bay is idle; the program cache keeps them for every later opening.
+  const gl = useThree((st) => st.gl);
+  const camera = useThree((st) => st.camera);
+  const scene = useThree((st) => st.scene);
+  useEffect(() => {
+    let done = false;
+    const run = () => {
+      if (done) return;
+      const bases = new Map<THREE.Material, THREE.Mesh>();
+      stationGroups.current.forEach((g, id) => {
+        if (!TOOL_POSES[id]?.cutaway) return;
+        g.traverse((o) => {
+          const mesh = o as THREE.Mesh;
+          if (!mesh.isMesh) return;
+          const base = (mesh.userData.base as THREE.Material) ?? (mesh.material as THREE.Material);
+          if (!Array.isArray(base) && !bases.has(base)) bases.set(base, mesh);
+        });
+      });
+      const warm = new THREE.Group();
+      const planes = [new THREE.Plane(), new THREE.Plane()];
+      bases.forEach((mesh, base) => {
+        const cm = base.clone();
+        cm.side = THREE.DoubleSide;
+        cm.clippingPlanes = planes;
+        cm.clipIntersection = true;
+        const m = new THREE.Mesh(mesh.geometry, cm);
+        m.castShadow = mesh.castShadow;
+        m.receiveShadow = mesh.receiveShadow;
+        warm.add(m);
+        warmMaterials.push(cm);
+      });
+      gl.compileAsync(warm, camera, scene).catch(() => {});
+    };
+    const idle = (window as unknown as { requestIdleCallback?: (f: () => void, o?: { timeout: number }) => number }).requestIdleCallback;
+    const h = idle ? idle(run, { timeout: 4000 }) : window.setTimeout(run, 1500);
+    return () => {
+      done = true;
+      if (!idle) window.clearTimeout(h);
+    };
+    // (once: the bay's materials do not change)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const restore = (g: THREE.Group, id: SceneId) => {
     g.traverse((o) => {
       const mesh = o as THREE.Mesh;

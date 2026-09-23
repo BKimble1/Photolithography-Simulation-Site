@@ -107,12 +107,12 @@ export const BEATS: Record<StepId, Beat[]> = {
     { p: 0.4, text: 'HMDS vapour primes the surface, making it water-repellent so that the resist will grip.' },
   ],
   coat: [
-    { p: 0, text: 'A nozzle dispenses a puddle of liquid resist onto the centre of the slowly turning wafer.', labels: [onWafer('Photoresist')] },
+    { p: 0, text: 'The robot sets the wafer on the spin chuck. A nozzle dispenses a puddle of liquid resist onto its centre.', labels: [onWafer('Photoresist')] },
     { p: 0.3, text: 'The wafer spins up to speed. Resist races outward across the surface, and the excess flies off the edge.' },
     { p: 0.72, text: 'A fine solvent jet trims the rim. The wafer now carries a light-sensitive film, ready for exposure.' },
   ],
   softbake: [
-    { p: 0, text: 'On a hot plate, most of the solvent evaporates out of the freshly coated resist.' },
+    { p: 0, text: 'The robot moves the wafer to a hot plate, where most of the solvent evaporates out of the fresh resist.' },
     { p: 0.55, text: 'As the solvent leaves, the film settles into a firmer, slightly thinner layer that exposes consistently.' },
   ],
   reticle: [
@@ -133,7 +133,7 @@ export const BEATS: Record<StepId, Beat[]> = {
     { p: 0.55, text: 'Where light struck, the resist has become soluble; where the chrome cast its shadow, it is unchanged.' },
   ],
   develop: [
-    { p: 0, text: 'Alkaline developer floods the wafer. This is a positive resist: watch what happens to the exposed areas.' },
+    { p: 0, text: 'In the develop cup, alkaline developer floods the wafer. This is a positive resist: watch the exposed areas.' },
     { p: 0.5, text: 'Watch the exposed areas wash away. Only the resist that stayed in shadow remains on the wafer.' },
     { p: 0.8, text: 'A rinse and a fast spin dry the wafer, leaving resist lines where the gates will be.' },
   ],

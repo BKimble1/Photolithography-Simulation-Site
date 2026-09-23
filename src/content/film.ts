@@ -41,7 +41,7 @@ export const FILM: FilmSegment[] = [
   { id: 'anneal', step: 'anneal', sync: { active: 0.45 } },
   { id: 'gatestack', step: 'gatestack', sync: { oxide: 0.3, poly: 0.72, switch: 0.9 } },
   { id: 'prime', step: 'prime', sync: { prime: 0.3 } },
-  { id: 'coat', step: 'coat', sync: { spin: 0.25, rim: 0.7 } },
+  { id: 'coat', step: 'coat', sync: { spin: 0.34, rim: 0.7 } },
   { id: 'softbake', step: 'softbake' },
   { id: 'reticle', step: 'reticle', sync: { chrome: 0.55 } },
   { id: 'align', step: 'align', sync: { correct: 0.5 }, lightPath: true },

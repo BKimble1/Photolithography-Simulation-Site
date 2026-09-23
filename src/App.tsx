@@ -12,6 +12,8 @@ import { Chapters, Compare, EuvExplainer, Legend, LookCloser, Recap } from './ui
 import { StepPanel } from './ui/StepPanel';
 import { FlatView, HAS_WEBGL, LabelLayer, LearnHud, StageHost } from './ui/Viewport';
 import { WatchHud } from './ui/Watch';
+import { Diag } from './ui/Diag';
+import { DIAG } from './three/stage/quality';
 
 function useKeyboard() {
   useEffect(() => {
@@ -144,6 +146,7 @@ export default function App() {
       {panel === 'legend' && <Legend />}
       {panel === 'euv' && <EuvExplainer />}
       {panel === 'recap' && <Recap />}
+      {DIAG && <Diag />}
     </div>
   );
 }

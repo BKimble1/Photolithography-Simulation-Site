@@ -24,6 +24,14 @@ const TOOLS: Partial<Record<SceneId, ComponentType<ToolProps>>> = {
   scanner: lazy(() => import('./Scanner')),
 };
 
+/**
+ * Consecutive lessons at one machine whose animations are designed to join: the first ends
+ * exactly where the second begins (the same wafer, where it was; the same parts, as they were).
+ * Other same-machine changes (a different chamber opened, a different fixture) are dissolved
+ * by the director instead of cut.
+ */
+export const BRIDGED = new Set(['arrive>transfer', 'prime>coat', 'coat>softbake', 'peb>develop', 'reticle>align', 'align>expose', 'contact-align>contact-print']);
+
 /** The lazily loaded scene component of a tool (suspends while its module loads). */
 export function toolComponent(id: SceneId): ComponentType<ToolProps> | null {
   return TOOLS[id] ?? null;

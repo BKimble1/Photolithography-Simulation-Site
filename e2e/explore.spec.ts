@@ -5,7 +5,9 @@ import { advance, freshStart, waitForCanvas, waitForStage, watchErrors } from '.
 
 /**
  * A point on screen where pointing lands on the machine: its top face as seen from the camera,
- * checked against every machine's picking volume (the same padded footprints the bay uses).
+ * checked against every machine's picking volume (the same padded footprints the bay uses),
+ * and not covered by any of the page's own controls (the overview card, the header): the
+ * point must reach the canvas, as a real click or tap would.
  */
 async function screenPoint(page: Page, id: string) {
   return page.evaluate((m) => {
@@ -40,7 +42,11 @@ async function screenPoint(page: Page, id: string) {
             best = k;
           }
         }
-        if (best === m) return { x: canvas.left + ((p.x + 1) / 2) * canvas.width, y: canvas.top + ((1 - p.y) / 2) * canvas.height };
+        if (best !== m) continue;
+        const x = canvas.left + ((p.x + 1) / 2) * canvas.width;
+        const y = canvas.top + ((1 - p.y) / 2) * canvas.height;
+        if (document.elementFromPoint(x, y)?.tagName !== 'CANVAS') continue; // under the page's UI
+        return { x, y };
       }
     }
     return null;
@@ -74,10 +80,9 @@ test('every machine opens by pointing at it in the bay (click or tap)', async ({
   await waitForStage(page);
   await advance(page, 12);
   for (const id of MACHINES) {
-    // hide the overview card so it cannot cover a machine
-    await page.evaluate(() => document.querySelector('.explore-dock')?.setAttribute('style', 'display:none'));
+    // with the overview card and every other control where they are
     const pt = await screenPoint(page, id);
-    expect(pt, `${id} is visible and pickable from the overview`).toBeTruthy();
+    expect(pt, `${id} is visible and pickable from the overview, clear of the page's controls`).toBeTruthy();
     if (!pt) continue;
     if (hasTouch) await page.touchscreen.tap(pt.x, pt.y);
     else await page.mouse.click(pt.x, pt.y);
@@ -94,8 +99,8 @@ test('hovering names a machine; a drag of the view is not a click', async ({ pag
   await freshStart(page, '/?explore&virt=1');
   await waitForStage(page);
   await advance(page, 12);
-  await page.evaluate(() => document.querySelector('.explore-dock')?.setAttribute('style', 'display:none'));
   const pt = (await screenPoint(page, 'scanner'))!;
+  expect(pt, 'the scanner can be pointed at, clear of the page controls').toBeTruthy();
   await page.mouse.move(pt.x, pt.y);
   await advance(page, 3);
   await expect(page.locator('.lab3d', { hasText: MACHINE_INFO.scanner.name })).toHaveCSS('opacity', '1');

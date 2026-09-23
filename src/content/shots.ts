@@ -112,13 +112,13 @@ export const SHOTS: Partial<Record<StepId, Key[]>> = {
   // windows are in tools/Track.tsx: ROUTES).
   coat: [
     { p: 0, cam: shot('prime') },
-    { p: 0.04, cam: shot('prime') },
-    { p: 0.08, cam: shot('coat') },
+    { p: 0.06, cam: shot('prime') },
+    { p: 0.14, cam: shot('coat') },
   ],
   softbake: [
     { p: 0, cam: shot('coat') },
-    { p: 0.055, cam: shot('coat') },
-    { p: 0.11, cam: shot('bake') },
+    { p: 0.08, cam: shot('coat') },
+    { p: 0.18, cam: shot('bake') },
   ],
   // back from the scanner: onto the hot plate, then down into the layers before the lid closes
   peb: [
@@ -129,11 +129,11 @@ export const SHOTS: Partial<Record<StepId, Key[]>> = {
   ],
   develop: [
     { p: 0, cam: shot('bake') },
-    { p: 0.045, cam: shot('bake') },
-    { p: 0.09, cam: shot('develop') },
-    { p: 0.27, cam: waferTop },
-    { p: 0.37, cam: die },
-    { p: 0.47, cam: section },
+    { p: 0.07, cam: shot('bake') },
+    { p: 0.15, cam: shot('develop') },
+    { p: 0.32, cam: waferTop },
+    { p: 0.42, cam: die },
+    { p: 0.52, cam: section },
   ],
   // the second level repeats the loop; its copper and polish land 0.06 apart, so the dual-damascene
   // fill is shown where it can be seen, in the layers, and the polisher (seen twice already) is not

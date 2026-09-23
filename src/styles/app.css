@@ -2614,3 +2614,32 @@ a {
     transition-duration: 0.001ms !important;
   }
 }
+
+/* Developer diagnostics (?diag=1). */
+.diag {
+  position: fixed;
+  right: 8px;
+  bottom: 8px;
+  z-index: 50;
+  max-width: min(360px, calc(100vw - 16px));
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(20, 22, 26, 0.86);
+  color: #e8eaee;
+  font: 12px/1.45 ui-monospace, SFMono-Regular, Menlo, monospace;
+  pointer-events: auto;
+}
+.diag__r {
+  opacity: 0.7;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.diag__b {
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+}
+.diag__b .cmd {
+  color: #e8eaee;
+}

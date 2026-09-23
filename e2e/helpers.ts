@@ -105,3 +105,116 @@ export async function stageInfo(page: Page) {
 export function overlaps(a: { x: number; y: number; width: number; height: number }, b: { x: number; y: number; width: number; height: number }, tol = 0.5): boolean {
   return a.x < b.x + b.width - tol && b.x < a.x + a.width - tol && a.y < b.y + b.height - tol && b.y < a.y + a.height - tol;
 }
+
+// ───────────────────────────── frame-by-frame continuity (round three) ─────────────────────────────
+
+export interface FrameSample {
+  /** 16 × 16 mean luminance of the picture. */
+  grid: number[];
+  /** The learner's wafer as drawn: which machine shows it, where, and whether it is on screen. */
+  wafers: { station: string; pos: [number, number, number]; onScreen: boolean }[];
+  cam: [number, number, number];
+  target: [number, number, number];
+  fov: number;
+  space: string;
+  flying: boolean;
+}
+
+/** Render one harness frame and read back what it drew (the picture and the learner's wafers). */
+export async function sampleFrame(page: Page): Promise<FrameSample> {
+  return page.evaluate(() => {
+    type V3 = { x: number; y: number; z: number; clone(): V3; project(c: unknown): V3; set(x: number, y: number, z: number): V3 };
+    type O3 = { visible: boolean; parent: O3 | null; getWorldPosition(v: V3): V3 };
+    const w = window as unknown as {
+      __fabAdvance: (n: number) => void;
+      __fab: {
+        gl: { getContext: () => WebGL2RenderingContext };
+        camera: { position: V3; fov: number; getWorldDirection(v: V3): V3 };
+        waferRegistry: Map<string, O3>;
+        stationGroups: Map<string, O3>;
+        useStageInfo: { getState: () => { space: string; flying: boolean } };
+        THREE: { Vector3: new (x?: number, y?: number, z?: number) => V3 };
+      };
+    };
+    w.__fabAdvance(1);
+    const f = w.__fab;
+    const gl = f.gl.getContext();
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    const W = gl.drawingBufferWidth;
+    const H = gl.drawingBufferHeight;
+    const px = new Uint8Array(W * H * 4);
+    gl.readPixels(0, 0, W, H, gl.RGBA, gl.UNSIGNED_BYTE, px);
+    const N = 16;
+    const grid = new Array(N * N).fill(0);
+    const cnt = new Array(N * N).fill(0);
+    for (let y = 0; y < H; y += 3)
+      for (let x = 0; x < W; x += 3) {
+        const i = (y * W + x) * 4;
+        const g = Math.min(N - 1, Math.floor((y / H) * N)) * N + Math.min(N - 1, Math.floor((x / W) * N));
+        grid[g] += 0.2126 * px[i] + 0.7152 * px[i + 1] + 0.0722 * px[i + 2];
+        cnt[g]++;
+      }
+    const wafers: FrameSample['wafers'] = [];
+    const v = new f.THREE.Vector3();
+    f.waferRegistry.forEach((m, station) => {
+      let shown = true;
+      for (let o: O3 | null = m; o; o = o.parent) if (!o.visible) shown = false;
+      if (!shown) return;
+      m.getWorldPosition(v);
+      const n = v.clone().project(f.camera);
+      wafers.push({ station, pos: [v.x, v.y, v.z], onScreen: n.z < 1 && Math.abs(n.x) < 1 && Math.abs(n.y) < 1 });
+    });
+    const d = f.camera.getWorldDirection(new f.THREE.Vector3());
+    const c = f.camera.position;
+    const info = f.useStageInfo.getState();
+    return {
+      grid: grid.map((g, i) => g / Math.max(1, cnt[i])),
+      wafers,
+      cam: [c.x, c.y, c.z],
+      target: [c.x + d.x, c.y + d.y, c.z + d.z],
+      fov: f.camera.fov,
+      space: info.space,
+      flying: info.flying,
+    } as FrameSample;
+  });
+}
+
+export async function sampleFrames(page: Page, n: number): Promise<FrameSample[]> {
+  const out: FrameSample[] = [];
+  for (let i = 0; i < n; i++) out.push(await sampleFrame(page));
+  return out;
+}
+
+/** Mean absolute change of the luminance grid between two frames (0–255). */
+export const pictureChange = (a: FrameSample, b: FrameSample) => a.grid.reduce((s, v, i) => s + Math.abs(v - b.grid[i]), 0) / a.grid.length;
+
+/**
+ * The worst one-frame picture change relative to the frames around it: a jump shows as a
+ * frame that changes far more than its neighbours do (continuous motion changes steadily).
+ */
+export function worstJump(frames: FrameSample[], from = 1): { at: number; change: number; ratio: number } {
+  const ch = frames.map((f, i) => (i ? pictureChange(frames[i - 1], f) : 0));
+  let worst = { at: -1, change: 0, ratio: 0 };
+  for (let k = Math.max(1, from); k < frames.length; k++) {
+    const around = [...ch.slice(Math.max(1, k - 4), k), ...ch.slice(k + 1, k + 5)].sort((a, b) => a - b);
+    const ref = Math.max(0.35, around[Math.floor(around.length / 2)] ?? 0);
+    const r = ch[k] / ref;
+    if (r > worst.ratio) worst = { at: k, change: ch[k], ratio: r };
+  }
+  return worst;
+}
+
+/** Largest distance the learner's wafer (at `station`) moves between consecutive frames. */
+export function maxWaferStep(frames: FrameSample[], station: string): number {
+  let worst = 0;
+  for (let k = 1; k < frames.length; k++) {
+    const a = frames[k - 1].wafers.find((w) => w.station === station);
+    const b = frames[k].wafers.find((w) => w.station === station);
+    if (a && b) worst = Math.max(worst, Math.hypot(a.pos[0] - b.pos[0], a.pos[1] - b.pos[1], a.pos[2] - b.pos[2]));
+  }
+  return worst;
+}
+
+export async function store(page: Page, js: string): Promise<void> {
+  await page.evaluate(js);
+}

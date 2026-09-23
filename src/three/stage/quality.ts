@@ -1,9 +1,8 @@
 /**
  * Rendering quality: one of three tiers, chosen from the device and lowered (or raised again)
  * from measured frame times. A tier changes only how the picture is drawn — pixel ratio,
- * shadow-map size, how often shadow maps are redrawn, antialiasing of the cross-section's
- * soft shadow — never what is shown or when: lesson, demonstration and film timing do not
- * depend on it.
+ * shadow-map size, how often shadow maps are refreshed — never what is shown or when: lesson,
+ * demonstration and film timing do not depend on it.
  *
  * Shadow maps are redrawn only when something that casts a shadow may have moved (a machine's
  * presented progress changed, a housing is opening, the lit machine changed, a model was
@@ -64,9 +63,14 @@ interface QualityState {
 
 export const useQuality = create<QualityState>(() => ({ tier: forced ?? 'high', reason: forced ? 'forced by ?quality' : 'default', renderer: '' }));
 
+/** Set the tier directly (the diagnostic overlay's buttons). */
+export function setTier(tier: Tier) {
+  useQuality.setState({ tier, reason: 'set in diagnostics' });
+}
+
 /** Step the tier down (frame rate too low) or up (headroom); ignored when forced. */
 export function stepTier(dir: -1 | 1, reason: string) {
-  if (forced) return;
+  if (forced || useQuality.getState().reason === 'set in diagnostics') return;
   const cur = useQuality.getState().tier;
   const i = Math.max(0, Math.min(ORDER.length - 1, ORDER.indexOf(cur) + dir));
   if (ORDER[i] !== cur) useQuality.setState({ tier: ORDER[i], reason });

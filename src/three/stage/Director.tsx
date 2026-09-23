@@ -302,13 +302,16 @@ export function Director({ deviceScene, controlsRef }: { deviceScene: THREE.Scen
   const size = useThree((s) => s.size);
 
   const overlay = useMemo(() => makeOverlay(), []);
-  const copies = useMemo(() => ({ fade: new ScreenCopy(), snap: new ScreenCopy(), buf: new THREE.Vector2() }), []);
+  // fade: the outgoing side of a cross-fade; snap: a captured picture being dissolved from;
+  // last: the film's last good picture (held while a seek waits for its machine)
+  const copies = useMemo(() => ({ fade: new ScreenCopy(), snap: new ScreenCopy(), last: new ScreenCopy(), buf: new THREE.Vector2() }), []);
   useEffect(
     () => () => {
       overlay.mat.dispose();
       overlay.quad.geometry.dispose();
       copies.fade.dispose();
       copies.snap.dispose();
+      copies.last.dispose();
     },
     [overlay, copies],
   );
@@ -540,6 +543,30 @@ export function Director({ deviceScene, controlsRef }: { deviceScene: THREE.Scen
         configureControls(controls, a.mode);
       }
     }
+    // Watch: a seek or a chapter jump to a machine that is not loaded yet holds the film's last
+    // good picture (the scene has already moved on to the new time), then dissolves from it.
+    if (a.mode === 'watch' && s.mode === 'watch' && !s.first) {
+      const hold = !!want && !readyStations.has(want) && !failedStations.has(want);
+      if (hold) {
+        if (s.waitingFor !== want) {
+          s.waitingFor = want;
+          s.waitSince = now;
+        }
+        waiting = true;
+      } else if (s.waitingFor) {
+        s.waitingFor = null;
+        const buf = gl.getDrawingBufferSize(copies.buf);
+        if (copies.last.fits(buf.x, buf.y)) {
+          // the held picture becomes the one dissolved from
+          const t = copies.snap.tex;
+          copies.snap.tex = copies.last.tex;
+          copies.last.tex = t;
+          s.snap.on = true;
+          s.snap.hold = false;
+          s.snap.start = now;
+        }
+      }
+    }
     // A machine changing what it shows without a new destination: capture it all the same.
     const gate = handover.swap;
     if (gate && !gate.captured && !waiting) capture(now);
@@ -734,7 +761,18 @@ export function Director({ deviceScene, controlsRef }: { deviceScene: THREE.Scen
       failed,
       shown: s.shown,
     });
-    if (!s.drawn) renderFrame(s.live, now);
+    if (s.drawn) return;
+    const buf = gl.getDrawingBufferSize(copies.buf);
+    if (a.mode === 'watch' && s.waitingFor && copies.last.fits(buf.x, buf.y)) {
+      // hold the last good picture
+      gl.setRenderTarget(null);
+      gl.clear();
+      drawOverlay(copies.last.tex!, 1);
+      return;
+    }
+    renderFrame(s.live, now);
+    // the film keeps a copy of what it shows, in case a seek has to hold it
+    if (a.mode === 'watch') gl.copyFramebufferToTexture(copies.last.ensure(buf.x, buf.y));
   }
 
   function applyCamera(p: CamPose) {

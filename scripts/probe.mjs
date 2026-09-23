@@ -68,6 +68,13 @@ function helpers() {
       };
     }
   }
+  // long tasks (main-thread stalls over 50 ms)
+  w.__longtasks = [];
+  try {
+    new PerformanceObserver((l) => l.getEntries().forEach((e) => w.__longtasks.push({ t: e.startTime, ms: e.duration }))).observe({ type: 'longtask', buffered: true });
+  } catch {
+    /* not supported */
+  }
   const edgeLike = (m) => m && m.metalness === 0.9 && m.roughness === 0.25 && m.color && m.color.getHex() === 0x8f949c;
   const chainVisible = (o) => {
     for (; o; o = o.parent) if (!o.visible) return false;
@@ -143,7 +150,7 @@ try {
 }
 const report = { base, sha, date: new Date().toISOString(), cases: {} };
 
-async function open(path, { route } = {}) {
+async function open(path, { route, realTime = false } = {}) {
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
   await ctx.addInitScript(helpers);
   const page = await ctx.newPage();
@@ -157,7 +164,7 @@ async function open(path, { route } = {}) {
   });
   if (route) await route(page);
   await page.goto(base + path);
-  await page.waitForFunction(() => !!window.__fab && window.__fab.stationBoxes.size > 0 && !!window.__fabAdvance, undefined, { timeout: 180_000 });
+  await page.waitForFunction((rt) => !!window.__fab && window.__fab.stationBoxes.size > 0 && (rt || !!window.__fabAdvance), realTime, { timeout: 180_000 });
   return { ctx, page, errors };
 }
 
@@ -354,35 +361,44 @@ const run = {
   },
 
   async 'slow-load'() {
+    // real time: the old director gave up waiting after three seconds of wall-clock time
     const delay = 15_000;
-    const { ctx, page, errors } = await open('/?step=gatestack&virt=1', {
+    const { ctx, page, errors } = await open('/?step=gatestack&hooks=1', {
+      realTime: true,
       route: (page) =>
         page.route(/\/(assets\/Track-[^/]*\.js|src\/three\/tools\/Track\.tsx)/, async (r) => {
           await new Promise((res) => setTimeout(res, delay));
           await r.continue();
         }),
     });
-    await settle(page);
+    await page.waitForFunction(() => {
+      const s = window.__fab.useStageInfo.getState();
+      return !s.flying && s.shown !== false && window.__fab.readyStations.size > 0;
+    }, undefined, { timeout: 180_000 });
+    await page.waitForTimeout(1500);
     await page.evaluate(() => window.__fabStores.useApp.getState().next());
     const t0 = Date.now();
     const samples = [];
-    while (Date.now() - t0 < delay + 8000) {
-      await adv(page, 3);
+    while (Date.now() - t0 < delay + 10_000) {
       const i = await info(page);
-      const trackShown = await page.evaluate(() => {
-        const g = window.__fab.stationGroups.get('track');
-        return !!g && g.visible;
+      const extra = await page.evaluate(() => {
+        const c = window.__fab.stationBoxes.get('track');
+        const v = new window.__fab.THREE.Vector3();
+        c.getCenter(v);
+        const p = window.__fab.camera.position;
+        return { toTrack: Math.hypot(p.x - v.x, p.z - v.z), notice: document.querySelector('.vp-loading')?.textContent ?? null };
       });
-      samples.push({ t: Date.now() - t0, ...i, trackReady: i.ready.includes('track'), trackShown });
-      await new Promise((r) => setTimeout(r, 100));
+      samples.push({ t: Date.now() - t0, ...i, ...extra, trackReady: i.ready.includes('track') });
+      await new Promise((r) => setTimeout(r, 250));
     }
-    const arrived = samples.find((s) => !s.flying);
+    const settledEarly = samples.find((s) => !s.flying && !s.trackReady);
     const res = {
       delayMs: delay,
       // the camera finished its move while the machine was still missing
-      settledBeforeReady: samples.some((s) => !s.flying && !s.trackReady),
-      firstSettled: arrived ? { t: arrived.t, trackReady: arrived.trackReady, cam: arrived.cam } : null,
-      loadingShown: samples.some((s) => s.loading === 'track'),
+      settledBeforeReady: !!settledEarly,
+      firstSettled: samples.find((s) => !s.flying) ?? null,
+      nearestBeforeReady: Math.min(...samples.filter((s) => !s.trackReady).map((s) => s.toTrack)),
+      loadingNotice: samples.find((s) => s.notice)?.notice ?? null,
       readyAt: samples.find((s) => s.trackReady)?.t ?? null,
       errors,
     };
@@ -458,24 +474,29 @@ const run = {
   },
 
   async 'op-boundary'() {
-    const { ctx, page, errors } = await open('/?step=gatestack&view=device&virt=1');
-    await settle(page);
+    // real time (not the harness): the cross-section is rebuilt as operations complete; any
+    // main-thread stall shows as a long task
+    const { ctx, page, errors } = await open('/?step=gatestack&view=device&hooks=1', { realTime: true });
+    await page.waitForFunction(() => window.__fab.useStageInfo.getState().space === 'device' && window.__fab.useStageInfo.getState().shown !== false, undefined, { timeout: 180_000 });
     await page.evaluate(() => window.__fabStores.useClock.getState().pause());
-    await adv(page, 3);
-    const times = [];
-    for (let k = 0; k <= 60; k++) {
-      const r = await page.evaluate((p) => {
+    await page.waitForTimeout(8000); // (let the first geometry and any prepared ones arrive)
+    const plan = await page.evaluate(() => {
+      window.__longtasks.length = 0;
+      return true;
+    });
+    void plan;
+    const marks = [];
+    for (let k = 0; k <= 40; k++) {
+      const key = await page.evaluate((p) => {
         window.__fabStores.useClock.getState().set(p);
-        const t = performance.now();
-        window.__fabAdvance(1);
-        return { ms: performance.now() - t, key: window.__fabSim.learnStateKey() };
-      }, k / 60);
-      times.push(r);
+        return window.__fabSim.learnStateKey();
+      }, k / 40);
+      await page.waitForTimeout(400);
+      marks.push(key);
     }
-    const boundary = [];
-    const plain = [];
-    for (let k = 1; k < times.length; k++) (times[k].key !== times[k - 1].key ? boundary : plain).push(times[k].ms);
-    const res = { boundaries: boundary.length, boundaryFrameMs: { median: +median(boundary).toFixed(1), max: +Math.max(0, ...boundary).toFixed(1) }, plainFrameMs: { median: +median(plain).toFixed(1), max: +Math.max(0, ...plain).toFixed(1) }, errors };
+    const boundaries = marks.filter((m, i) => i && m !== marks[i - 1]).length;
+    const lt = await page.evaluate(() => window.__longtasks.slice());
+    const res = { boundaries, longTasks: lt.length, longTaskMs: Math.round(lt.reduce((a, e) => a + e.ms, 0)), maxLongTaskMs: Math.round(Math.max(0, ...lt.map((e) => e.ms))), meshes: await page.evaluate(() => window.__fab.deviceMeshes?.stats ?? null), errors };
     await ctx.close();
     return res;
   },
