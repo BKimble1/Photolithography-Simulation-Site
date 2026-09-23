@@ -31,7 +31,7 @@ import { MAT } from '../materials';
 import { Box, CleanFloor, Cyl, LightTower, ScaraRobot, StandaloneOnly } from '../kit/parts';
 import { Label } from '../labels';
 import { useStationEnv } from '../stage/context';
-import { Wafer } from '../wafer/Wafer';
+import { Wafer, WaferFraming } from '../wafer/Wafer';
 import type { ToolProps } from './index';
 import { useOverlay } from '../../state/presentation';
 
@@ -659,6 +659,9 @@ export default function Inspect({ variant }: ToolProps) {
       />
       <OpticalHead />
       {mode === 'review' && <SemColumn />}
+      {/* the review sweeps the wafer back and forth under the optics, then carries each defect
+          to the SEM: shots frame the stage's working area between the two, not the wafer */}
+      {mode === 'review' && <WaferFraming position={[SEM_X / 2, WAFER_Y, 0]} />}
       {/* optional beam-path overlay: the illumination is UV, the review beam is electrons */}
       <group ref={beams} visible={false}>
         <group ref={laser} visible={false}>

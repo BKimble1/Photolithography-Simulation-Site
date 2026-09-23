@@ -2,7 +2,7 @@ import { useFrame } from '@react-three/fiber';
 import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { drawWafer, lookKey, makeCanvasTexture, type WaferLook } from './waferTexture';
-import { waferRegistry } from '../stage/anchors';
+import { framingRegistry, waferRegistry } from '../stage/anchors';
 import { useStationEnv } from '../stage/context';
 import { usePresentation } from '../../state/presentation';
 import { useStep } from '../../state/sim';
@@ -288,4 +288,25 @@ export function Wafer({
   // An idle machine the story is not at holds no learner wafer.
   if (anchor && parked) return null;
   return <mesh ref={mesh} geometry={geo} material={[topMat, edgeMat]} position={position} rotation={rotation} castShadow receiveShadow />;
+}
+
+/**
+ * A steadier stand-in for the learner's wafer, for shots to frame instead of the wafer itself
+ * (see anchors.ts, framingRegistry): an empty object in the wafer mesh's own frame, which the
+ * machine keeps where the wafer rests, right side up, while it flips, spins or scans the wafer.
+ */
+export function WaferFraming({ frameRef, position, rotation }: { frameRef?: React.RefObject<THREE.Group | null>; position?: [number, number, number]; rotation?: [number, number, number] }) {
+  const own = useRef<THREE.Group>(null);
+  const ref = frameRef ?? own;
+  const { station } = useStationEnv();
+  const parked = !!usePresentation()?.parked;
+  useEffect(() => {
+    const o = ref.current;
+    if (parked || !station || !o) return;
+    framingRegistry.set(station, o);
+    return () => {
+      if (framingRegistry.get(station) === o) framingRegistry.delete(station);
+    };
+  }, [ref, parked, station]);
+  return <group ref={ref} position={position} rotation={rotation} />;
 }

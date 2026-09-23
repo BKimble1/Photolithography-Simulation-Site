@@ -135,6 +135,19 @@ export const SHOTS: Partial<Record<StepId, Key[]>> = {
     { p: 0.42, cam: die },
     { p: 0.52, cam: section },
   ],
+  // The scanner's stages carry the wafer from mark to mark and step and scan it under the lens,
+  // fields a few hundredths of a second apart: the camera stays with the machine, then goes
+  // down into the layers from there, rather than chasing the wafer on the stage.
+  'contact-align': [
+    { p: 0, cam: shot('align') },
+    { p: 0.18, cam: shot('align') },
+    { p: 0.28, cam: section },
+  ],
+  'contact-print': [
+    { p: 0, cam: shot('expose') },
+    { p: 0.18, cam: shot('expose') },
+    { p: 0.28, cam: section },
+  ],
   // the second level repeats the loop; its copper and polish land 0.06 apart, so the dual-damascene
   // fill is shown where it can be seen, in the layers, and the polisher (seen twice already) is not
   // revisited

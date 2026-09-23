@@ -22,7 +22,7 @@ import { useSimState, useStep } from '../../state/sim';
 import { ease, lerp, seg, smooth, useProgressBucket, useProgressFrame } from '../anim';
 import { MAT, type MatKey } from '../materials';
 import { Box, CleanFloor, Cyl, LightTower, mat, StandaloneOnly } from '../kit/parts';
-import { Wafer } from '../wafer/Wafer';
+import { Wafer, WaferFraming } from '../wafer/Wafer';
 import type { ToolProps } from './index';
 
 type V2 = [number, number];
@@ -646,6 +646,7 @@ export default function Cmp({ variant }: ToolProps) {
   const blade = useRef<THREE.Group>(null);
   const wafer = useRef<THREE.Group>(null);
   const waferFlip = useRef<THREE.Group>(null);
+  const framing = useRef<THREE.Group>(null);
 
   const slurryTex = useMemo(slurryTexture, []);
   const filmMat = useMemo(
@@ -693,6 +694,12 @@ export default function Cmp({ variant }: ToolProps) {
       wafer.current.rotation.y = f.wrot;
     }
     if (waferFlip.current) waferFlip.current.rotation.z = Math.PI * f.wflip;
+    // shots frame the wafer where it rests, right side up: not lifted and turned over by the
+    // flipper, nor turning with the head
+    if (framing.current) {
+      framing.current.position.set(f.wx, f.wy - WT / 2 - f.flipLift, f.wz);
+      framing.current.rotation.y = CUP_ROT;
+    }
   });
 
   return (
@@ -713,6 +720,7 @@ export default function Cmp({ variant }: ToolProps) {
       <StandaloneOnly>
         <Tower P={P} position={[0.62, 1.5, -0.9]} />
       </StandaloneOnly>
+      <WaferFraming frameRef={framing} />
       {/* the simulated wafer: face-up in the cup, face-down in the head */}
       <group ref={wafer} visible={false}>
         <group ref={waferFlip}>

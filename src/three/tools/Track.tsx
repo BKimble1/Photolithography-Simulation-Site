@@ -25,7 +25,7 @@ import { useSimState, useStep } from '../../state/sim';
 import { ease, lerp, seg, smooth, useProgressFrame } from '../anim';
 import { MAT } from '../materials';
 import { Bowl, Box, Chuck, Cyl, LightTower, NozzleArm, StandaloneOnly } from '../kit/parts';
-import { makeLiveCoat, Wafer } from '../wafer/Wafer';
+import { makeLiveCoat, Wafer, WaferFraming } from '../wafer/Wafer';
 import type { ToolProps } from './index';
 import { useRunChoices } from '../../state/presentation';
 
@@ -125,6 +125,8 @@ function TrackWafer({ route, stepId }: { route: Route; stepId: StepId }) {
   const summary = coating ? { ...state.wafer, resist: null } : state.wafer;
   return (
     <group ref={place}>
+      {/* shots frame the wafer where it is, but do not turn with the spin */}
+      <WaferFraming />
       <group ref={turn}>
         <Wafer anchor look={{ summary, showParticles: true, developedPattern: developing && state.wafer.resist?.phase === 'developed' }} live={coating ? live : undefined} size={768} />
       </group>

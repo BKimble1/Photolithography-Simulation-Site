@@ -117,11 +117,25 @@ export function waferShown(id: MachineId | null): boolean {
   return true;
 }
 
-/** Wafer centre, up normal and your-die centre in world space, or null if no wafer is shown. */
+/**
+ * Where shots frame the learner's wafer when its machine moves it in ways the camera should
+ * not follow: flipping it over, spinning it, stepping and scanning it under optics. Such a
+ * machine registers a steadier stand-in here, in the wafer mesh's own frame, where the wafer
+ * rests, right side up (Wafer.tsx, WaferFraming); the camera frames the stand-in and the
+ * wafer moves within the view instead of the view chasing the wafer.
+ */
+export const framingRegistry = new Map<MachineId, THREE.Object3D>();
+
+/**
+ * Wafer centre, up normal and your-die centre in world space, as shots frame them (the
+ * machine's stand-in, if it has one); false if the machine holds no learner wafer.
+ */
 export function waferFrame(id: MachineId | null, out: { centre: THREE.Vector3; up: THREE.Vector3; die: THREE.Vector3; x: THREE.Vector3 }): boolean {
   if (!id) return false;
-  const w = waferRegistry.get(id);
-  if (!w || !w.parent) return false;
+  const mesh = waferRegistry.get(id);
+  if (!mesh || !mesh.parent) return false;
+  const stand = framingRegistry.get(id);
+  const w = stand && stand.parent ? stand : mesh;
   w.updateWorldMatrix(true, false);
   out.centre.set(0, 0.0016, 0).applyMatrix4(w.matrixWorld);
   out.die.copy(yourDieLocal(out.die)).applyMatrix4(w.matrixWorld);
