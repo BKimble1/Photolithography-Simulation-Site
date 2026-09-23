@@ -188,7 +188,7 @@ export function Stage() {
         aria-hidden
       >
         <color attach="background" args={[BG[mood]]} />
-        <fog attach="fog" args={[BG[mood], mood === 'fab' ? 18 : 9, mood === 'fab' ? 60 : 30]} />
+        <fog attach="fog" args={[BG[mood], mood === 'fab' ? 32 : 9, mood === 'fab' ? 95 : 30]} />
         <PerformanceMonitor onDecline={() => setDpr(1)} onIncline={() => setDpr(maxDpr)} flipflops={3} onFallback={() => setDpr(1)} />
         <ClockDriver />
         <Lighting mood={mood} />

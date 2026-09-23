@@ -52,9 +52,9 @@ export function fabPoseFor(scene: SceneId): Pose {
   const backend = x < BACKEND_WALL_X;
   if (backend) {
     // smaller room, smaller tools: come in closer, from inside the room (west of the glass)
-    return { pos: [x - 2.4, 4.3, z + f * 6.6], target: [x + 0.2, 0.9, z], min: 2, max: 30 };
+    return { pos: [x - 3.6, 6.4, z + f * 9.6], target: [x + 0.4, 0.8, z], min: 2, max: 30 };
   }
-  // from the aisle side, raised above the overhead rails and to the east, so the
-  // neighbouring tools and the bay read around the station
-  return { pos: [x + 5.8, 7.7, z + f * 7.9], target: [x - 0.3, 0.9, z + f * 0.9], min: 3, max: 40 };
+  // from the aisle side, raised well above the overhead rails and to the east, far enough
+  // back (~25 m) that the bay and the neighbouring tools read around the highlighted station
+  return { pos: [x + 11.5, 14.5, z + f * 15.5], target: [x - 1.2, 0.8, z + f * 1.2], min: 3, max: 48 };
 }
