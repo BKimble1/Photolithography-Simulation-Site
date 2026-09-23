@@ -242,10 +242,12 @@ test('a hidden page resumes a move where it left it (real time)', async ({ page 
       document.dispatchEvent(new Event('visibilitychange'));
     }, hidden);
   await page.evaluate(() => (window as unknown as W).__fabStores.useApp.getState().next());
-  await page.waitForTimeout(400);
+  // hide the page once the move is under way
+  await page.waitForFunction(() => (window as unknown as W).__fab.useStageInfo.getState().flying, undefined, { timeout: 60_000 });
   await hide(true);
   const atHide = await cam();
-  // (frames may still be drawn while "hidden" here; the stage clock does not advance)
+  // three seconds hidden: the scenario itself (frames may still be drawn while "hidden" here;
+  // the stage clock does not advance)
   await page.waitForTimeout(3000);
   const whileHidden = await cam();
   await hide(false);

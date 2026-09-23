@@ -26,6 +26,8 @@
 //   decor-virt      decorative motion per harness frame (overhead vehicles)
 //   pairs           every pair of consecutive lessons at one machine: finish the first, go on
 //                   to the second; how far does the learner's wafer jump in one frame?
+//   anchors         the camera while it frames a wafer that the machine is moving (flipping it,
+//                   stepping and scanning it): does the camera chase it, shaking or swinging?
 import { chromium } from '@playwright/test';
 import { execSync } from 'node:child_process';
 import { writeFileSync } from 'node:fs';
@@ -35,7 +37,7 @@ const opt = (k) => {
   const i = rest.indexOf(k);
   return i >= 0 ? rest[i + 1] : undefined;
 };
-const ALL = ['leave-partial', 'back-same', 'next-same', 'interrupt', 'film-gap', 'slow-load', 'load-fail', 'shadows', 'coat-uploads', 'op-boundary', 'decor-virt', 'pairs'];
+const ALL = ['leave-partial', 'back-same', 'next-same', 'interrupt', 'film-gap', 'slow-load', 'load-fail', 'shadows', 'coat-uploads', 'op-boundary', 'decor-virt', 'pairs', 'anchors'];
 /** Consecutive lessons at the same machine: each must end where the next one starts. */
 const PAIRS = [
   ['arrive', 'foup'],
@@ -391,12 +393,15 @@ const run = {
       samples.push({ t: Date.now() - t0, ...i, ...extra, trackReady: i.ready.includes('track') });
       await new Promise((r) => setTimeout(r, 250));
     }
-    const settledEarly = samples.find((s) => !s.flying && !s.trackReady);
+    // (samples taken before the next frame has been drawn still show the old, settled state)
+    const moved = samples.findIndex((s) => s.flying);
+    const after = moved >= 0 ? samples.slice(moved) : samples;
+    const settledEarly = after.find((s) => !s.flying && !s.trackReady);
     const res = {
       delayMs: delay,
       // the camera finished its move while the machine was still missing
       settledBeforeReady: !!settledEarly,
-      firstSettled: samples.find((s) => !s.flying) ?? null,
+      firstSettled: after.find((s) => !s.flying) ?? null,
       nearestBeforeReady: Math.min(...samples.filter((s) => !s.trackReady).map((s) => s.toTrack)),
       loadingNotice: samples.find((s) => s.notice)?.notice ?? null,
       readyAt: samples.find((s) => s.trackReady)?.t ?? null,
@@ -546,21 +551,93 @@ run.pairs = async () => {
     const before = await record(page, 2);
     await page.evaluate(() => window.__fabStores.useApp.getState().next());
     const after = await record(page, 24, before.last);
-    // and the opening of the next lesson, played
+    // and the opening of the next lesson, played (after the camera has settled: frames in
+    // between are not recorded, so the two stretches are measured separately)
     await settle(page);
     await page.evaluate(() => window.__fabStores.useClock.getState().play());
-    const opening = await record(page, 30, after.last);
-    const all = [...before.frames, ...after.frames, ...opening.frames];
-    let jump = 0;
+    const opening = await record(page, 30);
+    let jump = { m: 0, at: -1 };
     let gaps = 0;
-    for (let k = 1; k < all.length; k++) {
-      const a = all[k - 1].wafers.find((x) => x.st === machine);
-      const b = all[k].wafers.find((x) => x.st === machine);
-      if (a && b) jump = Math.max(jump, dist(a.pos, b.pos));
-      else if (a || b) gaps++;
-    }
-    out[step] = { machine, maxWaferStepPerFrame: +jump.toFixed(4), framesWaferAppearsOrVanishes: gaps, spike: spikes(all, before.frames.length), errors: errors.slice(0, 3) };
+    const stretches = [[...before.frames, ...after.frames], opening.frames];
+    stretches.forEach((fr, si) => {
+      for (let k = 1; k < fr.length; k++) {
+        const a = fr[k - 1].wafers.find((x) => x.st === machine);
+        const b = fr[k].wafers.find((x) => x.st === machine);
+        if (a && b) {
+          const d = dist(a.pos, b.pos);
+          if (d > jump.m) jump = { m: d, at: si === 0 ? k : `opening ${k}` };
+        } else if (a || b) gaps++;
+      }
+    });
+    const s1 = spikes(stretches[0], before.frames.length);
+    const s2 = spikes(opening.frames, 1);
+    const spike = s2.ratio > s1.ratio ? { ...s2, at: `opening ${s2.at}` } : s1;
+    out[step] = { machine, maxWaferStepPerFrame: +jump.m.toFixed(4), maxStepAt: jump.at, framesWaferAppearsOrVanishes: gaps, spike, errors: errors.slice(0, 3) };
     console.log('  pair', step, JSON.stringify(out[step]));
+    await ctx.close();
+  }
+  return out;
+};
+
+/** Lesson windows in which the camera frames (or moves to or from) a wafer the machine is moving. */
+const ANCHOR_WINDOWS = [
+  ['contact-align', 0.04, 0.34], // the stage visits the alignment marks
+  ['contact-print', 0.04, 0.34], // the stage steps and scans the fields
+  ['contact-fill', 0.42, 0.6], // the load cup flips the wafer face-down for the head
+  ['contact-fill', 0.73, 0.97], // ... and face-up again
+  ['metal1', 0.83, 0.99],
+  ['sti-etch', 0.55, 0.72], // the robot sets the wafer on the chuck
+  ['peb', 0.08, 0.3], // the wafer is lowered onto the hot plate
+];
+
+run.anchors = async () => {
+  const out = {};
+  for (const [step, a, b] of ANCHOR_WINDOWS) {
+    const { ctx, page, errors } = await open(`/?step=${step}&virt=1`);
+    await settle(page);
+    await page.evaluate((a) => {
+      const c = window.__fabStores.useClock.getState();
+      c.set(a);
+      c.play();
+    }, a);
+    await adv(page, 3);
+    const frames = [];
+    for (let k = 0; k < 400; k++) {
+      const f = await page.evaluate(() => {
+        window.__fabAdvance(1);
+        const x = window.__fab;
+        const d = new x.THREE.Vector3();
+        x.camera.getWorldDirection(d);
+        const p = x.camera.position;
+        return { p: window.__fabStores.useClock.getState().progress, pos: [p.x, p.y, p.z], dir: [d.x, d.y, d.z], space: x.useStageInfo.getState().space };
+      });
+      frames.push(f);
+      if (f.p >= b) break;
+    }
+    // per frame: how far the camera moved, how far it turned; and how often it reversed
+    let move = 0;
+    let turn = 0;
+    let reversals = 0;
+    let worstAt = null;
+    const world = frames.filter((f) => f.space === 'world');
+    for (let k = 1; k < world.length; k++) {
+      const m = dist(world[k - 1].pos, world[k].pos);
+      const c = world[k - 1].dir[0] * world[k].dir[0] + world[k - 1].dir[1] * world[k].dir[1] + world[k - 1].dir[2] * world[k].dir[2];
+      const t = (Math.acos(Math.max(-1, Math.min(1, c))) * 180) / Math.PI;
+      if (t > turn) worstAt = +world[k].p.toFixed(3);
+      move = Math.max(move, m);
+      turn = Math.max(turn, t);
+      if (k >= 2) {
+        const v0 = world[k - 1].pos.map((v, i) => v - world[k - 2].pos[i]);
+        const v1 = world[k].pos.map((v, i) => v - world[k - 1].pos[i]);
+        const n0 = Math.hypot(...v0);
+        const n1 = Math.hypot(...v1);
+        if (n0 > 0.002 && n1 > 0.002 && (v0[0] * v1[0] + v0[1] * v1[1] + v0[2] * v1[2]) / (n0 * n1) < 0) reversals++;
+      }
+    }
+    const key = `${step}@${a}-${b}`;
+    out[key] = { frames: frames.length, worldFrames: world.length, maxMoveMetresPerFrame: +move.toFixed(4), maxTurnDegPerFrame: +turn.toFixed(2), worstTurnAtP: worstAt, reversals, errors: errors.slice(0, 3) };
+    console.log('  anchors', key, JSON.stringify(out[key]));
     await ctx.close();
   }
   return out;

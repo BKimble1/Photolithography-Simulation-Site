@@ -123,8 +123,9 @@ test('a machine that fails to load is shown from outside, with a notice; the sta
   });
   await settle(page, 600);
   expect((await sampleFrame(page)).flying).toBe(false);
-  // the refused module is reported by the browser; nothing else may fail
-  expect(errors.filter((e) => !/Track|dynamically imported module|Failed to fetch/i.test(e))).toEqual([]);
+  // the refused request and the module it breaks are reported by the browser (and by the
+  // renderer, which reports errors its error boundaries catch); nothing else may fail
+  expect(errors.filter((e) => !/Track-|dynamically imported module|net::ERR_FAILED/i.test(e))).toEqual([]);
 });
 
 test('the first picture is revealed only when its machine is ready', async ({ page }, ti) => {

@@ -27,6 +27,24 @@ async function openFilm(page: Page, t: number) {
   await advance(page, 10);
 }
 
+/**
+ * Render frames until the film shows a live picture again: after a seek to a machine that is
+ * not loaded yet the director holds the last picture, and its modules arrive in real time,
+ * so frames are rendered as they come until the machine the film is at is ready.
+ */
+async function untilLive(page: Page) {
+  await page.waitForFunction(
+    () => {
+      const w = window as unknown as { __fabAdvance: (n: number) => void; __fab: { readyStations: Set<string>; stageFocus: { station: string | null }; useStageInfo: { getState: () => { flying: boolean } } } };
+      w.__fabAdvance(1);
+      const st = w.__fab.stageFocus.station;
+      return !w.__fab.useStageInfo.getState().flying && (!st || w.__fab.readyStations.has(st));
+    },
+    undefined,
+    { polling: 100, timeout: 180_000 },
+  );
+}
+
 const segments = (page: Page) => page.evaluate(() => (window as unknown as FW).__fabFilm.filmPlayer()!.tl.segments.map((s) => ({ start: s.start, dur: s.dur, gap: s.gapAfter, station: s.station })));
 
 test('a gap move is planned once and reused; a new viewport plans it again', async ({ page }, ti) => {
@@ -49,7 +67,6 @@ test('a gap move is planned once and reused; a new viewport plans it again', asy
   expect(b.planned - a.planned, 'no new plans while crossing the same gap').toBe(0);
   expect(b.reused - a.reused, 'the plan is reused every frame').toBeGreaterThanOrEqual(30);
   // a different viewport: the move is planned again for it
-  await page.evaluate(() => (window as unknown as FW).__fabFilm.filmControls.seek((window as unknown as { __t: number }).__t ?? 0));
   await page.setViewportSize({ width: 900, height: 900 });
   await page.evaluate((t) => (window as unknown as FW).__fabFilm.filmControls.seek(t), segs[i].start + segs[i].dur + 0.4);
   await advance(page, 6);
@@ -97,12 +114,11 @@ test('chapter jumps land on a loaded, consistent scene', async ({ page }, ti) =>
   const chapters = await page.evaluate(() => (window as unknown as FW).__fabFilm.filmPlayer()!.tl.chapters.map((c) => c.start));
   for (const t of [chapters[3], chapters[1], chapters[chapters.length - 2]]) {
     await page.evaluate((x) => (window as unknown as FW).__fabFilm.filmControls.seek(x + 2), t);
-    // until the machines the new place needs are ready, the last picture is held
-    for (let k = 0; k < 40; k++) {
-      await advance(page, 3);
-      await page.waitForTimeout(100);
-    }
-    const f = await sampleFrames(page, 10);
+    // until the machines the new place needs are ready, the last picture is held; then it
+    // dissolves into the live scene
+    const held = await sampleFrames(page, 3);
+    await untilLive(page);
+    const f = [...held, ...(await sampleFrames(page, 16))];
     for (const s of f) expect(s.wafers.filter((w) => w.onScreen).length).toBeLessThanOrEqual(1);
     expect(worstJump(f, 1).ratio).toBeLessThan(4);
   }
