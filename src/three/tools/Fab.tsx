@@ -1361,8 +1361,8 @@ export function FabScene({ highlight, hero, picking }: { highlight?: SceneId; he
     () => ({ p: new THREE.Vector3(), q: new THREE.Quaternion(), m: new THREE.Matrix4(), s: new THREE.Vector3(1, 1, 1), zero: new THREE.Vector3(1e-4, 1e-4, 1e-4), up: new THREE.Vector3(0, 1, 0), o: new THREE.Vector3() }),
     [],
   );
-  useFrame(({ clock, camera }) => {
-    const t = reduced ? 0 : clock.elapsedTime;
+  useFrame(({ camera }) => {
+    const t = reduced ? 0 : stageTime.decor;
     for (let i = 0; i < N_VEHICLES; i++) {
       const s = (i / N_VEHICLES) * LOOP_LEN + t * 0.85;
       const head = loopPoint(s, tmp.p);

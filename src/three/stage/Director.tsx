@@ -10,9 +10,16 @@
  *
  * Learn and Explore let the learner take the camera (free look) at any time; "Back to guided
  * view" flies back. World (metres) and device (schematic) are separate scenes. A frame is
- * either one pose in one space, or a cross-fade between two poses: the outgoing view is drawn
- * into an offscreen target and blended over the incoming one, so nothing is swapped out of
- * sight. With reduced motion, flights become short cross-fades between still compositions.
+ * either one pose in one space, or a cross-fade between two poses: the outgoing view is drawn,
+ * copied as displayed, and blended over the incoming one, so nothing is swapped out of sight.
+ * With reduced motion, flights become short cross-fades between still compositions.
+ *
+ * Hand-overs (see handover.ts): the camera never leaves for a machine that is not loaded yet
+ * (it holds the current picture, and the page says what it is waiting for); the learner's
+ * wafer is shown by one machine at a time; and whenever the picture would change in a way no
+ * motion explains (a cross-fade interrupted half-way, a machine going back a lesson), the
+ * director captures the picture as displayed and dissolves from it. A flight replaced mid-way
+ * hands its motion over to the new one, so the camera never stops dead.
  */
 
 import { CameraControls } from '@react-three/drei';
@@ -30,34 +37,56 @@ import { labelStations, projectLabels } from '../labelProjection';
 import { BAY, BACKEND } from '../tools/poses/fab';
 import { TOOL_POSES } from '../poses';
 import { cutAmount, cutInstant, cutOpen, fabLod, proxyHidden } from '../tools/Fab';
-import { readyStations, stationBoxes, stationCentre, stationGroups } from './anchors';
+import { failedStations, readyStations, stationBoxes, stationCentre, stationGroups, waferRegistry } from './anchors';
 import { filmSample, filmBridge } from './filmBridge';
+import { handover, remount } from './handover';
 import { directorCommands, publish, stageFocus } from './info';
+import { quality } from './quality';
 import { stageTime } from './time';
-import { planTransition, type Leg } from './flights';
-import { copyPose, evalTrack, evalTrackStill, makePose, makeSample, resolve, type CamPose, type CamSample, type Space } from './tracks';
+import { handoverAt, planTransition, type Leg } from './flights';
+import { BASE_FOV, copyPose, evalTrack, evalTrackStill, fovOf, makePose, makeSample, resolve, type CamPose, type CamSample, type Space } from './tracks';
 
 // ───────────────────────────── flights ─────────────────────────────
 
 interface Flight {
   legs: Leg[];
   total: number;
+  /** Stage-clock milliseconds. */
   start: number;
-  /** Where the flight ends up: lighting switches over halfway. */
+  /** Where the flight ends up. */
   to: MachineId | null;
   from: MachineId | null;
   /** Hand the camera to the learner at the end (restoring a free-look view). */
   thenFree: boolean;
+  /** Seconds into the flight at which the learner's wafer (and the key light) pass to `to`:
+   * while the camera is between the two machines. */
+  handAt: number;
+  /** The machine showing the wafer when the flight began. */
+  ownerFrom: MachineId | null;
 }
 
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
+const smoothstep = (t: number) => {
+  const x = clamp(t, 0, 1);
+  return x * x * (3 - 2 * x);
+};
+
+/** A captured picture dissolves into the live view over this long (seconds). */
+const DISSOLVE = 0.35;
+/** A new flight takes over the camera's motion from the one it replaces over this long. */
+const RETARGET_BLEND = 0.45;
+/** Waiting longer than this for a machine to load says so on screen (milliseconds). */
+const LOADING_AFTER = 250;
+/** A machine that has not drawn its new state after this long is dissolved to anyway (ms). */
+const SWAP_PATIENCE = 2000;
 
 // ───────────────────────────── hero (home) ─────────────────────────────
 
 const HERO_WIDE = { pos: new THREE.Vector3(18.8, 2.3, 1.6), target: new THREE.Vector3(-4, 1.45, -1.9), fov: 34 };
 const HERO_TALL = { pos: new THREE.Vector3(19.4, 3.6, 2.4), target: new THREE.Vector3(0, -1.6, -1.2), fov: 58 };
 
-export function heroPose(t: number, aspect: number, reduced: boolean, out: CamSample): number {
+/** The home view of the bay at decorative time t, composed for the viewport's aspect. */
+export function heroPose(t: number, aspect: number, reduced: boolean, out: CamSample): void {
   const k = THREE.MathUtils.clamp((1.25 - aspect) / 0.75, 0, 1);
   const tt = reduced ? 0 : t;
   out.mix = 0;
@@ -68,7 +97,7 @@ export function heroPose(t: number, aspect: number, reduced: boolean, out: CamSa
   out.a.pos.x += Math.sin(tt * 0.045) * 0.35;
   out.a.pos.z += Math.sin(tt * 0.031 + 1.2) * 0.3;
   out.a.target.z += Math.sin(tt * 0.038 + 0.4) * 0.25;
-  return THREE.MathUtils.lerp(HERO_WIDE.fov, HERO_TALL.fov, k);
+  out.a.fov = THREE.MathUtils.lerp(HERO_WIDE.fov, HERO_TALL.fov, k);
 }
 
 // ───────────────────────────── explore overview ─────────────────────────────
@@ -81,12 +110,13 @@ export function overviewPose(aspect: number, out: CamPose) {
   const k = THREE.MathUtils.clamp((1.4 - aspect) / 0.7, 0, 1);
   out.space = 'world';
   out.scale = 'fab';
+  out.fov = undefined;
   out.pos.lerpVectors(OV_WIDE.pos, OV_TALL.pos, k);
   out.target.lerpVectors(OV_WIDE.target, OV_TALL.target, k);
   if (aspect < 1) fitOverview(aspect, out);
 }
 
-const ovCam = new THREE.PerspectiveCamera(32, 1, 0.5, 500);
+const ovCam = new THREE.PerspectiveCamera(BASE_FOV, 1, 0.5, 500);
 const ovPt = new THREE.Vector3();
 const ovRight = new THREE.Vector3();
 const ovUp = new THREE.Vector3();
@@ -138,8 +168,8 @@ function fitOverview(aspect: number, out: CamPose) {
       // centre the machines in the visible band (shift the target along the screen axes)
       ovRight.setFromMatrixColumn(ovCam.matrixWorld, 0);
       ovUp.setFromMatrixColumn(ovCam.matrixWorld, 1);
-      const halfW = dist * Math.tan(THREE.MathUtils.degToRad(16)) * aspect;
-      const halfH = dist * Math.tan(THREE.MathUtils.degToRad(16));
+      const halfW = dist * Math.tan(THREE.MathUtils.degToRad(BASE_FOV / 2)) * aspect;
+      const halfH = dist * Math.tan(THREE.MathUtils.degToRad(BASE_FOV / 2));
       target.addScaledVector(ovRight, ((b.x0 + b.x1) / 2) * halfW);
       target.addScaledVector(ovUp, ((b.y0 + b.y1) / 2 - (yLo + yHi) / 2) * halfH);
       // then scale the distance so the spread fits
@@ -159,7 +189,6 @@ function fitOverview(aspect: number, out: CamPose) {
 /** Development check of the level-of-detail hand-over: ?lod=proxy keeps the low-detail bay. */
 const FORCE_PROXY = import.meta.env.DEV && typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('lod') === 'proxy';
 
-const BASE_FOV = 32;
 /** The world's fog (Stage.tsx), near and far in metres. */
 const FOG: [number, number] = [34, 110];
 const LOD_DISTANCE = 16;
@@ -168,7 +197,7 @@ const DESIGN_ASPECT = 1.4;
 const BAY_BOX = new THREE.Box3(new THREE.Vector3(BACKEND.x0 + 0.5, 0.2, BAY.z0 + 0.5), new THREE.Vector3(BAY.x1 - 0.5, 30, BAY.z1 - 0.5));
 
 function fitPose(p: CamPose, fit: number) {
-  if (fit === 1) return;
+  if (fit === 1 || p.fov !== undefined) return; // composed framings are already fitted
   p.pos.sub(p.target).multiplyScalar(fit).add(p.target);
 }
 
@@ -199,6 +228,71 @@ function focusStation(): MachineId | null {
   return null;
 }
 
+/** Evaluate a flight at stage-clock time `now`; returns false once it is over. */
+function evalFlight(f: Flight, now: number, out: CamSample): boolean {
+  let t = Math.max(0, (now - f.start) / 1000);
+  for (const leg of f.legs) {
+    if (t < leg.dur) {
+      leg.eval(t / leg.dur, out);
+      return true;
+    }
+    t -= leg.dur;
+  }
+  f.legs[f.legs.length - 1].eval(1, out);
+  return false;
+}
+
+/** The learner's wafer is shown by `owner` only (null: by any machine that holds it). */
+function applyOwner(owner: MachineId | null) {
+  waferRegistry.forEach((m, id) => {
+    const v = owner === null || owner === id;
+    if (m.visible !== v) m.visible = v;
+  });
+}
+
+// ───────────────────────────── display-referred overlays ─────────────────────────────
+
+/**
+ * A full-screen quad drawing a copy of the displayed picture as it was (already tone-mapped
+ * and encoded), with an opacity: cross-fades and dissolves blend exactly the pictures the
+ * viewer saw, so nothing changes brightness or sharpness when one starts or ends.
+ */
+function makeOverlay() {
+  const mat = new THREE.ShaderMaterial({
+    uniforms: { map: { value: null }, opacity: { value: 1 } },
+    vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }',
+    fragmentShader: 'uniform sampler2D map; uniform float opacity; varying vec2 vUv; void main() { gl_FragColor = vec4(texture2D(map, vUv).rgb, opacity); }',
+    transparent: true,
+    depthTest: false,
+    depthWrite: false,
+    toneMapped: false,
+  });
+  const quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), mat);
+  quad.frustumCulled = false;
+  const scene = new THREE.Scene();
+  scene.add(quad);
+  return { mat, quad, scene, cam: new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1) };
+}
+
+/** A texture the size of the drawing buffer, (re)made on demand. */
+class ScreenCopy {
+  tex: THREE.FramebufferTexture | null = null;
+  ensure(w: number, h: number): THREE.FramebufferTexture {
+    if (!this.tex || this.tex.image.width !== w || this.tex.image.height !== h) {
+      this.tex?.dispose();
+      this.tex = new THREE.FramebufferTexture(w, h);
+    }
+    return this.tex;
+  }
+  fits(w: number, h: number): boolean {
+    return !!this.tex && this.tex.image.width === w && this.tex.image.height === h;
+  }
+  dispose() {
+    this.tex?.dispose();
+    this.tex = null;
+  }
+}
+
 // ───────────────────────────── the director ─────────────────────────────
 
 export function Director({ deviceScene, controlsRef }: { deviceScene: THREE.Scene; controlsRef: React.RefObject<CameraControls | null> }) {
@@ -207,33 +301,28 @@ export function Director({ deviceScene, controlsRef }: { deviceScene: THREE.Scen
   const camera = useThree((s) => s.camera) as THREE.PerspectiveCamera;
   const size = useThree((s) => s.size);
 
-  // Offscreen target for cross-fades: linear half-float, tone-mapped when blended to screen,
-  // so the outgoing view looks exactly as it did a frame earlier.
-  const rt = useMemo(() => new THREE.WebGLRenderTarget(4, 4, { samples: 4, type: THREE.HalfFloatType }), []);
-  const overlay = useMemo(() => {
-    const cam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
-    const mat = new THREE.MeshBasicMaterial({ map: rt.texture, transparent: true, depthTest: false, depthWrite: false });
-    const quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), mat);
-    const sc = new THREE.Scene();
-    sc.add(quad);
-    return { cam, mat, sc, quad };
-  }, [rt]);
+  const overlay = useMemo(() => makeOverlay(), []);
+  const copies = useMemo(() => ({ fade: new ScreenCopy(), snap: new ScreenCopy(), buf: new THREE.Vector2() }), []);
   useEffect(
     () => () => {
-      rt.dispose();
       overlay.mat.dispose();
       overlay.quad.geometry.dispose();
+      copies.fade.dispose();
+      copies.snap.dispose();
     },
-    [rt, overlay],
+    [overlay, copies],
   );
 
   const st = useRef({
     key: '',
     mode: '',
     flight: null as Flight | null,
+    /** The flight a retarget replaced, still blended in for a moment (continuous motion). */
+    prev: null as { flight: Flight; since: number } | null,
     freeLook: false,
     live: makeSample(),
     guided: makeSample(),
+    blendTmp: makeSample(),
     first: true,
     waitingFor: null as MachineId | null,
     waitSince: 0,
@@ -245,6 +334,14 @@ export function Director({ deviceScene, controlsRef }: { deviceScene: THREE.Scen
     /** Stations that were ready last frame (a machine that loads while the camera is already
      * there opens at once: there was no approach to reveal it on). */
     readyPrev: new Set<MachineId>(),
+    /** The machine showing the learner's wafer. */
+    owner: null as MachineId | null,
+    /** The first picture with its machine loaded has been drawn. */
+    shown: false,
+    /** A captured picture over the live view: held at full strength, or dissolving. */
+    snap: { on: false, hold: false, start: 0 },
+    /** This frame's picture is already on screen (it was drawn to be captured). */
+    drawn: false,
   });
 
   const fitRef = useRef(1);
@@ -258,14 +355,14 @@ export function Director({ deviceScene, controlsRef }: { deviceScene: THREE.Scen
     return a.mode;
   };
 
-  /** The guided camera for the current mode at this instant; returns the field of view. */
-  const guidedNow = (out: CamSample, elapsed: number): number => {
+  /** The guided camera for the current mode at this instant. */
+  const guidedNow = (out: CamSample, elapsed: number) => {
     const a = useApp.getState();
     out.mix = 0;
-    let fov = BASE_FOV;
     switch (a.mode) {
       case 'home':
-        return heroPose(elapsed, size.width / Math.max(1, size.height), a.reducedMotion, out);
+        heroPose(elapsed, size.width / Math.max(1, size.height), a.reducedMotion, out);
+        return;
       case 'learn': {
         const content = STEPS[FLOW[a.step].id];
         const ctx = { station: machineOfStep(a.step), variant: content.variant };
@@ -285,22 +382,23 @@ export function Director({ deviceScene, controlsRef }: { deviceScene: THREE.Scen
         } else if (a.machine) resolve({ kind: 'machine', station: a.machine }, { station: a.machine }, out.a);
         else {
           overviewPose(size.width / Math.max(1, size.height), out.a);
-          return fov;
+          return;
         }
         break;
       }
       case 'watch':
-        if (!filmSample(out)) overviewPose(size.width / Math.max(1, size.height), out.a);
-        else if (filmBridge.fov) return filmBridge.fov; // framings that are already composed for this viewport
+        if (!filmSample(out)) {
+          overviewPose(size.width / Math.max(1, size.height), out.a);
+          return;
+        }
         break;
     }
     fitPose(out.a, fitRef.current);
     if (out.mix > 0) fitPose(out.b, fitRef.current);
-    return fov;
   };
 
   /** Build a flight from the live camera to a (live) target pose. */
-  const planFlight = (target: () => CamPose, reduced: boolean, thenFree = false): Flight => {
+  const planFlight = (target: () => CamPose, reduced: boolean, now: number, thenFree = false): Flight => {
     const s = st.current;
     const a = useApp.getState();
     const station = focusStation();
@@ -314,13 +412,13 @@ export function Director({ deviceScene, controlsRef }: { deviceScene: THREE.Scen
       fit: (p) => fitPose(p, fitRef.current),
     });
     const total = legs.reduce((t, l) => t + l.dur, 0);
-    return { legs, total, start: stageTime.now(), to: station, from, thenFree };
+    return { legs, total, start: now, to: station, from, thenFree, handAt: handoverAt(legs), ownerFrom: s.owner ?? from };
   };
 
   const guidedTarget = () => {
     const sample = makeSample();
     return () => {
-      guidedNow(sample, 0);
+      guidedNow(sample, stageTime.decor);
       return shown(sample);
     };
   };
@@ -347,6 +445,9 @@ export function Director({ deviceScene, controlsRef }: { deviceScene: THREE.Scen
       s.restore = null;
       s.key = ''; // forces a flight back to the guided framing
     };
+    // A lazily loaded module that failed cannot be fetched again in this page: reload it
+    // (the address and the session keep the viewer's place).
+    directorCommands.retry = () => window.location.reload();
   }, []);
 
   // Learner input on the canvas takes the camera (drag, pinch or wheel).
@@ -359,6 +460,7 @@ export function Director({ deviceScene, controlsRef }: { deviceScene: THREE.Scen
       if (mode !== 'learn' && mode !== 'explore') return;
       s.freeLook = true;
       s.flight = null;
+      s.prev = null;
       s.restore = null;
     };
     c.addEventListener('controlstart', take);
@@ -371,80 +473,129 @@ export function Director({ deviceScene, controlsRef }: { deviceScene: THREE.Scen
 
   const tmp = useMemo(() => ({ c: new THREE.Vector3() }), []);
 
-  useFrame((state) => {
+  /** Opacity of the captured picture right now. */
+  const snapOpacity = (now: number) => {
+    const sn = st.current.snap;
+    if (!sn.on) return 0;
+    if (sn.hold) return 1;
+    const o = 1 - smoothstep((now - sn.start) / 1000 / DISSOLVE);
+    if (o <= 0.001) sn.on = false;
+    return o;
+  };
+
+  useFrame(() => {
     const s = st.current;
     const a = useApp.getState();
     const clock = useClock.getState();
-    const now = stageTime.now();
+    const now = stageTime.clock();
     const controls = controlsRef.current;
     const reduced = a.reducedMotion;
+    s.drawn = false;
+    quality.frame++;
 
     filmBridge.aspect = size.width / Math.max(1, size.height);
     // ── what should we be looking at? ──
-    const fov = guidedNow(s.guided, stageTime.virtual ? stageTime.t : state.clock.elapsedTime);
+    guidedNow(s.guided, stageTime.decor);
     const key = keyFor();
+    const want = focusStation();
+    let waiting = false;
     if (key !== s.key || s.restore) {
-      const want = focusStation();
-      // Destination first: hold the current view (briefly) until the next machine has loaded.
-      if (want && !readyStations.has(want) && !s.first) {
+      // Destination first: hold the picture until the next machine has loaded (however long
+      // that takes: the page says what it is waiting for; a model that fails to load is shown
+      // from outside instead). The latest destination is the one waited for.
+      if (want && !readyStations.has(want) && !failedStations.has(want) && !s.first) {
         if (s.waitingFor !== want) {
           s.waitingFor = want;
           s.waitSince = now;
         }
-        if (now - s.waitSince < 3000) {
-          finishFrame(true);
-          return;
-        }
-      }
-      s.waitingFor = null;
-      const modeChanged = s.mode !== a.mode;
-      s.key = key;
-      s.mode = a.mode;
-      const restore = s.restore;
-      s.restore = null;
-      s.freeLook = false;
-      const cut = s.first || (a.mode === 'watch' && modeChanged) || (a.mode === 'home' && s.first);
-      if (cut) {
-        s.flight = null;
-        copySample(s.live, s.guided);
-        stageFocus.station = want;
-      } else if (restore) {
-        s.flight = planFlight(() => restore, reduced, true);
+        waiting = true;
       } else {
-        s.flight = planFlight(guidedTarget(), reduced);
+        s.waitingFor = null;
+        const modeChanged = s.mode !== a.mode;
+        const cut = s.first || (a.mode === 'watch' && modeChanged);
+        // Whatever is on screen now — half of a cross-fade, a dissolve, a machine about to
+        // change what it shows — is captured as displayed, and dissolved from.
+        const mid = s.live.mix > 0.001 && s.live.mix < 0.999;
+        const gate = handover.swap;
+        if (!cut && (mid || s.snap.on || (gate && !gate.captured))) capture(now);
+        const old = s.flight;
+        s.key = key;
+        s.mode = a.mode;
+        const restore = s.restore;
+        s.restore = null;
+        s.freeLook = false;
+        if (cut) {
+          s.flight = null;
+          s.prev = null;
+          s.snap.on = false;
+          copySample(s.live, s.guided);
+          stageFocus.station = want;
+          s.owner = a.mode === 'home' ? null : want;
+        } else {
+          s.flight = restore ? planFlight(() => restore, reduced, now, true) : planFlight(guidedTarget(), reduced, now);
+          // a flight replaced mid-way hands its motion over smoothly (unless a dissolve covers it)
+          s.prev = old && !s.snap.on && s.live.mix === 0 ? { flight: old, since: now } : null;
+        }
+        s.first = false;
+        configureControls(controls, a.mode);
       }
-      s.first = false;
-      configureControls(controls, a.mode);
+    }
+    // A machine changing what it shows without a new destination: capture it all the same.
+    const gate = handover.swap;
+    if (gate && !gate.captured && !waiting) capture(now);
+    if (gate && gate.captured) {
+      if (!gate.committed && now - s.snap.start < SWAP_PATIENCE) {
+        // hold the captured picture (and the camera) until the machine shows its new state
+        s.snap.on = true;
+        s.snap.hold = true;
+        if (s.flight) s.flight.start = now;
+      } else {
+        // dissolve in place, then move
+        s.snap.hold = false;
+        s.snap.start = now;
+        if (s.flight) s.flight.start = now + DISSOLVE * 1000;
+        handover.swap = null;
+      }
     }
 
     // ── choose the frame ──
     const free = s.freeLook && (a.mode === 'learn' || a.mode === 'explore');
     if (s.flight) {
       const f = s.flight;
-      // (a flight planned during this frame starts a fraction of a millisecond after `now`)
-      let t = Math.max(0, (now - f.start) / 1000);
-      let done = true;
-      for (const leg of f.legs) {
-        if (t < leg.dur) {
-          leg.eval(t / leg.dur, s.live);
-          done = false;
-          break;
+      const going = evalFlight(f, now, s.live);
+      if (going && s.prev) {
+        // blend in from the replaced flight's own motion (continuous velocity)
+        const w = smoothstep((now - s.prev.since) / 1000 / RETARGET_BLEND);
+        if (w >= 1) s.prev = null;
+        else {
+          const b = s.blendTmp;
+          evalFlight(s.prev.flight, now, b);
+          if (b.mix === 0 && s.live.mix === 0 && b.a.space === s.live.a.space) {
+            s.live.a.pos.lerpVectors(b.a.pos, s.live.a.pos, w);
+            s.live.a.target.lerpVectors(b.a.target, s.live.a.target, w);
+            if (b.a.fov !== undefined || s.live.a.fov !== undefined) s.live.a.fov = fovOf(b.a) + (fovOf(s.live.a) - fovOf(b.a)) * w;
+          }
         }
-        t -= leg.dur;
       }
-      stageFocus.station = Math.max(0, (now - f.start) / 1000) > f.total / 2 ? f.to : (f.from ?? f.to);
-      if (done) {
-        f.legs[f.legs.length - 1].eval(1, s.live);
+      const el = Math.max(0, (now - f.start) / 1000);
+      const handed = el >= f.handAt;
+      stageFocus.station = handed ? f.to : (f.from ?? f.to);
+      s.owner = handed ? f.to : f.ownerFrom;
+      if (!going) {
         s.flight = null;
+        s.prev = null;
         if (s.live.mix >= 0.5) copyPose(s.live.a, s.live.b);
         s.live.mix = 0;
         stageFocus.station = f.to;
+        s.owner = f.to;
         if (f.thenFree) {
           s.freeLook = true;
           const p = s.live.a;
           controls?.setLookAt(p.pos.x, p.pos.y, p.pos.z, p.target.x, p.target.y, p.target.z, false);
         }
       }
+    } else if (waiting) {
+      // hold the current picture: the camera stays where it is
     } else if (free) {
       // the controls own the camera: read it back
       if (controls) {
@@ -452,19 +603,25 @@ export function Director({ deviceScene, controlsRef }: { deviceScene: THREE.Scen
         controls.getTarget(s.live.a.target);
         s.live.a.space = s.lastSpace;
         s.live.a.scale = undefined;
+        s.live.a.fov = undefined;
         s.live.mix = 0;
       }
+      s.owner = a.mode === 'home' ? null : want;
     } else {
       copySample(s.live, s.guided);
-      stageFocus.station = focusStation();
+      stageFocus.station = want;
+      s.owner = a.mode === 'home' ? null : want;
     }
+    // The film hands its wafer over on its own timeline.
+    if (a.mode === 'watch') s.owner = filmBridge.station;
+    handover.owner = s.owner;
 
-    // The lesson clock waits for the camera to arrive.
-    if (a.mode === 'learn' && clock.pendingPlay && !s.flight) useClock.setState({ playing: true, pendingPlay: false });
+    // The lesson clock waits for the camera to arrive (and for the first picture to be shown).
+    if (a.mode === 'learn' && clock.pendingPlay && !s.flight && !waiting && !handover.swap && s.shown) useClock.setState({ playing: true, pendingPlay: false });
 
     // ── controls: enabled only when the learner may look around ──
     if (controls) {
-      const interactive = (a.mode === 'learn' || a.mode === 'explore') && !s.flight;
+      const interactive = (a.mode === 'learn' || a.mode === 'explore') && !s.flight && !waiting;
       if (controls.enabled !== interactive) controls.enabled = interactive;
       const p = shown(s.live);
       if (!free) controls.setLookAt(p.pos.x, p.pos.y, p.pos.z, p.target.x, p.target.y, p.target.z, false);
@@ -483,15 +640,33 @@ export function Director({ deviceScene, controlsRef }: { deviceScene: THREE.Scen
       }
     }
 
-    if (Math.abs(camera.fov - fov) > 0.01) {
-      camera.fov = fov;
-      camera.updateProjectionMatrix();
-    }
-    finishFrame(!!s.flight);
+    finishFrame(!!s.flight || waiting, now, want);
   }, 1);
 
+  /**
+   * Capture the picture on screen right now (the last frame's view, including any half-done
+   * cross-fade or dissolve) and hold it over the live view: the next flight starts under it.
+   * The captured frame is also this frame's picture.
+   */
+  function capture(now: number) {
+    const s = st.current;
+    const gate = handover.swap;
+    renderFrame(s.live, now);
+    const buf = gl.getDrawingBufferSize(copies.buf);
+    gl.copyFramebufferToTexture(copies.snap.ensure(buf.x, buf.y));
+    s.snap.on = true;
+    s.snap.hold = false;
+    s.snap.start = now;
+    s.drawn = true;
+    if (gate && !gate.captured) {
+      gate.captured = true;
+      s.snap.hold = true;
+      remount();
+    }
+  }
+
   /** Level of detail, labels, published info, and the render itself. */
-  function finishFrame(flying: boolean) {
+  function finishFrame(flying: boolean, now: number, want: MachineId | null) {
     const s = st.current;
     const a = useApp.getState();
     const cam = shown(s.live);
@@ -513,11 +688,22 @@ export function Director({ deviceScene, controlsRef }: { deviceScene: THREE.Scen
         } else proxyHidden.add(id);
       }
     }
-    for (const id of readyStations) if (!s.readyPrev.has(id) && !s.flight) cutInstant.add(id);
-    s.readyPrev = new Set(readyStations);
+    for (const id of readyStations) if (!s.readyPrev.has(id) && (!s.flight || !s.shown)) cutInstant.add(id);
+    if (readyStations.size !== s.readyPrev.size || [...readyStations].some((id) => !s.readyPrev.has(id))) {
+      s.readyPrev = new Set(readyStations);
+      quality.invalidate('world');
+    }
     if (a.reducedMotion) cutOpen.forEach((id) => cutInstant.add(id));
     fabLod.apply();
-    stationGroups.forEach((g, id) => (g.visible = proxyHidden.has(id) || cutAmount(id) > 0.001 || cutOpen.has(id)));
+    stationGroups.forEach((g, id) => {
+      const v = proxyHidden.has(id) || cutAmount(id) > 0.001 || cutOpen.has(id);
+      if (g.visible !== v) {
+        g.visible = v;
+        quality.invalidate('world');
+      }
+      const c = cutAmount(id);
+      if (c > 0.001 && c < 0.999) quality.invalidate('world');
+    });
 
     labelStations.clear();
     const f = focusStation();
@@ -531,10 +717,24 @@ export function Director({ deviceScene, controlsRef }: { deviceScene: THREE.Scen
       scene.fog.far = Math.max(FOG[1], d * 2.2);
     }
 
+    // The picture may be revealed once its machine is loaded (or known to have failed).
+    const settled = !want || readyStations.has(want) || failedStations.has(want);
+    if (!s.shown && settled && !s.waitingFor) s.shown = true;
+    const loading = s.waitingFor ? (now - s.waitSince > LOADING_AFTER ? s.waitingFor : null) : !s.shown ? want : null;
+    const failed = want && failedStations.has(want) ? want : null;
+
     s.lastSpace = cam.space;
     if (!flying) s.lastStation = f;
-    publish({ space: cam.space, freeLook: s.freeLook && (a.mode === 'learn' || a.mode === 'explore'), flying, scale: scaleOf(cam, a.mode) });
-    renderFrame(s.live);
+    publish({
+      space: cam.space,
+      freeLook: s.freeLook && (a.mode === 'learn' || a.mode === 'explore'),
+      flying,
+      scale: scaleOf(cam, a.mode),
+      loading,
+      failed,
+      shown: s.shown,
+    });
+    if (!s.drawn) renderFrame(s.live, now);
   }
 
   function applyCamera(p: CamPose) {
@@ -543,9 +743,11 @@ export function Director({ deviceScene, controlsRef }: { deviceScene: THREE.Scen
     const d = p.pos.distanceTo(p.target);
     const near = p.space === 'device' ? 0.05 : clamp(d * 0.02, 0.004, 0.25);
     const far = p.space === 'device' ? 200 : 400;
-    if (camera.near !== near || camera.far !== far) {
+    const fov = fovOf(p);
+    if (camera.near !== near || camera.far !== far || Math.abs(camera.fov - fov) > 1e-4) {
       camera.near = near;
       camera.far = far;
+      camera.fov = fov;
       camera.updateProjectionMatrix();
     }
     camera.updateMatrixWorld();
@@ -553,35 +755,52 @@ export function Director({ deviceScene, controlsRef }: { deviceScene: THREE.Scen
 
   const sceneOf = (space: Space) => (space === 'device' ? deviceScene : scene);
 
-  function renderFrame(sample: CamSample) {
-    const mix = sample.mix;
-    const W = size.width;
-    const H = size.height;
-    if (mix <= 0.001 || mix >= 0.999) {
-      const p = mix >= 0.999 ? sample.b : sample.a;
-      applyCamera(p);
-      gl.setRenderTarget(null);
-      gl.render(sceneOf(p.space), camera);
-      projectLabels(camera, p.space, 1, W, H, gl.domElement);
-      return;
-    }
-    // cross-fade: outgoing view offscreen, incoming view on screen, blend
-    const w = Math.max(1, Math.floor(W * gl.getPixelRatio()));
-    const h = Math.max(1, Math.floor(H * gl.getPixelRatio()));
-    if (rt.width !== w || rt.height !== h) rt.setSize(w, h);
-    applyCamera(sample.a);
-    gl.setRenderTarget(rt);
-    gl.render(sceneOf(sample.a.space), camera);
+  /** Draw one view to the screen. */
+  function drawView(p: CamPose, owner: MachineId | null) {
+    applyOwner(owner);
+    applyCamera(p);
     gl.setRenderTarget(null);
-    applyCamera(sample.b);
-    gl.render(sceneOf(sample.b.space), camera);
-    overlay.mat.opacity = 1 - mix;
+    quality.beforeRender(gl, p.space);
+    gl.render(sceneOf(p.space), camera);
+  }
+
+  function drawOverlay(tex: THREE.Texture, opacity: number) {
+    overlay.mat.uniforms.map.value = tex;
+    overlay.mat.uniforms.opacity.value = opacity;
     const auto = gl.autoClear;
     gl.autoClear = false;
-    gl.render(overlay.sc, overlay.cam);
+    gl.render(overlay.scene, overlay.cam);
     gl.autoClear = auto;
+  }
+
+  function renderFrame(sample: CamSample, now: number) {
+    const s = st.current;
+    const mix = sample.mix;
+    const buf = gl.getDrawingBufferSize(copies.buf);
+    // During a flight between two machines, each side of a cross-fade shows the wafer where
+    // that side of the move has it.
+    const f = s.flight;
+    if (mix <= 0.001 || mix >= 0.999) {
+      drawView(mix >= 0.999 ? sample.b : sample.a, s.owner);
+    } else {
+      // cross-fade: the outgoing view as displayed, the incoming view, blended
+      drawView(sample.a, f ? f.ownerFrom : s.owner);
+      const tex = copies.fade.ensure(buf.x, buf.y);
+      gl.copyFramebufferToTexture(tex);
+      drawView(sample.b, f ? f.to : s.owner);
+      drawOverlay(tex, 1 - mix);
+    }
+    applyOwner(s.owner);
+    const so = snapOpacity(now);
+    if (so > 0) {
+      // a picture captured at another size (the window was resized) is dropped
+      if (copies.snap.tex && copies.snap.fits(buf.x, buf.y)) drawOverlay(copies.snap.tex, so);
+      else s.snap.on = false;
+    }
     // Labels only once the new view has settled in: never floating between two scales.
-    projectLabels(camera, sample.b.space, mix < 0.85 ? 0 : (mix - 0.85) / 0.15, W, H, gl.domElement);
+    const fading = mix > 0.001 && mix < 0.999;
+    const alpha = so > 0.5 ? 0 : fading ? (mix < 0.85 ? 0 : (mix - 0.85) / 0.15) : 1;
+    projectLabels(camera, (mix >= 0.5 ? sample.b : sample.a).space, alpha, size.width, size.height, gl.domElement);
   }
 
   return null;

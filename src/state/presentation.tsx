@@ -6,8 +6,9 @@
  *  - Learn   → the learner's run and lesson clock (the store).
  *  - Watch   → the canonical successful run, driven by the film's media clock.
  *  - Demo    → the canonical run at a machine's representative step, on a local preview clock.
- *  - Parked  → a machine the camera may pass while the story is elsewhere (idle, no wafer),
- *              or the machine just left (held at the end of its step until it is out of view).
+ *  - Parked  → a machine the camera may pass while the story is elsewhere (idle, no wafer).
+ *  - Frozen  → any of the above, held on the last frame it showed: the machine the story has
+ *              just left stays exactly as it was until it is out of view.
  *
  * Components outside a provider (the DOM UI) fall back to the learning run.
  */
@@ -37,6 +38,8 @@ export interface Presentation {
   setFinalInput?: (v: 0 | 1) => void;
   /** An idle machine the story is not at: it shows no learner wafer. */
   parked?: boolean;
+  /** Held on the last frame it showed (the story has moved on; see stage/handover.ts). */
+  frozen?: boolean;
 }
 
 const Ctx = createContext<Presentation | null>(null);

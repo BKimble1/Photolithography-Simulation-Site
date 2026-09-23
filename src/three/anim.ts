@@ -8,6 +8,7 @@ import { useFrame } from '@react-three/fiber';
 import { useRef, useSyncExternalStore } from 'react';
 import { useClock } from '../state/store';
 import { useProgressSource, useReducedMotion } from '../state/presentation';
+import { stageTime } from './stage/time';
 
 export const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
 /** 0..1 ramp of p across [a, b]. */
@@ -24,15 +25,22 @@ export function progressNow(): number {
 }
 
 /**
- * Calls fn(p, t, dt) every frame with the presented step progress p and a decorative clock t
- * (seconds; frozen under reduced motion). Use it to drive transforms directly on refs.
+ * Calls fn(p, t, dt) every frame with the presented step progress p and the decorative time t
+ * (seconds: the stage clock, or the film's time in Watch; frozen under reduced motion, see
+ * stage/time.ts). Use it to drive transforms directly on refs.
  */
 export function useProgressFrame(fn: (p: number, t: number, dt: number) => void) {
   const src = useProgressSource();
   const reduced = useReducedMotion();
   const cb = useRef(fn);
   cb.current = fn;
-  useFrame((state, dt) => cb.current(src.get(), reduced ? 0 : state.clock.elapsedTime, reduced ? 0 : dt));
+  const last = useRef(stageTime.decor);
+  useFrame(() => {
+    const t = stageTime.decor;
+    const dt = Math.max(0, Math.min(0.1, t - last.current));
+    last.current = t;
+    cb.current(src.get(), reduced ? 0 : t, reduced ? 0 : dt);
+  });
 }
 
 /** Coarse React-visible progress bucket, for switching meshes at thresholds. */

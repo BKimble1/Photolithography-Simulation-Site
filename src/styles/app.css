@@ -1263,6 +1263,47 @@ a {
   margin-bottom: 4px;
 }
 
+/* The stage's own status: a veil until the first picture is ready, then quiet notes. */
+.vp-veil {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #eef0f2;
+  color: var(--ink-3);
+  font-size: 14px;
+  transition: opacity 0.4s ease;
+}
+.vp-veil--out {
+  opacity: 0;
+  pointer-events: none;
+}
+.vp-loading,
+.vp-failed {
+  position: absolute;
+  left: 50%;
+  top: 12px;
+  transform: translateX(-50%);
+  z-index: 2;
+  max-width: calc(100% - 32px);
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+  color: var(--ink-2);
+  font-size: 13px;
+  text-align: center;
+}
+.vp-failed {
+  border-radius: 10px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .vp-veil {
+    transition: none;
+  }
+}
 .vp-message {
   position: absolute;
   left: 50%;

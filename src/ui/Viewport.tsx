@@ -3,7 +3,9 @@
  * heads-up display. The canvas element never unmounts when the mode changes; only the
  * surrounding layout and the controls drawn over it do.
  */
-import { lazy, Suspense, useMemo } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
+import { MACHINE_INFO } from '../content/machines';
+import type { MachineId } from '../state/nav';
 import { CUT_Y } from '../sim/layout';
 import { M } from '../sim/materials';
 import { columnStack } from '../sim/metrology';
@@ -240,12 +242,53 @@ export function FlatView() {
   );
 }
 
+/**
+ * What the stage is waiting for: until the first picture has its machine loaded, a veil over
+ * the canvas (never a half-built scene); later, a quiet note while the camera holds for a
+ * machine that is still loading; and a notice when a machine's model could not be loaded.
+ */
+function StageStatus() {
+  const shown = useStageInfo((s) => s.shown);
+  const loading = useStageInfo((s) => s.loading);
+  const failed = useStageInfo((s) => s.failed);
+  const [veil, setVeil] = useState(true);
+  useEffect(() => {
+    if (!shown) return;
+    const t = window.setTimeout(() => setVeil(false), 450);
+    return () => window.clearTimeout(t);
+  }, [shown]);
+  const name = (id: MachineId) => MACHINE_INFO[id]?.name.toLowerCase() ?? id;
+  return (
+    <>
+      {veil && (
+        <div className={'vp-veil' + (shown ? ' vp-veil--out' : '')} aria-hidden={shown}>
+          <span>{loading ? `Loading the ${name(loading)}…` : 'Loading the fab…'}</span>
+        </div>
+      )}
+      {shown && loading && (
+        <div className="vp-loading" role="status">
+          Loading the {name(loading)}…
+        </div>
+      )}
+      {failed && (
+        <div className="vp-failed" role="alert" data-occludes>
+          The {name(failed)} model could not be loaded, so it is shown from outside.{' '}
+          <button className="cmd cmd--quiet" onClick={() => directorCommands.retry(failed)}>
+            Reload
+          </button>
+        </div>
+      )}
+    </>
+  );
+}
+
 export function StageHost({ fallback }: { fallback: React.ReactNode }) {
   if (!HAS_WEBGL) return <>{fallback}</>;
   return (
     <ErrorBoundary fallback={fallback}>
-      <Suspense fallback={<div className="vp-message">Loading the fab…</div>}>
+      <Suspense fallback={<div className="vp-veil"><span>Loading the fab…</span></div>}>
         <Stage />
+        <StageStatus />
       </Suspense>
     </ErrorBoundary>
   );

@@ -13,11 +13,13 @@
 import * as THREE from 'three';
 import type { MachineId } from '../../state/nav';
 import { waferShown } from './anchors';
-import { copyPose, deviceToWorld, lerpPose, machinePose, makePose, resolve, worldToDevice, type CamPose, type CamSample } from './tracks';
+import { copyPose, deviceToWorld, fovOf, lerpPose, machinePose, makePose, resolve, worldToDevice, type CamPose, type CamSample } from './tracks';
 
 export interface Leg {
   dur: number;
   eval: (u: number, out: CamSample) => void;
+  /** A move from one machine to another (the learner's wafer changes hands during it). */
+  between?: boolean;
 }
 
 
@@ -68,12 +70,14 @@ export function worldLeg(from: CamPose, target: () => CamPose): Leg {
   const drift = new THREE.Vector3();
   return {
     dur,
+    between: true,
     eval: (u, out) => {
       // (the arc-length lookup is only defined on 0..1)
       const k = smooth(clamp(u, 0, 1));
       const t = path.getUtoTmapping(k, 0);
       out.mix = 0;
       out.a.space = 'world';
+      out.a.scale = k < 0.5 ? f.scale : probe.scale;
       path.getPoint(t, out.a.pos);
       look.getPoint(t, out.a.target);
       // follow a destination that moves while we travel (blended in towards the end)
@@ -81,6 +85,7 @@ export function worldLeg(from: CamPose, target: () => CamPose): Leg {
       const w = k * k;
       out.a.pos.addScaledVector(drift.subVectors(to.pos, probe.pos), w);
       out.a.target.addScaledVector(drift.subVectors(to.target, probe.target), w);
+      out.a.fov = f.fov === undefined && to.fov === undefined ? undefined : fovOf(f) + (fovOf(to) - fovOf(f)) * k;
     },
   };
 }
@@ -143,10 +148,17 @@ export function planTransition(start: CamPose, target: () => CamPose, o: Transit
     if (o.establish && o.to) {
       const est = machinePose(o.to, makePose());
       o.fit(est);
-      legs.push(worldLeg(from, () => est));
+      const travel = worldLeg(from, () => est);
+      travel.between = true;
+      legs.push(travel);
       legs.push(holdLeg(est, 0.35));
       legs.push(worldLeg(est, target));
-    } else legs.push(worldLeg(from, target));
+      legs[legs.length - 1].between = false;
+    } else {
+      legs.push(worldLeg(from, target));
+      // a move without a change of machine hands nothing over
+      if (!o.from || !o.to || o.from === o.to) legs[legs.length - 1].between = false;
+    }
   };
 
   if (o.reduced) {
@@ -180,6 +192,20 @@ export function planTransition(start: CamPose, target: () => CamPose, o: Transit
     legs.push({ dur: 1.2, eval: (u, out) => worldToDevice(anchor, target(), u, o.to, out) });
   }
   return legs;
+}
+
+/**
+ * When, in seconds from the start of a move, the learner's wafer changes hands: halfway along
+ * the first leg that travels between machines (the camera is in the aisle, looking along it),
+ * or halfway through the move if none does.
+ */
+export function handoverAt(legs: Leg[]): number {
+  let t = 0;
+  for (const l of legs) {
+    if (l.between) return t + l.dur / 2;
+    t += l.dur;
+  }
+  return t / 2;
 }
 
 /** Evaluate a list of legs at time t (seconds from the start); returns false once past the end. */

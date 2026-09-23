@@ -8,13 +8,18 @@
  *    and are merged into runs along x.
  * Output is split into groups (silicon/poly, dielectrics, metals, resist) so each can use
  * its own material, and dielectrics can switch to a ghosted "x-ray" look.
+ *
+ * Pure (no three.js): it runs in a worker (mesh.worker.ts) as well as on the main thread;
+ * deviceGeometry.ts turns its arrays into three.js geometry.
  */
-import * as THREE from 'three';
 import type { Grid } from '../../sim/grid';
 import { M } from '../../sim/materials';
 import { matColor } from '../../ui/palette';
 
 export type Group = 'semi' | 'diel' | 'metal' | 'resist' | 'glow';
+
+/** Device-space scale: world units per grid unit, vertical exaggeration, substrate clip. */
+export const DEV = { s: 0.05, zs: 1.3, zMin: -13 };
 
 export function groupOf(mat: number): Group {
   if (mat === M.W || mat === M.CU) return 'metal';
@@ -43,46 +48,98 @@ export interface MeshOptions {
 const GLOW_COLOR = [0.16, 0.85, 0.52];
 const CHANNEL_DEPTH = 0.9; // gu of silicon drawn as the conducting inversion layer
 
+/** Grows typed arrays in place: no temporary arrays per quad (the mesher emits many thousands). */
 class Buf {
-  pos: number[] = [];
-  nor: number[] = [];
-  col: number[] = [];
-  idx: number[] = [];
-  quad(a: number[], b: number[], c: number[], d: number[], n: number[], color: number[]) {
-    const base = this.pos.length / 3;
-    this.pos.push(...a, ...b, ...c, ...d);
-    for (let i = 0; i < 4; i++) {
-      this.nor.push(n[0], n[1], n[2]);
-      this.col.push(color[0], color[1], color[2]);
-    }
-    this.idx.push(base, base + 1, base + 2, base, base + 2, base + 3);
+  pos = new Float32Array(3 * 4 * 1024);
+  nor = new Float32Array(3 * 4 * 1024);
+  col = new Float32Array(3 * 4 * 1024);
+  idx = new Uint32Array(6 * 1024);
+  quads = 0;
+  private grow() {
+    const g = <T extends Float32Array | Uint32Array>(a: T): T => {
+      const b = new (a.constructor as { new (n: number): T })(a.length * 2);
+      b.set(a);
+      return b;
+    };
+    this.pos = g(this.pos);
+    this.nor = g(this.nor);
+    this.col = g(this.col);
+    this.idx = g(this.idx);
   }
-  geometry(): THREE.BufferGeometry {
-    const g = new THREE.BufferGeometry();
-    g.setAttribute('position', new THREE.Float32BufferAttribute(this.pos, 3));
-    g.setAttribute('normal', new THREE.Float32BufferAttribute(this.nor, 3));
-    g.setAttribute('color', new THREE.Float32BufferAttribute(this.col, 3));
-    g.setIndex(this.idx);
-    g.computeBoundingSphere();
-    return g;
+  /** One quad: corners a, b, c, d (x, y, z each), normal n, colour. */
+  quad(
+    ax: number, ay: number, az: number,
+    bx: number, by: number, bz: number,
+    cx: number, cy: number, cz: number,
+    dx: number, dy: number, dz: number,
+    nx: number, ny: number, nz: number,
+    color: number[],
+  ) {
+    if ((this.quads + 1) * 6 > this.idx.length) this.grow();
+    const v = this.quads * 12;
+    const p = this.pos;
+    p[v] = ax; p[v + 1] = ay; p[v + 2] = az;
+    p[v + 3] = bx; p[v + 4] = by; p[v + 5] = bz;
+    p[v + 6] = cx; p[v + 7] = cy; p[v + 8] = cz;
+    p[v + 9] = dx; p[v + 10] = dy; p[v + 11] = dz;
+    const n = this.nor;
+    const c = this.col;
+    for (let i = 0; i < 4; i++) {
+      n[v + i * 3] = nx; n[v + i * 3 + 1] = ny; n[v + i * 3 + 2] = nz;
+      c[v + i * 3] = color[0]; c[v + i * 3 + 1] = color[1]; c[v + i * 3 + 2] = color[2];
+    }
+    const base = this.quads * 4;
+    const q = this.quads * 6;
+    const x = this.idx;
+    x[q] = base; x[q + 1] = base + 1; x[q + 2] = base + 2;
+    x[q + 3] = base; x[q + 4] = base + 2; x[q + 5] = base + 3;
+    this.quads++;
+  }
+  arrays(): MeshArrays {
+    const nv = this.quads * 12;
+    return { pos: this.pos.slice(0, nv), nor: this.nor.slice(0, nv), col: this.col.slice(0, nv), idx: this.idx.slice(0, this.quads * 6) };
   }
 }
 
-const colorCache = new Map<string, number[]>();
+export interface MeshArrays {
+  pos: Float32Array;
+  nor: Float32Array;
+  col: Float32Array;
+  idx: Uint32Array;
+}
+
+export type DeviceArrays = Record<Group, MeshArrays>;
+
+/** sRGB hex → linear RGB, exactly as three.js' Color does (colour-managed). */
+function hexToLinear(hex: string): number[] {
+  let h = hex.replace('#', '');
+  if (h.length === 3) h = h.split('').map((c) => c + c).join('');
+  const n = parseInt(h, 16);
+  const lin = (c: number) => (c < 0.04045 ? c * 0.0773993808 : Math.pow(c * 0.9478672986 + 0.0521327014, 2.4));
+  return [lin(((n >> 16) & 255) / 255), lin(((n >> 8) & 255) / 255), lin((n & 255) / 255)];
+}
+
+const colorCache = new Map<number, number[]>();
+/** Each distinct colour array gets a small id (top-face runs are keyed by it). */
+const colorIds = new Map<number[], number>([[GLOW_COLOR, 0]]);
 function linearColor(mat: number, tag: number, dose: number): number[] {
   const dq = mat === M.RES ? Math.round(dose * 10) / 10 : 0;
-  const key = `${mat}:${tag}:${dq}`;
+  const key = (mat * 256 + tag) * 64 + Math.round(dq * 10);
   let c = colorCache.get(key);
   if (!c) {
-    // Color.set() already converts the sRGB hex into the linear working space.
-    const col = new THREE.Color(matColor(mat, tag, dq));
-    c = [col.r, col.g, col.b];
+    c = hexToLinear(matColor(mat, tag, dq));
+    // (colours equal in value share an id, as string keys of their values would)
+    let same = -1;
+    for (const [arr, id] of colorIds) if (arr[0] === c[0] && arr[1] === c[1] && arr[2] === c[2]) same = id;
+    colorIds.set(c, same >= 0 ? same : colorIds.size);
     colorCache.set(key, c);
   }
   return c;
 }
 
-export function buildDeviceGeometry(g: Grid, o: MeshOptions): Record<Group, THREE.BufferGeometry> {
+const GROUP_ID: Record<Group, number> = { semi: 0, diel: 1, metal: 2, resist: 3, glow: 4 };
+
+export function buildDeviceArrays(g: Grid, o: MeshOptions): DeviceArrays {
   const bufs: Record<Group, Buf> = { semi: new Buf(), diel: new Buf(), metal: new Buf(), resist: new Buf(), glow: new Buf() };
   const glow = o.glow;
   const K = g.K;
@@ -101,19 +158,24 @@ export function buildDeviceGeometry(g: Grid, o: MeshOptions): Record<Group, THRE
     return hidden(grp) || (o.xray && grp === 'diel');
   };
 
-  // For a segment in column c, return visible z-intervals of its face towards column d.
+  // Visible z-intervals of a segment's face towards column d, written to `iv` (pairs); returns
+  // how many. (Scratch buffers instead of arrays per call: this runs for every face.)
   const zMin = o.zMin ?? -Infinity;
-  const visibleIntervals = (c: number, k: number, d: number): [number, number][] => {
+  let iv = new Float64Array(64);
+  let tmp = new Float64Array(64);
+  const visibleIntervals = (c: number, k: number, d: number): number => {
     const z0 = Math.max(zMin, g.base(c, k));
     const z1 = g.top[c * K + k];
     const myMat = g.mat[c * K + k];
     const myTag = g.tag[c * K + k];
     const mySee = see(myMat);
-    if (z1 <= z0) return [];
-    let parts: [number, number][] = [[z0, z1]];
-    if (d < 0) return parts;
+    if (z1 <= z0) return 0;
+    iv[0] = z0;
+    iv[1] = z1;
+    let n = 1;
+    if (d < 0) return n;
     const nd = g.n[d];
-    for (let m = 0; m < nd && parts.length; m++) {
+    for (let m = 0; m < nd && n; m++) {
       const b0 = g.base(d, m);
       const b1 = g.top[d * K + m];
       if (b1 <= z0 || b0 >= z1) continue;
@@ -121,38 +183,55 @@ export function buildDeviceGeometry(g: Grid, o: MeshOptions): Record<Group, THRE
       const nSee = see(nm);
       const hides = mySee ? nSee && nm === myMat && g.tag[d * K + m] === myTag : !nSee;
       if (!hides) continue;
-      const next: [number, number][] = [];
-      for (const [a, b] of parts) {
+      if (tmp.length < 4 * n + 4) tmp = new Float64Array(8 * n + 8);
+      let t = 0;
+      for (let q = 0; q < n; q++) {
+        const a = iv[2 * q];
+        const b = iv[2 * q + 1];
         if (b1 <= a || b0 >= b) {
-          next.push([a, b]);
+          if (b - a > 1e-4) {
+            tmp[2 * t] = a;
+            tmp[2 * t + 1] = b;
+            t++;
+          }
           continue;
         }
-        if (b0 > a) next.push([a, b0]);
-        if (b1 < b) next.push([b1, b]);
+        if (b0 > a && b0 - a > 1e-4) {
+          tmp[2 * t] = a;
+          tmp[2 * t + 1] = b0;
+          t++;
+        }
+        if (b1 < b && b - b1 > 1e-4) {
+          tmp[2 * t] = b1;
+          tmp[2 * t + 1] = b;
+          t++;
+        }
       }
-      parts = next.filter(([a, b]) => b - a > 1e-4);
+      const sw = iv;
+      iv = tmp;
+      tmp = sw;
+      n = t;
     }
-    return parts;
+    return n;
   };
 
-  // Top faces merged along x: key → open run
-  type Run = { i0: number; i1: number; j: number; z: number; color: number[]; grp: Group };
+  // Top faces merged along x: key → open run (numeric keys: group, colour and height)
+  type Run = { i0: number; i1: number; j: number; z: number; color: number[]; grp: Group; seen: number };
   for (let j = j0; j < j1; j++) {
-    const open = new Map<string, Run>();
-    const flush = (key: string) => {
+    const open = new Map<number, Run>();
+    const za = Z(j * g.dy);
+    const zb = Z((j + 1) * g.dy);
+    const flush = (key: number) => {
       const r = open.get(key)!;
       open.delete(key);
       const x0 = X(r.i0 * g.dx);
       const x1 = X(r.i1 * g.dx);
-      const za = Z(r.j * g.dy);
-      const zb = Z((r.j + 1) * g.dy);
       const y = Y(r.z);
-      bufs[r.grp].quad([x0, y, za], [x1, y, za], [x1, y, zb], [x0, y, zb], [0, 1, 0], r.color);
+      bufs[r.grp].quad(x0, y, za, x1, y, za, x1, y, zb, x0, y, zb, 0, 1, 0, r.color);
     };
     for (let i = 0; i < g.nx; i++) {
       const c = j * g.nx + i;
       const n = g.n[c];
-      const present = new Set<string>();
       for (let k = 0; k < n; k++) {
         const idx = c * K + k;
         const mat = g.mat[idx];
@@ -166,35 +245,34 @@ export function buildDeviceGeometry(g: Grid, o: MeshOptions): Record<Group, THRE
         const color = lit ? GLOW_COLOR : linearColor(mat, g.tag[idx], g.dose[c]);
         const z = g.top[idx];
         const outGrp: Group = lit ? 'glow' : grp;
-        const key = `${outGrp}|${color.join(',')}|${z.toFixed(3)}`;
-        present.add(key);
+        const key = ((colorIds.get(color) ?? 0) * 8 + GROUP_ID[outGrp]) * 131072 + (Math.round(z * 1000) + 65536);
         const r = open.get(key);
-        if (r && r.i1 === i) r.i1 = i + 1;
-        else {
+        if (r && r.i1 === i) {
+          r.i1 = i + 1;
+          r.seen = i;
+        } else {
           if (r) flush(key);
-          open.set(key, { i0: i, i1: i + 1, j, z, color, grp: outGrp });
+          open.set(key, { i0: i, i1: i + 1, j, z, color, grp: outGrp, seen: i });
         }
       }
-      for (const key of [...open.keys()]) if (!present.has(key)) flush(key);
+      for (const [key, r] of open) if (r.seen !== i) flush(key);
     }
     for (const key of [...open.keys()]) flush(key);
   }
 
   // Side faces
   for (let j = j0; j < j1; j++) {
+    const za = Z(j * g.dy);
+    const zb = Z((j + 1) * g.dy);
     for (let i = 0; i < g.nx; i++) {
       const c = j * g.nx + i;
       const n = g.n[c];
       const x0 = X(i * g.dx);
       const x1 = X((i + 1) * g.dx);
-      const za = Z(j * g.dy);
-      const zb = Z((j + 1) * g.dy);
-      const nbr = {
-        px: i + 1 < g.nx ? c + 1 : -1,
-        nx: i > 0 ? c - 1 : -1,
-        py: j + 1 < j1 ? c + g.nx : -1,
-        ny: j > j0 ? c - g.nx : -1,
-      };
+      const npx = i + 1 < g.nx ? c + 1 : -1;
+      const nnx = i > 0 ? c - 1 : -1;
+      const npy = j + 1 < j1 ? c + g.nx : -1;
+      const nny = j > j0 ? c - g.nx : -1;
       for (let k = 0; k < n; k++) {
         const idx = c * K + k;
         const mat = g.mat[idx];
@@ -206,36 +284,41 @@ export function buildDeviceGeometry(g: Grid, o: MeshOptions): Record<Group, THRE
         const segTop = g.top[idx];
         const partial = lit && mat === M.SI && segTop - g.base(c, k) > CHANNEL_DEPTH * 1.5;
         const split = partial ? segTop - CHANNEL_DEPTH : Infinity;
-        const emit = (dir: 'px' | 'nx' | 'py' | 'ny', d: number) => {
-          for (const [a0, b0] of visibleIntervals(c, k, d)) {
-            const pieces: [number, number, boolean][] = partial
-              ? ([
-                  [a0, Math.min(b0, split), false],
-                  [Math.max(a0, split), b0, true],
-                ] as [number, number, boolean][]).filter(([x, y]) => y - x > 1e-4)
-              : [[a0, b0, lit]];
-            for (const [a, bz, on] of pieces) {
-              const b = bufs[on ? 'glow' : grp];
-              const col = on ? GLOW_COLOR : baseColor;
-              if (dir === 'px') b.quad([x1, Y(a), za], [x1, Y(a), zb], [x1, Y(bz), zb], [x1, Y(bz), za], [1, 0, 0], col);
-              else if (dir === 'nx') b.quad([x0, Y(a), zb], [x0, Y(a), za], [x0, Y(bz), za], [x0, Y(bz), zb], [-1, 0, 0], col);
-              else if (dir === 'ny') b.quad([x0, Y(a), za], [x1, Y(a), za], [x1, Y(bz), za], [x0, Y(bz), za], [0, 0, 1], col);
-              else b.quad([x1, Y(a), zb], [x0, Y(a), zb], [x0, Y(bz), zb], [x1, Y(bz), zb], [0, 0, -1], col);
-            }
+        const put = (dir: number, a: number, bz: number, on: boolean) => {
+          const b = bufs[on ? 'glow' : grp];
+          const col = on ? GLOW_COLOR : baseColor;
+          const ya = Y(a);
+          const yb = Y(bz);
+          if (dir === 0) b.quad(x1, ya, za, x1, ya, zb, x1, yb, zb, x1, yb, za, 1, 0, 0, col);
+          else if (dir === 1) b.quad(x0, ya, zb, x0, ya, za, x0, yb, za, x0, yb, zb, -1, 0, 0, col);
+          else if (dir === 2) b.quad(x0, ya, za, x1, ya, za, x1, yb, za, x0, yb, za, 0, 0, 1, col);
+          else b.quad(x1, ya, zb, x0, ya, zb, x0, yb, zb, x1, yb, zb, 0, 0, -1, col);
+        };
+        const emit = (dir: number, d: number) => {
+          const m = visibleIntervals(c, k, d);
+          for (let q = 0; q < m; q++) {
+            const a0 = iv[2 * q];
+            const b0 = iv[2 * q + 1];
+            if (partial) {
+              const lo = Math.min(b0, split);
+              const hi = Math.max(a0, split);
+              if (lo - a0 > 1e-4) put(dir, a0, lo, false);
+              if (b0 - hi > 1e-4) put(dir, hi, b0, true);
+            } else put(dir, a0, b0, lit);
           }
         };
-        emit('px', nbr.px);
-        emit('nx', nbr.nx);
-        emit('ny', nbr.ny); // toward the viewer: includes the cut face
-        emit('py', nbr.py);
+        emit(0, npx);
+        emit(1, nnx);
+        emit(2, nny); // toward the viewer: includes the cut face
+        emit(3, npy);
       }
     }
   }
   return {
-    semi: bufs.semi.geometry(),
-    diel: bufs.diel.geometry(),
-    metal: bufs.metal.geometry(),
-    resist: bufs.resist.geometry(),
-    glow: bufs.glow.geometry(),
+    semi: bufs.semi.arrays(),
+    diel: bufs.diel.arrays(),
+    metal: bufs.metal.arrays(),
+    resist: bufs.resist.arrays(),
+    glow: bufs.glow.arrays(),
   };
 }

@@ -10,11 +10,12 @@ import { FLOW } from '../sim/flow';
 import { DEFAULT_CHOICES } from '../sim/types';
 import type { Presentation, ProgressSource } from '../state/presentation';
 import { useApp } from '../state/store';
+import { failedStations, readyStations, stationBoxes, waferShown } from '../three/stage/anchors';
 import { filmBridge } from '../three/stage/filmBridge';
-import { evalLegs, planTransition } from '../three/stage/flights';
+import { evalLegs, handoverAt, planTransition, type Leg } from '../three/stage/flights';
 import { heroPose, overviewPose } from '../three/stage/Director';
 import type { StationMount } from '../three/stage/context';
-import { evalTrack, evalTrackStill, makeSample, type CamSample } from '../three/stage/tracks';
+import { copyPose, evalTrack, evalTrackStill, makePose, makeSample, type CamSample } from '../three/stage/tracks';
 import { filmPlayer, onFilmTick, useFilm } from './film';
 import { inputAt, locate, progressOf, progressIn, type Timeline, type TimelineSegment } from './timeline';
 
@@ -65,11 +66,13 @@ export function updateFilmStage(tl: Timeline, t: number): void {
   const loc = locate(tl, t);
   const seg = loc.seg;
   const next = tl.segments[seg.index + 1];
-  // In the move after a segment, the next step takes over halfway through.
-  const cur = loc.inGap && loc.u >= 0.5 && next ? next : seg;
+  // In the move after a segment, the next step takes over while the camera is between the
+  // two machines (see gapPlan): its machine then holds the learner's wafer.
+  const handed = loc.inGap && !!next && loc.u >= gapHandover(tl, seg.index);
+  const cur = handed ? next : seg;
   const input = inputAt(tl, t);
   const light = !loc.inGap && !!seg.def.lightPath;
-  const key = `${cur.index}:${seg.index}:${loc.inGap && loc.u >= 0.5}:${light}:${input}`;
+  const key = `${cur.index}:${seg.index}:${handed}:${light}:${input}`;
   if (key === lastKey) return;
   lastKey = key;
   const mounts: StationMount[] = [];
@@ -92,20 +95,76 @@ const A = makeSample();
 const B = makeSample();
 const noFit = () => {};
 
-function segmentShot(seg: TimelineSegment, p: number, time: number, out: CamSample, reduced: boolean): number | null {
+function segmentShot(seg: TimelineSegment, p: number, time: number, out: CamSample, reduced: boolean): void {
   if (seg.stepIndex === null) {
     // Opening: the bay as on the home page. Closing: the whole bay from above.
     if (seg.index === 0) return heroPose(time, filmBridge.aspect, reduced, out);
     out.mix = 0;
     overviewPose(filmBridge.aspect, out.a);
-    return 34;
+    return;
   }
   const content = STEPS[FLOW[seg.stepIndex].id];
   (reduced ? evalTrackStill : evalTrack)(trackForIndex(seg.stepIndex), p, { station: seg.station, variant: content.variant }, out);
-  return null;
 }
 
 const shown = (s: CamSample) => (s.mix >= 0.5 ? s.b : s.a);
+
+/**
+ * The silent move after a segment, planned once and reused for every frame of the gap (the
+ * same legs the director flies in a lesson). The plan depends only on the two framings it
+ * joins, so it is kept until one of its inputs changes: the viewport's aspect, reduced
+ * motion, which machines are loaded (their wafers anchor the framings) and whether each end's
+ * wafer is where the framing looks. A seek into the gap gets exactly the plan playing would.
+ */
+interface GapPlan {
+  key: string;
+  legs: Leg[];
+  total: number;
+  /** Fraction of the gap at which the next machine takes the wafer. */
+  hand: number;
+}
+const gapPlans = new Map<number, GapPlan>();
+/** Planned (not reused) moves, for the measurement harness. */
+export const gapStats = { planned: 0, reused: 0 };
+
+function gapKey(tl: Timeline, i: number, reduced: boolean): string {
+  const a = tl.segments[i];
+  const b = tl.segments[i + 1];
+  const st = (id: TimelineSegment['station']) => (id ? `${id}:${readyStations.has(id) ? 1 : 0}${failedStations.has(id) ? 'x' : ''}${waferShown(id) ? 'w' : ''}` : '-');
+  return `${filmBridge.aspect.toFixed(3)}:${reduced}:${st(a.station)}:${st(b?.station ?? null)}:${stationBoxes.size}`;
+}
+
+function gapPlan(tl: Timeline, i: number, reduced: boolean): GapPlan {
+  const key = gapKey(tl, i, reduced);
+  const hit = gapPlans.get(i);
+  if (hit && hit.key === key) {
+    gapStats.reused++;
+    return hit;
+  }
+  const seg = tl.segments[i];
+  const next = tl.segments[i + 1];
+  segmentShot(seg, 1, seg.start + seg.dur, A, reduced);
+  segmentShot(next, 0, next.start, B, reduced);
+  const to = copyPose(makePose(), shown(B));
+  const legs = planTransition(shown(A), () => to, {
+    from: seg.station,
+    to: next.station,
+    establish: !!next.station && next.station !== seg.station,
+    reduced,
+    fit: noFit,
+  });
+  const total = legs.reduce((s, l) => s + l.dur, 0);
+  const plan = { key, legs, total, hand: total > 0 ? handoverAt(legs) / total : 0.5 };
+  gapPlans.set(i, plan);
+  gapStats.planned++;
+  return plan;
+}
+
+/** Fraction of the gap after segment i at which the next machine takes over. */
+function gapHandover(tl: Timeline, i: number): number {
+  const hit = gapPlans.get(i);
+  return hit ? hit.hand : tl.segments[i + 1]?.station !== tl.segments[i].station ? 0.35 : 0.5;
+}
 
 /** The film's camera at the clock's current time (set as filmBridge.sample while watching). */
 function sample(out: CamSample): boolean {
@@ -116,24 +175,12 @@ function sample(out: CamSample): boolean {
   const loc = locate(tl, t);
   const seg = loc.seg;
   if (!loc.inGap) {
-    filmBridge.fov = segmentShot(seg, progressIn(seg, t), t, out, reduced);
+    segmentShot(seg, progressIn(seg, t), t, out, reduced);
     return true;
   }
   // The silent move to the next segment's first framing, stretched to fill the gap.
-  const next = tl.segments[seg.index + 1];
-  const fovA = segmentShot(seg, 1, seg.start + seg.dur, A, reduced);
-  const fovB = segmentShot(next, 0, next.start, B, reduced);
-  const legs = planTransition(shown(A), () => shown(B), {
-    from: seg.station,
-    to: next.station,
-    establish: !!next.station && next.station !== seg.station,
-    reduced,
-    fit: noFit,
-  });
-  const total = legs.reduce((s, l) => s + l.dur, 0);
-  evalLegs(legs, loc.u * total, out);
-  // Composed (viewport-aware) shots only at the two ends of the film.
-  filmBridge.fov = fovA !== null && fovB !== null ? fovB : fovB !== null && loc.u > 0.5 ? fovB : fovA !== null && loc.u < 0.5 ? fovA : null;
+  const plan = gapPlan(tl, seg.index, reduced);
+  evalLegs(plan.legs, loc.u * plan.total, out);
   return true;
 }
 
@@ -142,10 +189,10 @@ export function attachFilm(c: Clock | null): void {
   clock = c;
   lastKey = '';
   presCache.clear();
+  gapPlans.clear();
   filmBridge.sample = c ? sample : null;
   if (!c) {
     filmBridge.station = null;
-    filmBridge.fov = null;
     useFilmStage.setState({ stage: null });
   }
 }

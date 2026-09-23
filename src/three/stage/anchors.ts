@@ -71,8 +71,14 @@ export function toolMatrix(id: MachineId, out = new THREE.Matrix4()): THREE.Matr
 /** Each machine's footprint in the bay (world space), from its low-detail model. */
 export const stationBoxes = new Map<MachineId, THREE.Box3>();
 
-/** Stations whose detailed model is mounted and loaded (the director may hand over to it). */
+/**
+ * Stations whose detailed model is mounted, drawn once and prepared for the GPU (shader
+ * programs compiled, textures uploaded): the director may hand over to it.
+ */
 export const readyStations = new Set<MachineId>();
+
+/** Stations whose detailed model failed to load (the director frames the exterior instead). */
+export const failedStations = new Set<MachineId>();
 
 /** The mounted detailed model of each station (the director shows it instead of the proxy). */
 export const stationGroups = new Map<MachineId, THREE.Object3D>();
@@ -98,14 +104,17 @@ export function yourDieLocal(out = new THREE.Vector3()): THREE.Vector3 {
 
 /**
  * Whether the machine is showing the learner's wafer right now (some tools hide it while it is
- * in another machine: the polisher before the wafer arrives, for example). The station's own
- * level-of-detail switch does not count.
+ * in another machine: the polisher before the wafer arrives, for example). Neither the
+ * station's own level-of-detail switch nor the wafer's hand-over between machines (the mesh's
+ * own visibility, see handover.ts) counts: this asks where the tool holds the wafer.
  */
 export function waferShown(id: MachineId | null): boolean {
   if (!id) return false;
   const station = stationGroups.get(id);
-  for (let o = waferRegistry.get(id) ?? null; o && o !== station; o = o.parent) if (!o.visible) return false;
-  return waferRegistry.has(id);
+  const mesh = waferRegistry.get(id);
+  if (!mesh) return false;
+  for (let o = mesh.parent; o && o !== station; o = o.parent) if (!o.visible) return false;
+  return true;
 }
 
 /** Wafer centre, up normal and your-die centre in world space, or null if no wafer is shown. */

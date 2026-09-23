@@ -15,7 +15,7 @@ import { DEVICE_POSE, type Pose } from '../poses';
 import { fabPoseFor, POSE as FAB_POSE } from '../tools/poses/fab';
 import { facing } from '../tools/poses/fab';
 import type { ScaleId } from '../../state/store';
-import { anchorsOf, stationBoxes, toolMatrix, waferFrame } from './anchors';
+import { anchorsOf, failedStations, stationBoxes, toolMatrix, waferFrame } from './anchors';
 
 export type Space = 'world' | 'device';
 
@@ -25,7 +25,13 @@ export interface CamPose {
   target: THREE.Vector3;
   /** What the framing shows (for the scale label); unset for free camera positions. */
   scale?: ScaleId;
+  /** Vertical field of view (degrees) for framings composed for the viewport (the views of
+   * the whole bay); unset for ordinary framings, which use BASE_FOV. Moves interpolate it. */
+  fov?: number;
 }
+
+/** The field of view of ordinary framings (degrees). */
+export const BASE_FOV = 32;
 
 export const makePose = (space: Space = 'world'): CamPose => ({ space, pos: new THREE.Vector3(), target: new THREE.Vector3() });
 
@@ -34,8 +40,11 @@ export function copyPose(dst: CamPose, src: CamPose): CamPose {
   dst.pos.copy(src.pos);
   dst.target.copy(src.target);
   dst.scale = src.scale;
+  dst.fov = src.fov;
   return dst;
 }
+
+export const fovOf = (p: CamPose) => p.fov ?? BASE_FOV;
 
 /** One frame's camera: a single pose, or a cross-fade from `a` to `b` (b weighted by mix). */
 export interface CamSample {
@@ -65,6 +74,7 @@ const v2 = new THREE.Vector3();
 function setPose(out: CamPose, space: Space, pose: Pose, m?: THREE.Matrix4): CamPose {
   out.space = space;
   out.scale = space === 'device' ? 'device' : 'tool';
+  out.fov = undefined;
   out.pos.set(pose.pos[0], pose.pos[1], pose.pos[2]);
   out.target.set(pose.target[0], pose.target[1], pose.target[2]);
   if (m) {
@@ -98,6 +108,7 @@ export function machinePose(id: MachineId, out: CamPose): CamPose {
   const f = facing(id);
   out.space = 'world';
   out.scale = 'tool';
+  out.fov = undefined;
   out.target.set(mc.x, Math.min(1.05, mc.y), mc.z);
   const ce = Math.cos(MACHINE_ELEV);
   out.pos.set(Math.sin(MACHINE_YAW) * ce, Math.sin(MACHINE_ELEV), f * Math.cos(MACHINE_YAW) * ce).multiplyScalar(dist).add(out.target);
@@ -127,11 +138,14 @@ export function resolve(ref: CamRef, ctx: ResolveCtx, out: CamPose): CamPose {
     case 'shot': {
       const st = ref.station ?? ctx.station;
       if (!st) return setPose(out, 'world', FAB_POSE);
+      // a machine whose detailed model could not be loaded is shown from outside
+      if (failedStations.has(st)) return machinePose(st, out);
       return toolShot(st, ref.name === 'establish' && ctx.variant ? ctx.variant : ref.name, out);
     }
     case 'wafer': {
       const st = ref.station ?? ctx.station;
       if (!st) return setPose(out, 'world', FAB_POSE);
+      if (failedStations.has(st)) return machinePose(st, out);
       if (!waferFrame(st, wf)) return toolShot(st, ctx.variant ?? 'establish', out);
       // Horizontal direction toward the machine's usual viewpoint, then tilt up.
       toolShot(st, ctx.variant ?? 'establish', out);
@@ -218,12 +232,56 @@ export function deviceToWorld(deviceFrom: CamPose, worldTo: CamPose, t: number, 
 export function lerpPose(a: CamPose, b: CamPose, t: number, out: CamPose): CamPose {
   out.space = b.space;
   out.scale = t < 0.5 ? a.scale : b.scale;
+  out.fov = a.fov === undefined && b.fov === undefined ? undefined : fovOf(a) + (fovOf(b) - fovOf(a)) * t;
   out.pos.lerpVectors(a.pos, b.pos, t);
   out.target.lerpVectors(a.target, b.target, t);
   return out;
 }
 
-/** Evaluate a track at progress p. */
+const PREV = makePose();
+const NEXT = makePose();
+
+const differs = (a: CamPose, b: CamPose) => a.space !== b.space || a.pos.distanceToSquared(b.pos) + a.target.distanceToSquared(b.target) > 1e-6;
+
+/**
+ * Tangent (per unit progress) at key `mid` for a move passing through it from `before` to
+ * `after` (Catmull-Rom), limited so the path cannot overshoot either neighbouring move.
+ */
+function throughTangent(before: THREE.Vector3, mid: THREE.Vector3, after: THREE.Vector3, dpBefore: number, dpAfter: number, out: THREE.Vector3): THREE.Vector3 {
+  out.subVectors(after, before).divideScalar(dpBefore + dpAfter);
+  const vIn = mid.distanceTo(before) / dpBefore;
+  const vOut = after.distanceTo(mid) / dpAfter;
+  const cap = 1.5 * Math.min(vIn, vOut);
+  const len = out.length();
+  if (len > cap) out.multiplyScalar(cap / Math.max(1e-9, len));
+  return out;
+}
+
+/** Cubic Hermite between a and b with end tangents ma, mb (already scaled to the segment). */
+function hermite(a: THREE.Vector3, b: THREE.Vector3, ma: THREE.Vector3, mb: THREE.Vector3, t: number, out: THREE.Vector3): THREE.Vector3 {
+  const t2 = t * t;
+  const t3 = t2 * t;
+  const h00 = 2 * t3 - 3 * t2 + 1;
+  const h10 = t3 - 2 * t2 + t;
+  const h01 = -2 * t3 + 3 * t2;
+  const h11 = t3 - t2;
+  return out.set(
+    h00 * a.x + h10 * ma.x + h01 * b.x + h11 * mb.x,
+    h00 * a.y + h10 * ma.y + h01 * b.y + h11 * mb.y,
+    h00 * a.z + h10 * ma.z + h01 * b.z + h11 * mb.z,
+  );
+}
+
+const MA = { pos: new THREE.Vector3(), target: new THREE.Vector3() };
+const MB = { pos: new THREE.Vector3(), target: new THREE.Vector3() };
+
+/**
+ * Evaluate a track at progress p. A key says "by p, the camera arrives at this framing".
+ * Consecutive keys with the same framing hold it (a deliberate pause). A run of moves passes
+ * through its intermediate framings without stopping (the camera arrives at each on time,
+ * still moving: velocity is continuous), starting from rest and coming to rest at the end of
+ * the run; a single move eases in and out. A change of space is the anchored cross-fade.
+ */
 export function evalTrack(track: Key[], p: number, ctx: ResolveCtx, out: CamSample): CamSample {
   out.mix = 0;
   if (!track.length) {
@@ -250,12 +308,40 @@ export function evalTrack(track: Key[], p: number, ctx: ResolveCtx, out: CamSamp
   resolve(ka.cam, ctx, A);
   resolve(kb.cam, ctx, B);
   const t = seg(p, ka.p, kb.p);
-  if (A.space === B.space) {
+  if (A.space !== B.space) {
+    if (A.space === 'world') return worldToDevice(A, B, t, ctx.station, out);
+    return deviceToWorld(A, B, t, ctx.station, out);
+  }
+  if (!differs(A, B)) {
+    copyPose(out.a, A);
+    return out;
+  }
+  // moving on through the neighbouring keys (a run of moves in the same space)?
+  const dp = kb.p - ka.p;
+  const kp = track[i - 1];
+  const kn = track[i + 2];
+  const inRunBefore = !!kp && kp.p < ka.p && (resolve(kp.cam, ctx, PREV), PREV.space === A.space && differs(PREV, A));
+  const inRunAfter = !!kn && kn.p > kb.p && (resolve(kn.cam, ctx, NEXT), NEXT.space === B.space && differs(B, NEXT));
+  if (!inRunBefore && !inRunAfter) {
     lerpPose(A, B, easeInOut(t), out.a);
     return out;
   }
-  if (A.space === 'world') return worldToDevice(A, B, t, ctx.station, out);
-  return deviceToWorld(A, B, t, ctx.station, out);
+  MA.pos.set(0, 0, 0);
+  MA.target.set(0, 0, 0);
+  MB.pos.set(0, 0, 0);
+  MB.target.set(0, 0, 0);
+  if (inRunBefore) {
+    throughTangent(PREV.pos, A.pos, B.pos, ka.p - kp.p, dp, MA.pos).multiplyScalar(dp);
+    throughTangent(PREV.target, A.target, B.target, ka.p - kp.p, dp, MA.target).multiplyScalar(dp);
+  }
+  if (inRunAfter) {
+    throughTangent(A.pos, B.pos, NEXT.pos, dp, kn.p - kb.p, MB.pos).multiplyScalar(dp);
+    throughTangent(A.target, B.target, NEXT.target, dp, kn.p - kb.p, MB.target).multiplyScalar(dp);
+  }
+  lerpPose(A, B, t, out.a); // space, scale and field of view
+  hermite(A.pos, B.pos, MA.pos, MB.pos, t, out.a.pos);
+  hermite(A.target, B.target, MA.target, MB.target, t, out.a.target);
+  return out;
 }
 
 /**

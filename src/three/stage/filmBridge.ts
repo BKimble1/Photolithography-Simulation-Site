@@ -7,15 +7,11 @@ import type { CamSample } from './tracks';
 
 export const filmBridge: {
   sample: ((out: CamSample) => boolean) | null;
-  /** The machine the film is at right now. */
+  /** The machine the film is at right now (it holds the learner's wafer). */
   station: MachineId | null;
-  /** Field of view for the current shot when it is composed for the viewport already (the
-   * opening and closing views of the bay); null for the ordinary shots, which the director
-   * fits to the viewport's aspect. */
-  fov: number | null;
   /** The viewport aspect (width / height), kept up to date by the director. */
   aspect: number;
-} = { sample: null, station: null, fov: null, aspect: 1.6 };
+} = { sample: null, station: null, aspect: 1.6 };
 
 /** The film's camera for the current media time; false when no film is loaded. */
 export function filmSample(out: CamSample): boolean {
