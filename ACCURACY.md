@@ -208,6 +208,8 @@ source. "Model" says how the simulation reflects it.
 | **CMP tool** | One platen; the wafer is flipped in the load cup. | Production polishers have several platens and usually flip the wafer with the robot. |
 | **Furnace** | Pad oxide and nitride are grown in the same tube, one after the other. | Fabs usually use separate furnaces for oxidation and LPCVD nitride. |
 | **Implanter and other tools** | A generic medium-current beamline; the FOUP shell is drawn translucent so the wafers show; spin speeds and robot motions are visual, not real rpm or timing. | Tool layouts differ by vendor and application. |
+| **Back end** | Probe needles, dicing blade (0.8 mm drawn), bond wires and loops are drawn much larger than real; the lead frame is a generic 4-lead strip (VDD, IN, OUT, GND); the prober touches down on every complete die in sequence. | Blades are tens of micrometres thick; probe cards contact many dies at once; packages follow standard outlines. |
+| **Fab bay** | One 36 m bay holds every tool of the journey, with the back end behind a glass wall. | Front-end fabs are far larger, tools are grouped by type in separate bays, and packaging and test usually happen at other sites. |
 | **Inspection and metrology** | The tool view scans in a spiral, the wafer view in a line, so particles appear in a different order. The CD-SEM images the one simulated die at each of five sites, with small offsets and noise. | Inspection recipes, sampling plans and SEM imaging physics. |
 
 The inverter layout is illustrative, not from a real design kit. Colours for doping and the

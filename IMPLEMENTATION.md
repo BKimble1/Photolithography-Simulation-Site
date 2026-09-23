@@ -206,11 +206,11 @@ Fifteen lazily loaded scenes, one module each, plus the fab bay:
 | `Track` | prime, coat, softbake, peb, develop | coater/developer track: spin cup, dispense arm, hot plates, developer puddle |
 | `Scanner` | reticle, align, expose, contact steps | 193 nm DUV scanner: illuminator, reticle stage, projection lens, dual wafer stages; toggled light path |
 | `Metrology` | adi | CD-SEM: vacuum chamber, XY stage visiting five sites, electron column; the monitor's image and CD readout come from the simulated developed resist |
-| `Prober` | probe | probe card over a wafer on a chuck, wafer map |
-| `Dicing` | dice | blade saw on a taped wafer frame |
-| `Package` | attach, bond | die attach and wire bonder |
-| `TestBench` | final | packaged chip on a test board |
-| `Fab` | fab level of every step | the bay: tools in a row, highlighting the current one |
+| `Prober` | probe | test head docked through a pogo tower to a probe card (drawn in half section so the needles show); the stage indexes and touches down die by die while the wafer map fills in; loader with a FOUP and tester cabinet |
+| `Dicing` | dice | taped wafer in a ring frame on a porous chuck; spindle and blade with coolant cut each street in both directions, then the table turns 90° |
+| `Package` | attach, bond | `attach`: ejector and collet pick the die and place it on an epoxy dot on a lead frame; `bond`: a capillary makes ball-and-stitch bonds for four wires, then a mould chase encapsulates the die |
+| `TestBench` | final (tool view) | the packaged chip in a socket on a load board with an input switch and an output LED that follows the extracted circuit; clicking the switch toggles the input |
+| `Fab` | fab level of every step, home page | a 36 m bay with two tool rows, an amber-lit lithography bay, a FOUP transport loop with vehicles and a back-end room; the current station is outlined in violet. Matte surfaces use pre-baked lighting so the bay stays cheap to draw |
 
 Equipment is stylised and procedural (no external models or textures). Light paths are
 drawn only when the learner turns them on.
