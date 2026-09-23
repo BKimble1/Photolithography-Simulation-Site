@@ -448,48 +448,6 @@ function furnace(K: Kit, withFoup = true) {
   K.foot(uw, 3.0);
 }
 
-/** Cluster tool: EFEM + transfer chamber + process chambers; `kind` changes the chambers. */
-function cluster(K: Kit, kind: 'etch' | 'depo') {
-  const w = 3.8;
-  const d = 3.6;
-  const zf = d / 2;
-  // EFEM across the front
-  body(K, 3.0, 2.15, 0.9, 0, zf - 0.45);
-  K.box('window', 1.8, 0.5, 0.012, 0, 1.72, zf + 0.004, 0.004);
-  reveal(K, 3.0, 1.38, zf);
-  loadPorts(K, [-0.9, 0, 0.9], zf, kind === 'etch' ? [0, 2] : [1]);
-  // frame and transfer chamber
-  K.box('gray', 2.6, 0.8, 2.3, 0, 0.4, -0.55, 0.03);
-  K.cyl('satin', 0.72, 0.5, 0, 1.08, -0.55, 6);
-  K.cyl('steel', 0.62, 0.06, 0, 1.36, -0.55, 6);
-  // four process chambers around the back half of the transfer chamber
-  const pos: [number, number][] = [
-    [-1.28, -0.05],
-    [-1.05, -1.4],
-    [1.05, -1.4],
-    [1.28, -0.05],
-  ];
-  pos.forEach(([x, z]) => {
-    K.box('white', 0.95, 0.9, 0.95, x, 0.45, z, 0.03);
-    if (kind === 'etch') {
-      K.cyl('satin', 0.42, 0.5, x, 1.15, z, 28);
-      K.cyl('steel', 0.36, 0.08, x, 1.44, z, 28);
-      K.box('gray', 0.42, 0.34, 0.42, x, 1.65, z, 0.02); // RF match
-      K.cyl('steelDark', 0.05, 0.3, x + 0.3, 1.6, z, 8);
-    } else {
-      K.box('satin', 0.84, 0.46, 0.84, x, 1.13, z, 0.05);
-      K.cyl('alu', 0.3, 0.42, x, 1.57, z, 28);
-      K.cyl('dark', 0.24, 0.1, x, 1.83, z, 28);
-    }
-  });
-  // gas / RF cabinet at the back
-  body(K, 2.4, 2.3, 0.55, 0, -d / 2 + 0.28, 'warm');
-  roof(K, 2.4, 2.3, 0.55, 0, -d / 2 + 0.28);
-  seams(K, -1.5, 1.5, 0.12, 1.3, zf, 0.75);
-  K.tower(1.3, 2.15, zf - 0.8);
-  K.foot(w, d);
-}
-
 /**
  * Plasma etch cluster, laid out like its detailed scene (Etch.tsx) so the cutaway opens onto
  * the same machine: EFEM with three load ports across the front, the load lock behind it, a
@@ -622,53 +580,129 @@ function scanner(K: Kit) {
   K.foot(3.0, 1.1, 0.6, -d / 2 - 1.05);
 }
 
+/**
+ * CMP polisher: a cleaner and front-end module with the load port at the west end (station −x),
+ * and the polisher cell beside it behind a large window. The detailed scene (Cmp.tsx, mounted
+ * by poses/cmp.ts) fills the cell: platen, carrier head on its swing arm, load cup, the
+ * clean/dry module's slot in the cell's west wall. The cell is built from panels with the
+ * window standing just proud of them, so the cutaway (station z > 1.412, y > 1.25) takes only
+ * the window and the cleaner module stays shut.
+ */
 function cmp(K: Kit) {
   const w = 3.4;
   const d = 2.8;
   const h = 2.35;
   const zf = d / 2;
-  // polisher: glazed recess with three platens; cleaner module to the right
+  const c0 = -0.66; // cleaner | polisher cell
+  const cw = w / 2 - c0; // cell width
+  const cx = (c0 + w / 2) / 2;
+  const y0 = 1.25; // window sill
+  const y1 = 2.2;
   K.box('gray', w - 0.05, 0.1, d - 0.05, 0, 0.05, 0);
-  K.box('white', w, h - 0.1, d - 0.7, 0, 0.1 + (h - 0.1) / 2, -0.35, 0.035);
-  K.box('white', w, 0.95, 0.7, 0, 0.575, zf - 0.35, 0.03);
-  K.box('white', w, 0.5, 0.7, 0, h - 0.25, zf - 0.35, 0.03);
-  K.box('white', 1.1, h - 0.1, 0.7, w / 2 - 0.55, 0.1 + (h - 0.1) / 2, zf - 0.35, 0.03);
-  K.box('recess', 2.3, 0.9, 0.02, -0.55, 1.5, zf - 0.69);
-  for (let i = 0; i < 3; i++) {
-    K.cyl('platen', 0.26, 0.08, -1.25 + i * 0.68, 1.1, zf - 0.38, 32);
-    K.cyl('satin', 0.05, 0.4, -1.25 + i * 0.68 + 0.22, 1.36, zf - 0.38, 10);
-  }
-  K.box('glass', 2.3, 0.9, 0.012, -0.55, 1.5, zf - 0.02);
-  K.box('window', 0.6, 0.4, 0.012, w / 2 - 0.55, 1.75, zf + 0.004, 0.004);
+  // cleaner and front end, load port and window
+  K.box('white', c0 + w / 2, h - 0.1, d, (c0 - w / 2) / 2, 0.1 + (h - 0.1) / 2, 0, 0.035);
+  K.box('window', 0.6, 0.4, 0.012, -1.18, 1.75, zf + 0.004, 0.004);
+  loadPorts(K, [-1.18], zf, [0]);
+  // polisher cell: front wall around the window opening, east and back walls, roof
+  K.box('white', cw, y0 - 0.1, 0.03, cx, (0.1 + y0) / 2, zf - 0.015);
+  K.box('white', cw, h - y1, 0.03, cx, (y1 + h) / 2, zf - 0.015);
+  for (const x of [c0 + 0.015, w / 2 - 0.015]) K.box('white', 0.03, y1 - y0, 0.03, x, (y0 + y1) / 2, zf - 0.015);
+  K.box('white', 0.03, h - 0.1, d - 0.03, w / 2 - 0.015, 0.1 + (h - 0.1) / 2, -0.015);
+  K.box('white', cw - 0.03, h - 0.1, 0.03, cx - 0.015, 0.1 + (h - 0.1) / 2, -zf + 0.015);
+  K.box('white', cw, 0.03, d, cx, h - 0.015, 0);
+  // the window over the polishing area, on its own panel with slim mullions
+  K.box('window', cw - 0.06, y1 - y0, 0.015, cx, (y0 + y1) / 2, zf + 0.0205);
+  for (let i = 1; i < 4; i++) K.box('white', 0.03, y1 - y0, 0.012, c0 + 0.03 + ((cw - 0.06) * i) / 4, (y0 + y1) / 2, zf + 0.034);
   reveal(K, w, 1.02, zf);
-  loadPorts(K, [w / 2 - 0.55], zf, [0]);
+  seams(K, -w / 2, w / 2, 0.12, 0.98, zf, 0.85);
+  screenArm(K, 1.3, 0.92, zf);
   K.box('warm', 1.2, 1.9, 0.6, -0.9, 1.05, -d / 2 - 0.35, 0.03);
   roof(K, w, h, d - 0.7, 0, -0.35);
-  seams(K, -w / 2, w / 2, 0.12, 0.98, zf, 0.85);
   K.tower(w / 2 - 0.2, h, -d / 2 + 0.9);
   K.foot(w, d);
 }
 
+/**
+ * Ion implanter, laid out around its L-shaped beamline (Implant.tsx, mounted by poses/implant.ts
+ * a quarter turn round): the high-voltage terminal cage holding the ion source at the back left;
+ * one enclosure for the beamline (analyzer magnet, acceleration column, scanner, corrector)
+ * running east and for the end station at its east end, whose load lock points at the front
+ * end and its load ports; power-supply racks along the rest of the front. The cutaway opens
+ * everything above the pods in front of the terminal cage (station z > −2.08), which stays
+ * shut. Blocks keep 1 cm apart so their walls read as partitions once opened; the front row
+ * has lids at the cut height.
+ */
 function implanter(K: Kit) {
-  const d = 2.4;
-  const zf = d / 2;
-  // ion source terminal (west), beamline with analyser magnet, end station with load ports
-  body(K, 2.1, 2.9, d, -2.2, 0, 'gray');
-  for (let i = 0; i < 9; i++) K.box('black', 1.7, 0.012, 0.01, -2.2, 0.7 + i * 0.22, zf + 0.004);
-  body(K, 2.3, 1.55, d, 0, 0);
-  K.box('dark', 1.0, 0.8, 1.2, -0.45, 1.95, -0.1, 0.06);
-  K.cyl('satin', 0.16, 2.5, 0.2, 1.85, 0.3, 20, 'x');
-  K.cyl('steel', 0.2, 0.1, -0.9, 1.85, 0.3, 20, 'x');
-  K.cyl('steel', 0.2, 0.1, 1.3, 1.85, 0.3, 20, 'x');
-  body(K, 2.1, 2.3, d, 2.2, 0);
-  roof(K, 2.1, 2.3, d, 2.2, 0);
-  seams(K, 1.15, 3.25, 0.12, 1.38, zf, 0.7);
-  K.box('window', 1.2, 0.36, 0.012, 2.1, 1.72, zf + 0.004, 0.004);
-  reveal(K, 2.1, 1.42, zf, 2.2);
-  loadPorts(K, [1.75, 2.55], zf, [1]);
-  screenArm(K, 0.9, 1.3, zf);
-  K.tower(3.05, 2.3, -zf + 0.25);
-  K.foot(6.4, d);
+  const zf = 1.2;
+  const x0 = -1.8;
+  const x1 = 1.85;
+  // terminal cage: viewing window toward the beamline, louvres, exhaust on the roof
+  body(K, 1.5, 2.5, 1.35, -1.05, -2.775, 'gray');
+  K.box('window', 0.9, 0.6, 0.012, -1.05, 1.85, -2.1 + 0.004, 0.004);
+  for (let i = 0; i < 9; i++) K.box('black', 0.01, 0.012, 1.0, x0 - 0.004, 0.7 + i * 0.18, -2.78);
+  roof(K, 1.5, 2.5, 1.35, -1.05, -2.775);
+  // beamline and end-station enclosure, a window on the magnet side
+  body(K, x1 - x0, 2.0, 2.38, (x0 + x1) / 2, -0.9);
+  K.box('window', 0.012, 0.4, 1.0, x0 - 0.004, 1.55, -1.3, 0.004);
+  K.box('black', 0.012, 0.014, 2.38, x0 - 0.004, 1.35, -0.9);
+  // power-supply racks (front left)
+  body(K, 2.37, 1.6, 0.9, (x0 + 0.57) / 2, 0.75, 'warm');
+  K.box('warm', 2.29, 0.02, 0.82, (x0 + 0.57) / 2, 1.28, 0.75);
+  seams(K, x0, 0.57, 0.12, 1.5, zf, 0.8);
+  for (let i = 0; i < 4; i++) K.box('black', 2.1, 0.012, 0.01, (x0 + 0.57) / 2, 0.3 + i * 0.09, zf + 0.004);
+  screenArm(K, 0.15, 1.02, zf);
+  // front end with the load ports (front right) and its filter unit
+  body(K, x1 - 0.58, 2.1, 0.9, (0.58 + x1) / 2, 0.75);
+  K.box('white', x1 - 0.66, 0.02, 0.82, (0.58 + x1) / 2, 1.28, 0.75);
+  K.box('gray', x1 - 0.68, 0.12, 0.8, (0.58 + x1) / 2, 2.16, 0.75, 0.02);
+  K.box('window', 1.0, 0.34, 0.012, (0.58 + x1) / 2, 1.72, zf + 0.004, 0.004);
+  reveal(K, x1 - 0.58, 1.42, zf, (0.58 + x1) / 2);
+  loadPorts(K, [0.9, 1.5], zf, [1]);
+  K.tower(1.65, 2.0, -1.9);
+  // footprint: the halo takes the first (the beamline block and the front row)
+  K.foot(x1 - x0, 3.29, (x0 + x1) / 2, -0.445);
+  K.foot(1.5, 1.35, -1.05, -2.775);
+}
+
+/**
+ * Deposition cluster (CVD), laid out as the detailed scene (Depo.tsx, mounted by poses/depo.ts):
+ * a front end with two load ports across the front, two load locks behind it, the hexagonal
+ * transfer chamber, four single-wafer chambers on skinned frames (the active one west, the
+ * lamp-oxidation chamber east, two behind) and the gas and RF cabinet at the back. The cutaway
+ * takes everything above the frames in front of the cabinet (station y > 0.82, z > −1.24); the
+ * detailed cluster, which redraws the front end in place, comes up with its chamber cut open.
+ */
+function depoCluster(K: Kit) {
+  const zf = 1.8;
+  body(K, 2.4, 2.15, 0.8, 0, zf - 0.4);
+  K.box('window', 1.8, 0.5, 0.012, 0, 1.72, zf + 0.004, 0.004);
+  reveal(K, 2.4, 1.38, zf);
+  loadPorts(K, [-0.55, 0.55], zf, [1]);
+  // load locks (60° and 120° from +x), on stands slim enough to hide inside the detailed ones
+  for (const deg of [60, 120]) {
+    const a = (deg * Math.PI) / 180;
+    K.box('gray', 0.2, 0.82, 0.2, Math.cos(a) * 0.85, 0.41, Math.sin(a) * 0.85);
+    K.box('alu', 0.42, 0.14, 0.42, Math.cos(a) * 0.85, 0.99, Math.sin(a) * 0.85, 0.01);
+  }
+  // transfer chamber with its lid
+  K.cyl('white', 0.69, 0.8, 0, 0.4, 0, 6);
+  K.cyl('alu', 0.72, 0.32, 0, 0.98, 0, 6);
+  K.cyl('steel', 0.64, 0.03, 0, 1.155, 0, 6);
+  // chambers: skinned frame, body, lid and a gas box toward the hub
+  for (const deg of [180, 0, 240, 300]) {
+    const a = (deg * Math.PI) / 180;
+    const x = Math.cos(a) * 0.94;
+    const z = Math.sin(a) * 0.94;
+    K.box('white', 0.6, 0.82, 0.6, x, 0.41, z, 0.03);
+    K.cyl('satin', 0.31, 0.34, x, 0.99, z, 20);
+    K.cyl('alu', 0.3, 0.045, x, 1.1825, z, 20);
+    K.box('white', 0.2, 0.09, 0.11, x * 0.82, 1.25, z * 0.82, 0.01);
+  }
+  // gas and RF cabinet at the back
+  body(K, 2.4, 2.3, 0.55, 0, -1.575, 'warm');
+  roof(K, 2.4, 2.3, 0.55, 0, -1.575);
+  K.tower(1.0, 2.3, -1.6);
+  K.foot(2.9, 3.65, 0, -0.025);
 }
 
 /**
@@ -934,7 +968,7 @@ function buildTools(kitFor: (id?: SceneId) => Kit) {
   north('track', track);
   north('scanner', scanner);
   north('implant', implanter);
-  north('depo', (k) => cluster(k, 'depo'));
+  north('depo', depoCluster);
   north('cmp', cmp);
   north('metrology', metrology);
   north('prober', prober);

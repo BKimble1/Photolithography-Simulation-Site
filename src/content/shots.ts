@@ -38,8 +38,85 @@ const waferTop: CamRef = { kind: 'wafer', framing: 'top' };
 const die: CamRef = { kind: 'wafer', framing: 'die' };
 const section: CamRef = { kind: 'device', framing: 'section' };
 
-/** Hand-directed tracks. Steps without one get a default built from their scene and view. */
-export const SHOTS: Partial<Record<StepId, Key[]>> = {};
+const machine: CamRef = { kind: 'machine' };
+const tool = shot('establish');
+
+/**
+ * Hand-directed tracks. Steps without one get a default built from their scene and view.
+ *
+ * Most need one because part of the step happens in other tools. The etch cluster, the
+ * implanter and the polisher hold the wafer only for their own part of the step (the
+ * lithography, deposition or etch before it happens elsewhere and is shown in the
+ * cross-section), so the camera stays with the layers until the wafer arrives, comes out to the
+ * machine for its action, then goes back down (through the wafer when it can be seen) to show
+ * what changed. The furnace, the hot plate and the ash chamber enclose the wafer while they
+ * work, so the camera goes down to the layers before they close, or from the machine itself.
+ */
+export const SHOTS: Partial<Record<StepId, Key[]>> = {
+  // lithography 0.02–0.42 elsewhere; into the load lock 0.43, onto the chuck by 0.61; the trench
+  // etch ends at 0.72, the resist ash at 0.9
+  'sti-etch': [
+    { p: 0, cam: section },
+    { p: 0.44, cam: section },
+    { p: 0.5, cam: tool },
+    { p: 0.58, cam: tool },
+    { p: 0.64, cam: die },
+    { p: 0.69, cam: section },
+  ],
+  // first mask elsewhere (0.02–0.2); in the implanter 0.195–0.405 (beam 0.27–0.33); the second
+  // mask and implant are then seen in the layers
+  wells: [
+    { p: 0, cam: section },
+    { p: 0.17, cam: section },
+    { p: 0.23, cam: tool },
+    { p: 0.35, cam: tool },
+    { p: 0.41, cam: section },
+  ],
+  // the same two mask-and-implant cycles again, in the same implanter: shown in the layers
+  sd: [{ p: 0, cam: section }],
+  // the boat is sealed in the tube 0.28–0.82; activation at 0.6
+  anneal: [
+    { p: 0, cam: tool },
+    { p: 0.5, cam: tool },
+    { p: 0.58, cam: section },
+  ],
+  // the hot-plate lid comes down 0.08–0.22: go down to the layers before it closes
+  peb: [
+    { p: 0, cam: die },
+    { p: 0.1, cam: section },
+  ],
+  // the wafer reaches the ash chamber by 0.32; the oxygen plasma (0.36–0.615) fills it with glow
+  strip: [
+    { p: 0, cam: tool },
+    { p: 0.3, cam: tool },
+    { p: 0.4, cam: section },
+  ],
+  // tungsten deposited at 0.35; wafer in the cup by 0.45; polish 0.55–0.75; back in the cup by 0.83
+  'contact-fill': [
+    { p: 0, cam: section },
+    { p: 0.4, cam: section },
+    { p: 0.47, cam: die },
+    { p: 0.54, cam: tool },
+    { p: 0.78, cam: tool },
+    { p: 0.88, cam: die },
+    { p: 0.95, cam: section },
+  ],
+  // dielectric, lithography, trench etch and strip, then copper at 0.7, all seen in the layers;
+  // the wafer is already polishing (0.71–0.85) when the camera comes out; back in the cup by 0.915
+  metal1: [
+    { p: 0, cam: section },
+    { p: 0.73, cam: section },
+    { p: 0.79, cam: machine },
+    { p: 0.83, cam: tool },
+    { p: 0.87, cam: tool },
+    { p: 0.925, cam: die },
+    { p: 0.965, cam: section },
+  ],
+  // the second level repeats the loop; its copper and polish land 0.06 apart, so the dual-damascene
+  // fill is shown where it can be seen, in the layers, and the polisher (seen twice already) is not
+  // revisited
+  metal2: [{ p: 0, cam: section }],
+};
 
 /** First process operation time in a step (the moment the wafer changes). */
 function firstOp(id: StepId): number {

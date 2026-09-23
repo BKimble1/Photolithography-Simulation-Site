@@ -13,13 +13,17 @@
  * is away being masked in the lithography track, and the end station waits with an empty
  * platen. Ion beams are invisible: the violet path is an optional overlay (the "Beam path"
  * toggle). Everything that tells the story is a pure function of progress p.
+ *
+ * In the fab the scene is mounted a quarter turn round inside the implanter's housing
+ * (`implanter` in Fab.tsx): the terminal stands in a closed high-voltage cage and the load lock
+ * points at the tool's front end and load ports.
  */
 import { useLayoutEffect, useMemo, useRef, type RefObject } from 'react';
 import * as THREE from 'three';
 import { useSimState } from '../../state/sim';
 import { lerp, seg, smooth, useProgressFrame } from '../anim';
 import { MAT } from '../materials';
-import { Box, CleanFloor, Cyl, Lathe, LightTower } from '../kit/parts';
+import { Box, CleanFloor, Cyl, Lathe, LightTower, StandaloneOnly } from '../kit/parts';
 import { Wafer } from '../wafer/Wafer';
 import type { ToolProps } from './index';
 import { useOverlay } from '../../state/presentation';
@@ -241,7 +245,9 @@ function SourceTerminal() {
       {/* dopant gas cabinet behind the terminal */}
       <Box size={[0.5, 1.5, 0.42]} position={[cx, 0.75, Z_EN - 0.62]} m="panelDark" radius={0.02} />
       <Box size={[0.34, 0.5, 0.01]} position={[cx, 1.05, Z_EN - 0.62 + 0.214]} m="glassDark" radius={0.004} castShadow={false} />
-      <LightTower position={[cx + 0.16, 1.5, Z_EN - 0.72]} on="violet" />
+      <StandaloneOnly>
+        <LightTower position={[cx + 0.16, 1.5, Z_EN - 0.72]} on="violet" />
+      </StandaloneOnly>
     </group>
   );
 }
@@ -439,9 +445,23 @@ function EndStation({
           </group>
         </group>
       </group>
-      {/* load lock with a linear transfer arm, and the slot valve into the chamber */}
-      <Box size={[LL.x1 - LL.x0, LL.y1 - LL.y0, 2 * LL.hw]} position={[(LL.x0 + LL.x1) / 2, (LL.y0 + LL.y1) / 2, Z_W]} m="steelSatin" radius={0.02} />
-      <Box size={[LL.x1 - LL.x0 - 0.1, 0.02, 2 * LL.hw - 0.08]} position={[(LL.x0 + LL.x1) / 2, LL.y1 + 0.01, Z_W]} m="panelGray" radius={0.008} />
+      {/* load lock with a linear transfer arm, and the slot valve into the chamber: a hollow box
+          with a viewport lid, so the waiting blade and the arriving wafer can be seen inside */}
+      <Box size={[LL.x1 - LL.x0, 0.03, 2 * LL.hw]} position={[(LL.x0 + LL.x1) / 2, LL.y0 + 0.015, Z_W]} m="steelSatin" radius={0.008} />
+      {[-1, 1].map((s) => (
+        <Box key={s} size={[LL.x1 - LL.x0, LL.y1 - LL.y0, 0.03]} position={[(LL.x0 + LL.x1) / 2, (LL.y0 + LL.y1) / 2, Z_W + s * (LL.hw - 0.015)]} m="steelSatin" radius={0.008} />
+      ))}
+      <Box size={[0.03, LL.y1 - LL.y0, 2 * LL.hw]} position={[LL.x1 - 0.015, (LL.y0 + LL.y1) / 2, Z_W]} m="steelSatin" radius={0.008} />
+      {/* the end toward the chamber, with the transfer slot left open */}
+      {(
+        [
+          [LL.y0, Y_B - 0.04],
+          [Y_B + 0.06, LL.y1],
+        ] as const
+      ).map(([a, b]) => (
+        <Box key={a} size={[0.03, b - a, 2 * LL.hw]} position={[LL.x0 + 0.015, (a + b) / 2, Z_W]} m="steelSatin" radius={0.006} />
+      ))}
+      <Box size={[LL.x1 - LL.x0, 0.02, 2 * LL.hw]} position={[(LL.x0 + LL.x1) / 2, LL.y1 + 0.01, Z_W]} m="glassClear" radius={0.006} castShadow={false} receiveShadow={false} />
       <Box size={[0.06, 0.22, 0.4]} position={[LL.x1 + 0.02, Y_B - 0.02, Z_W]} m="panelGray" radius={0.012} />
       <Box size={[LL.x1 - LL.x0 - 0.1, LL.y0 - 0.05, 2 * LL.hw - 0.06]} position={[(LL.x0 + LL.x1) / 2, (LL.y0 - 0.05) / 2, Z_W]} m="panel" radius={0.02} />
       {/* slot-valve body: a frame around the transfer slot */}

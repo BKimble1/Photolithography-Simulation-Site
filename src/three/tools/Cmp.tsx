@@ -7,14 +7,21 @@
  *
  * The wafer waits face-up in the load cup, is flipped face-down, picked up by the head,
  * polished during a window that ends at the step's CMP operation, returned and flipped
- * face-up again. Every motion is a pure function of step progress.
+ * face-up again; the head parks over the pad whenever it holds no wafer, leaving the cup clear.
+ * Every motion is a pure function of step progress. While the wafer is elsewhere
+ * (before it arrives, after it leaves) it waits, hidden, in the load cup, so camera framings
+ * of the wafer look at the cup rather than into the clean/dry module.
+ *
+ * In the fab this fills the polisher cell of the CMP tool's housing (`cmp` in Fab.tsx): the
+ * clean/dry module stands inside the housing's closed cleaner module (its slot shows in the
+ * cell's west wall), and the housing carries the status light.
  */
 import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { useSimState, useStep } from '../../state/sim';
 import { ease, lerp, seg, smooth, useProgressBucket, useProgressFrame } from '../anim';
 import { MAT, type MatKey } from '../materials';
-import { Box, CleanFloor, Cyl, LightTower, mat } from '../kit/parts';
+import { Box, CleanFloor, Cyl, LightTower, mat, StandaloneOnly } from '../kit/parts';
 import { Wafer } from '../wafer/Wafer';
 import type { ToolProps } from './index';
 
@@ -247,8 +254,9 @@ const PLANS: Record<string, Plan> = {
   'sti-fill': { arrive: [0.22, 0.3], load: [0.42, 0.5], polish: [0.5, 0.7], unload: [0.7, 0.78], depart: [0.82, 0.89] },
   // tungsten deposited at 0.35; polish at 0.75
   'contact-fill': { arrive: [0.37, 0.45], load: [0.47, 0.55], polish: [0.55, 0.75], unload: [0.75, 0.83] },
-  // litho/etch/strip elsewhere until 0.55; copper plated at 0.7 (while the wafer is in the head); polish at 0.85
-  metal1: { arrive: [0.58, 0.64], load: [0.645, 0.71], polish: [0.71, 0.85], unload: [0.85, 0.915], depart: [0.93, 0.99] },
+  // litho/etch/strip elsewhere until 0.55; copper plated at 0.7 (while the wafer is in the head); polish at 0.85;
+  // the wafer then waits in the cup (the cap is deposited elsewhere, seen in the cross-section)
+  metal1: { arrive: [0.58, 0.64], load: [0.645, 0.71], polish: [0.71, 0.85], unload: [0.85, 0.915] },
   // second level: strip at 0.72, copper at 0.84 (hidden, face-down), polish at 0.9
   metal2: { arrive: [0.722, 0.755], load: [0.755, 0.79], polish: [0.79, 0.9], unload: [0.9, 0.965] },
 };
@@ -314,9 +322,15 @@ function simulate(p: number, P: Plan, dur: number, f: Frame) {
   const uP = seg(p, pa, pb);
   const uU = seg(p, ua, ub);
 
-  // swing arm: over the cup, over the pad during polishing (with a gentle sweep), back again
+  // swing arm: parked over the pad (raised) whenever the head holds no wafer, so the load cup
+  // stays clear for the wafer's arrival and for a look at it afterwards; over the cup to pick the
+  // wafer up and to hand it back; over the pad, with a gentle sweep, while polishing
   const sweep = p > pa && p < pb ? 0.055 * Math.sin(((p - pa) * dur * TAU) / 2.4) * smooth(uP, 0.08, 0.18) * (1 - smooth(uP, 0.85, 0.95)) : 0;
-  f.armTh = lerp(TH_CUP, TH_PAD, smooth(uL, 0.8, 1) - smooth(uU, 0, 0.25)) + sweep;
+  let atCup = 0;
+  if (p >= la && p < lb) atCup = smooth(uL, 0, 0.28) - smooth(uL, 0.8, 1);
+  else if (p >= ua && p < ub) atCup = smooth(uU, 0, 0.25);
+  else if (p >= ub) atCup = 1 - smooth(p, ub, ub + 0.05);
+  f.armTh = lerp(TH_PAD, TH_CUP, atCup) + sweep;
 
   // head height
   const toCup = CUP_Y + WT;
@@ -395,6 +409,13 @@ function simulate(p: number, P: Plan, dur: number, f: Frame) {
     } else f.wy = Math.max(f.bladeY, CUP_Y) + WT / 2;
   }
   if (!arrived) f.wvis = false;
+  if (!f.wvis) {
+    f.wx = LC[0];
+    f.wz = LC[1];
+    f.wy = CUP_Y + WT / 2;
+    f.wrot = CUP_ROT;
+    f.wflip = 0;
+  }
 }
 
 // ───────────────────────────── parts ─────────────────────────────
@@ -584,7 +605,9 @@ function Handler({ blade }: { blade: React.RefObject<THREE.Group | null> }) {
         <Cyl key={i} r={0.03} h={0.26} position={[x0 - 0.33 + i * 0.1, 1.08, 0.68]} rotation={[0, 0, Math.PI / 2]} m="ceramic" />
       ))}
       <Box size={[0.36, 0.3, 0.012]} position={[x0 - 0.28, 0.45, 0.701]} m="panelGray" radius={0.004} castShadow={false} />
-      <LightTower position={[x0 - 0.1, 1.5, 0.05]} on="green" />
+      <StandaloneOnly>
+        <LightTower position={[x0 - 0.1, 1.5, 0.05]} on="green" />
+      </StandaloneOnly>
       {/* the linear blade that shuttles wafers between the module and the load cup */}
       <group ref={blade} position={[LC[0], XFER_LO, LC[1]]} visible={false}>
         <mesh geometry={geo} material={MAT.ceramic} position={[-0.3, 0, 0]} castShadow />
@@ -635,7 +658,7 @@ export default function Cmp({ variant }: ToolProps) {
   }, [slurryTex, filmMat]);
 
   const f = useMemo<Frame>(
-    () => ({ armTh: TH_CUP, headY: HEAD_UP, headSpin: 0, platen: 0, flip: 0, flipLift: 0, bladeExt: 0, bladeY: XFER_LO, cond: COND_PARK, condY: 0.05, condSpin: 0, slurry: 0, wet: 0, wvis: false, wx: 0, wy: 0, wz: 0, wrot: 0, wflip: 0 }),
+    () => ({ armTh: TH_PAD, headY: HEAD_UP, headSpin: 0, platen: 0, flip: 0, flipLift: 0, bladeExt: 0, bladeY: XFER_LO, cond: COND_PARK, condY: 0.05, condSpin: 0, slurry: 0, wet: 0, wvis: false, wx: 0, wy: 0, wz: 0, wrot: 0, wflip: 0 }),
     [],
   );
 
@@ -687,7 +710,9 @@ export default function Cmp({ variant }: ToolProps) {
       {/* back wall with the slurry delivery cabinet */}
       <Box size={[0.5, 1.5, 0.35]} position={[0.45, 0.75, -0.82]} m="panelWarm" radius={0.02} />
       <Box size={[0.3, 0.4, 0.012]} position={[0.45, 1.1, -0.643]} m="glassDark" radius={0.004} castShadow={false} />
-      <Tower P={P} position={[0.62, 1.5, -0.9]} />
+      <StandaloneOnly>
+        <Tower P={P} position={[0.62, 1.5, -0.9]} />
+      </StandaloneOnly>
       {/* the simulated wafer: face-up in the cup, face-down in the head */}
       <group ref={wafer} visible={false}>
         <group ref={waferFlip}>

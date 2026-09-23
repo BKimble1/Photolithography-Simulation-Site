@@ -10,8 +10,8 @@ import type { ToolPose } from '../../poses';
  * The wafer close-ups look from the same direction, down through the jacket's cut wedge.
  */
 export const POSE: ToolPose = {
-  pos: [1.16, 3.26, 4.25],
-  target: [0, 2.3, -0.1],
+  pos: [1.28, 3.51, 4.69],
+  target: [0, 2.45, -0.1],
   mount: { yaw: 0, offset: [0, -0.7] },
   cutaway: { z: -0.04, y: 1.3 },
 };

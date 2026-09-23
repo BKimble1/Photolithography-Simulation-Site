@@ -186,16 +186,30 @@ function Pipe({ pts, r = 0.005, bend = 0.035, m = 'steel' }: { pts: V3[]; r?: nu
 }
 
 /** Flat spiral (planar ICP) coil, or a helix when `rise` is set. */
-function coilGeometry({ r0, r1, turns, y0, rise = 0, tube }: { r0: number; r1: number; turns: number; y0: number; rise?: number; tube: number }) {
-  const pts: THREE.Vector3[] = [];
+function coilGeometry({ r0, r1, turns, y0, rise = 0, tube, cut = null }: { r0: number; r1: number; turns: number; y0: number; rise?: number; tube: number; cut?: [number, number] | null }) {
+  const runs: THREE.Vector3[][] = [[]];
   const n = Math.ceil(turns * 64);
   for (let i = 0; i <= n; i++) {
     const t = i / n;
     const a = t * turns * TAU;
     const r = lerp(r0, r1, t);
-    pts.push(new THREE.Vector3(Math.cos(a) * r, y0 + rise * t, Math.sin(a) * r));
+    const p = new THREE.Vector3(Math.cos(a) * r, y0 + rise * t, Math.sin(a) * r);
+    // drawn in section like the chamber: the turns inside the cutaway sector are left out
+    if (cut && inSector(Math.atan2(p.x, p.z), cut)) {
+      if (runs[runs.length - 1].length) runs.push([]);
+      continue;
+    }
+    runs[runs.length - 1].push(p);
   }
-  return new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), n * 2, tube, 8, false);
+  const parts = runs.filter((r) => r.length > 1).map((pts) => new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), pts.length * 2, tube, 8, false));
+  const g = mergeGeometries(parts);
+  parts.forEach((x) => x.dispose());
+  return g;
+}
+
+/** Whether azimuth a (from +z toward +x) lies inside a cutaway sector [centre, width]. */
+function inSector(a: number, cut: [number, number]) {
+  return Math.abs(((a - cut[0] + 3 * Math.PI) % TAU) - Math.PI) < cut[1] / 2;
 }
 
 /** Robot end effector: a thin ceramic fork, top face at y = 0. */
@@ -730,7 +744,8 @@ function ChamberBody({ cut, slit = true }: { cut: [number, number] | null; slit?
 }
 
 function IcpTop({ cut, closed = false }: { cut: [number, number] | null; closed?: boolean }) {
-  const coil = useMemo(() => coilGeometry({ r0: 0.075, r1: 0.215, turns: 2.25, y0: 1.24, tube: 0.0065 }), []);
+  const coil = useMemo(() => coilGeometry({ r0: 0.075, r1: 0.215, turns: 2.25, y0: 1.24, tube: 0.0065, cut }), [cut]);
+  const lead2: V3 = [Math.cos(2.25 * TAU) * 0.215, 1.325, Math.sin(2.25 * TAU) * 0.215];
   return (
     <group>
       {/* ceramic window */}
@@ -742,7 +757,7 @@ function IcpTop({ cut, closed = false }: { cut: [number, number] | null; closed?
         <>
           <mesh geometry={coil} material={MAT.copper} castShadow />
           <Cyl r={0.0065} h={0.17} position={[0.075, 1.325, 0]} m="copper" seg={10} />
-          <Cyl r={0.0065} h={0.17} position={[Math.cos(2.25 * TAU) * 0.215, 1.325, Math.sin(2.25 * TAU) * 0.215]} m="copper" seg={10} />
+          {!(cut && inSector(Math.atan2(lead2[0], lead2[2]), cut)) && <Cyl r={0.0065} h={0.17} position={lead2} m="copper" seg={10} />}
         </>
       )}
       {/* RF enclosure over the coil, and the matching network */}
@@ -779,7 +794,7 @@ function CcpTop({ cut }: { cut: [number, number] | null }) {
 }
 
 function AshTop({ cut }: { cut: [number, number] | null }) {
-  const coil = useMemo(() => coilGeometry({ r0: 0.142, r1: 0.142, turns: 3, y0: 1.27, rise: 0.13, tube: 0.0065 }), []);
+  const coil = useMemo(() => coilGeometry({ r0: 0.142, r1: 0.142, turns: 3, y0: 1.27, rise: 0.13, tube: 0.0065, cut }), [cut]);
   const dome: V2[] = useMemo(() => {
     const out: V2[] = [[0.12, 1.24], [0.12, 1.4]];
     for (let i = 1; i <= 12; i++) {
@@ -803,7 +818,7 @@ function AshTop({ cut }: { cut: [number, number] | null }) {
       <mesh geometry={domeGeo} material={MAT.quartz} renderOrder={2} />
       <mesh geometry={coil} material={MAT.copper} castShadow />
       {[0.6, 2.2, 3.8, 5.4]
-        .filter((a) => !cut || Math.abs(((a - cut[0] + 3 * Math.PI) % TAU) - Math.PI) > cut[1] / 2)
+        .filter((a) => !cut || !inSector(a, cut))
         .map((a) => (
           <Cyl key={a} r={0.008} h={0.28} position={[Math.sin(a) * 0.19, 1.38, Math.cos(a) * 0.19]} m="steelSatin" />
         ))}

@@ -96,6 +96,18 @@ export function yourDieLocal(out = new THREE.Vector3()): THREE.Vector3 {
   return out.set(d.x / 1000, 0.0016, -d.y / 1000);
 }
 
+/**
+ * Whether the machine is showing the learner's wafer right now (some tools hide it while it is
+ * in another machine: the polisher before the wafer arrives, for example). The station's own
+ * level-of-detail switch does not count.
+ */
+export function waferShown(id: MachineId | null): boolean {
+  if (!id) return false;
+  const station = stationGroups.get(id);
+  for (let o = waferRegistry.get(id) ?? null; o && o !== station; o = o.parent) if (!o.visible) return false;
+  return waferRegistry.has(id);
+}
+
 /** Wafer centre, up normal and your-die centre in world space, or null if no wafer is shown. */
 export function waferFrame(id: MachineId | null, out: { centre: THREE.Vector3; up: THREE.Vector3; die: THREE.Vector3; x: THREE.Vector3 }): boolean {
   if (!id) return false;

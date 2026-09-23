@@ -20,7 +20,7 @@ import * as THREE from 'three';
 import { FIELDS, WAFER } from '../../sim/dies';
 import { useSimState, useStep } from '../../state/sim';
 import { lerp, seg, smooth, useProgressBucket, useProgressFrame } from '../anim';
-import { MAT } from '../materials';
+import { MAT, type MatKey } from '../materials';
 import { Box, Cyl, Lathe, LightTower, ScaraRobot, StandaloneOnly } from '../kit/parts';
 import { Wafer } from '../wafer/Wafer';
 import type { ToolProps } from './index';
@@ -121,21 +121,22 @@ const nextWaferMat = new THREE.MeshStandardMaterial({ color: '#6f747c', metalnes
 
 /** Refractive projection lens: turned barrel with flange rings; the last element at the bottom. */
 function LensColumn() {
-  // turned profile of the barrel (radius, height), bottom at 0 (= LENS_Y0)
+  // turned profile of the barrel (radius, height), bottom at 0 (= LENS_Y0): a narrow nose
+  // toward the wafer (it leaves room for the camera to come down past it to the wafer)
   const profile: [number, number][] = [
     [0.0, 0],
     [0.07, 0],
-    [0.09, 0.02],
-    [0.125, 0.05],
-    [0.16, 0.08],
-    [0.16, 0.2],
-    [0.19, 0.21],
-    [0.19, 0.235],
-    [0.175, 0.245],
-    [0.185, 0.45],
-    [0.215, 0.46],
-    [0.215, 0.49],
-    [0.19, 0.5],
+    [0.085, 0.02],
+    [0.11, 0.08],
+    [0.13, 0.2],
+    [0.14, 0.3],
+    [0.175, 0.305],
+    [0.175, 0.33],
+    [0.165, 0.335],
+    [0.185, 0.5],
+    [0.21, 0.505],
+    [0.21, 0.53],
+    [0.19, 0.535],
     [0.2, 0.78],
     [0.25, 0.79],
     [0.25, 0.83],
@@ -148,8 +149,12 @@ function LensColumn() {
     <group position={[LENS_X, LENS_Y0, 0]}>
       <Lathe profile={profile} m="steelSatin" seg={80} />
       {/* bright flange rings */}
-      {[0.22, 0.475, 0.81].map((y) => (
-        <Cyl key={y} r={y > 0.8 ? 0.26 : 0.23} h={0.012} position={[0, y, 0]} m="chrome" seg={80} />
+      {[
+        [0.318, 0.18],
+        [0.518, 0.22],
+        [0.81, 0.26],
+      ].map(([y, r]) => (
+        <Cyl key={y} r={r} h={0.012} position={[0, y, 0]} m="chrome" seg={80} />
       ))}
       {/* last lens element, visible at the bottom */}
       <mesh position={[0, 0.002, 0]} rotation={[Math.PI, 0, 0]} material={glassMat}>
@@ -189,6 +194,22 @@ function Stage({ children, position }: { children?: React.ReactNode; position?: 
       <Box size={[0.01, 0.03, 0.42]} position={[-0.215, GRANITE_TOP + 0.04, 0]} m="chrome" radius={0.002} />
       <Cyl r={0.155} h={0.01} position={[0, GRANITE_TOP + 0.066, 0]} m="ceramic" seg={72} />
       {children}
+    </group>
+  );
+}
+
+/** A flat rectangular frame (w × d, h thick) around a square opening, centred at height y. */
+function Frame({ w, d, hole, h, y, m }: { w: number; d: number; hole: number; h: number; y: number; m: MatKey }) {
+  const side = (w - hole) / 2;
+  const end = (d - hole) / 2;
+  return (
+    <group>
+      {[-1, 1].map((k) => (
+        <Box key={`x${k}`} size={[side, h, d]} position={[(k * (hole + side)) / 2, y, 0]} m={m} radius={0.006} />
+      ))}
+      {[-1, 1].map((k) => (
+        <Box key={`z${k}`} size={[hole, h, end]} position={[0, y, (k * (hole + end)) / 2]} m={m} radius={0.004} />
+      ))}
     </group>
   );
 }
@@ -459,11 +480,11 @@ export default function Scanner({ variant }: ToolProps) {
         <planeGeometry args={[WAFER.dieW * 2 / 1000, 0.006]} />
         <meshBasicMaterial color="#cfc8ff" transparent opacity={0.85} depthWrite={false} />
       </mesh>
-      {/* reticle stage */}
+      {/* reticle stage: a frame with an opening under the reticle for the light */}
       <group position={[LENS_X, RETICLE_Y, 0]}>
-        <Box size={[0.7, 0.06, 0.46]} position={[0, -0.035, 0]} m="black" radius={0.012} />
+        <Frame w={0.7} d={0.46} hole={0.15} h={0.06} y={-0.035} m="black" />
         <group ref={reticleStage}>
-          <Box size={[0.24, 0.03, 0.24]} position={[0, 0.005, 0]} m="ceramicGray" radius={0.006} />
+          <Frame w={0.24} d={0.24} hole={0.13} h={0.03} y={0.005} m="ceramicGray" />
           <group ref={reticleHand} position={[0, 0, 0]}>
             <group position={[0, 0.026, 0]}>
               <Reticle kind={kind} />

@@ -286,6 +286,16 @@ The director owns the camera and the render loop in every mode:
   a function of p only, scrubbing, replaying and the film's clock all give the same shot at
   the same moment. Steps without a hand-directed track get one from their round-one view:
   device steps go machine → wafer → die → cross-section just before their first operation.
+  Nine steps are directed by hand, because the wafer is not always in (or visible in)
+  the step's machine: in sti-etch, wells, contact-fill and metal1 the lithography, deposition
+  or etch before the machine's own action happens in other tools, so the camera stays with
+  the layers, comes out to the machine when the wafer arrives, and goes back down through the
+  wafer afterwards; the furnace, the hot-plate lid and the ash chamber's plasma enclose the
+  wafer, so anneal, peb and strip go down to the layers before they close or from the
+  machine itself; sd and metal2 repeat a loop already shown and stay in the layers. A
+  flight into or out of the cross-section anchors on your die when the machine is showing
+  the wafer, and on the machine itself when it is not, so the camera never closes in on an
+  empty holder.
 * **World ↔ device**: an anchored, matched cross-fade. The world camera closes in on your die
   while the device camera starts far out along the same direction relative to the wafer's
   axes (the device block's axes follow the wafer's), and the two views are blended through

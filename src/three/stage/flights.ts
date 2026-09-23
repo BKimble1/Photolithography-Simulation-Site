@@ -12,6 +12,7 @@
  */
 import * as THREE from 'three';
 import type { MachineId } from '../../state/nav';
+import { waferShown } from './anchors';
 import { copyPose, deviceToWorld, lerpPose, machinePose, makePose, resolve, worldToDevice, type CamPose, type CamSample } from './tracks';
 
 export interface Leg {
@@ -155,22 +156,28 @@ export function planTransition(start: CamPose, target: () => CamPose, o: Transit
   } else if (startPose.space === 'device' && probe.space === 'device') {
     legs.push({ dur: 0.8, eval: (u, out) => ((out.mix = 0), lerpPose(startPose, target(), smooth(u), out.a)) });
   } else if (startPose.space === 'device') {
-    // Retrace: out of the cross-section onto the wafer it came from, then on to the new framing.
+    // Retrace: out of the cross-section onto the wafer it came from (or the machine, if the wafer
+    // is not in it at the moment), then on to the new framing.
     const origin = o.from ?? o.to;
     const onWafer = makePose();
-    resolve({ kind: 'wafer', framing: 'die' }, { station: origin }, onWafer);
+    if (!origin || waferShown(origin)) resolve({ kind: 'wafer', framing: 'die' }, { station: origin }, onWafer);
+    else machinePose(origin, onWafer);
     o.fit(onWafer);
     legs.push({ dur: 1.1, eval: (u, out) => deviceToWorld(startPose, onWafer, u, origin, out) });
     worldPath(onWafer);
   } else {
-    // Down to the wafer, pick out your die, then reveal the cross-section.
-    const onDie = makePose();
-    resolve({ kind: 'wafer', framing: 'die' }, { station: o.to }, onDie);
-    o.fit(onDie);
+    // Down to the wafer, pick out your die, then reveal the cross-section. If the wafer is not
+    // in this machine at the moment (it is in another tool for this part of the step), the
+    // cross-section is revealed from the machine itself rather than from an empty holder.
+    const anchor = makePose();
+    if (!o.to || waferShown(o.to)) resolve({ kind: 'wafer', framing: 'die' }, { station: o.to }, anchor);
+    else machinePose(o.to, anchor);
+    o.fit(anchor);
     worldPath(startPose);
     legs.pop();
-    legs.push(worldLeg(establishPose(legs) ?? startPose, () => onDie));
-    legs.push({ dur: 1.2, eval: (u, out) => worldToDevice(onDie, target(), u, o.to, out) });
+    const from = establishPose(legs) ?? startPose;
+    if (from.pos.distanceTo(anchor.pos) > 0.05) legs.push(worldLeg(from, () => anchor));
+    legs.push({ dur: 1.2, eval: (u, out) => worldToDevice(anchor, target(), u, o.to, out) });
   }
   return legs;
 }

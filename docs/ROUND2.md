@@ -24,6 +24,13 @@ notes for the new pieces are in [`IMPLEMENTATION.md`](../IMPLEMENTATION.md) (sec
   that is cross-faded in, anchored on your die and matched to the camera's direction, so
   the magnified cell appears where, and oriented as, the die was. A retrace plays the same
   path backwards. New moves retarget from wherever the camera is; stale moves never finish.
+* **Steps that span several tools are directed by hand.** In sti-etch, wells, contact-fill and
+  metal1 the lithography, deposition or etch before the machine's own action happens in
+  other tools, so the camera stays with the layers, comes out to the machine when the wafer
+  arrives, and goes back down through the wafer to show what changed. The furnace, the
+  hot-plate lid and the ash plasma enclose the wafer, so anneal, peb and strip go down to
+  the layers before they close. Moves into the cross-section anchor on your die when the
+  machine is showing the wafer and on the machine when it is not.
 * **Your die is outlined** on the wafer from the die-map step onwards, wherever the wafer goes.
 
 ### Three modes, one model
@@ -85,6 +92,44 @@ notes for the new pieces are in [`IMPLEMENTATION.md`](../IMPLEMENTATION.md) (sec
   file (sha256), committed only when complete, served by a service worker when the network
   fails. Nothing is claimed as available offline before that.
 
+## Before and after
+
+Round one's screenshots were taken from the round-one branch before any change
+([`screenshots/round1/`](screenshots/round1/)); round two's with `npm run screenshots`
+([`screenshots/round2/`](screenshots/round2/)), at the same sizes and addresses.
+
+| | Round one | Round two |
+|---|---|---|
+| Home, 1440 × 560 (the reported overlap) | ![](screenshots/round1/home-1440x560-overlap.png) | ![](screenshots/round2/home-1440x560-overlap.png) |
+| Home, 1920 × 640 | ![](screenshots/round1/home-1920x640-overlap.png) | ![](screenshots/round2/home-1920x640-overlap.png) |
+| Home, phone | ![](screenshots/round1/home-phone-390x844.png) | ![](screenshots/round2/home-phone-390x844.png) |
+| Home, phone landscape | ![](screenshots/round1/home-phone-landscape-844x390.png) | ![](screenshots/round2/home-phone-landscape-844x390.png) |
+| Coating | ![](screenshots/round1/learn-coat-1440x900.png) | ![](screenshots/round2/learn-coat-1440x900.png) |
+| Coating, phone | ![](screenshots/round1/learn-coat-phone.png) | ![](screenshots/round2/learn-coat-phone.png) |
+| Develop, cross-section | ![](screenshots/round1/learn-develop-device-1440x900.png) | ![](screenshots/round2/learn-develop-device-1440x900.png) |
+
+New in round two: [the fab explorer](screenshots/round2/explore-overview-1440x900.png),
+[a machine card](screenshots/round2/explore-etch-1440x900.png),
+[a demonstration](screenshots/round2/explore-scanner-demo-1440x900.png),
+[the explorer on a phone](screenshots/round2/explore-phone.png),
+[the chapters drawer](screenshots/round2/learn-chapters-1440x900.png),
+[the film](screenshots/round2/watch-expose-1440x900.png) and
+[on a phone](screenshots/round2/watch-phone.png).
+
+Stills cannot show continuity or sync, so there are also short recordings, rendered frame by
+frame on the app's virtual clock (the build machine has no GPU; see the README):
+
+* [Machine to machine](recordings/01-arrive-to-transfer.mp4): arrival at the load port,
+  then the move to the next step's machine.
+* [Machine → wafer → die → layers](recordings/02-develop-machine-to-layers.mp4): the
+  developer, down to the wafer, your die, and the anchored cross-fade into the
+  cross-section as the exposed resist clears.
+* [Explore and return](recordings/03-explore-and-return.mp4): a paused lesson, the whole
+  fab, the etch cluster, its demonstration, and back to the lesson exactly where it was.
+* [The film, with narration](recordings/04-watch-expose-to-develop.mp4): exposure to
+  development, with the narration from the same MP3s placed on the same timeline.
+* [Phone](recordings/05-phone-coat.mp4): coating on a phone, with the caption strip.
+
 ## Verification
 
 Filled in below with the commands actually run and their results.
@@ -121,9 +166,11 @@ Candidly, in rough order of how much they matter:
   (Blender is not available here) and no stock models were used. Housings are simplified
   enclosures. Interiors are reference-informed but schematic; nothing is an OEM's actual
   design.
-* **Camera direction is mostly generated.** Every step uses the default grammar (machine →
-  wafer → die → cross-section, hold, retrace) built from its scene and view; there are no
-  hand-keyed tracks. Some framings are tighter or looser than a person would choose.
+* **Camera direction is partly generated.** Nine steps have hand-directed tracks (the
+  multi-tool and enclosed ones); the rest use the default grammar (machine → wafer → die →
+  cross-section, hold, retrace) built from their scene and view. Some framings are tighter
+  or looser than a person would choose, and the close-up of your die is plain where the
+  wafer's surface has little pattern.
 * **The film is one fixed cut.** It covers the canonical successful run only; experiments
   and failures are Learn-only. Captions and narration are in English only.
 * **Offline is for this build, in browsers with service workers.** The download checks

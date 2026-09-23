@@ -1,7 +1,8 @@
 /**
  * CVD cluster tool (illustrative, no manufacturer's design): a hexagonal vacuum transfer
  * chamber with a frog-leg robot, four single-wafer process chambers with lids, and two load
- * locks in front of an equipment front end (EFEM). The active chamber is drawn in cutaway:
+ * locks behind an equipment front end (EFEM) that faces the aisle (+z). The active chamber,
+ * on the west side (−x), is drawn in cutaway, opened toward the front left:
  * a ceramic heater on a stem that rises to the process position under a gas showerhead,
  * fixed lift pins that take the wafer when the heater drops, a gas feed and a pumping line.
  *
@@ -12,6 +13,11 @@
  * While a film grows the simulated wafer shows its thin-film interference colour for the
  * partial thickness, arriving exactly at the process model's result at the operation time.
  * All process motion is a pure function of step progress.
+ *
+ * In the fab the bay model (`depoCluster` in Fab.tsx) is this cluster in low detail; placed,
+ * the scene redraws the parts the cutaway takes away (everything above the chamber frames),
+ * including the front end with its load ports as the bay draws it, and leaves the gas and RF
+ * cabinet and the status light to the bay.
  */
 import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
@@ -21,7 +27,8 @@ import type { Film, WaferSummary } from '../../sim/types';
 import { useSimState, useStep } from '../../state/sim';
 import { lerp, seg, smooth, useProgressBucket, useProgressFrame } from '../anim';
 import { MAT, type MatKey } from '../materials';
-import { Box, CleanFloor, Cyl, LightTower, mat } from '../kit/parts';
+import { Box, CleanFloor, Cyl, LightTower, mat, StandaloneOnly } from '../kit/parts';
+import { useStationEnv } from '../stage/context';
 import { Wafer } from '../wafer/Wafer';
 import type { ToolProps } from './index';
 
@@ -42,8 +49,8 @@ const FACE_Y = 1.105; // showerhead faceplate underside
 const R_CH = 0.94; // hub → chamber axis
 const R_LL = 0.85; // hub → load-lock wafer centre
 const TC_IN = 0.55; // transfer chamber in-radius (hexagon)
-/** Face directions (degrees from +x toward +z) for each port. */
-const FACE = { B: 0, A: 60, C: 120, D: 180, ll: 240, ll2: 300 } as const;
+/** Face directions (degrees from +x toward +z) for each port: load locks toward the front end. */
+const FACE = { B: 0, A: 180, C: 240, D: 300, ll: 60, ll2: 120 } as const;
 type Port = keyof typeof FACE;
 const rad = (deg: number) => (deg * Math.PI) / 180;
 const posOf = (port: Port, r: number): V2 => [Math.cos(rad(FACE[port])) * r, Math.sin(rad(FACE[port])) * r];
@@ -56,8 +63,8 @@ const ARM_B = 0.33;
 const BLADE = 0.33; // wrist → wafer centre
 const D_RET = 0.05;
 
-// cutaway of the active chamber, facing the default camera (lathe angle from +z toward +x)
-const CUT: [number, number] = [0.69, 2.0];
+// cutaway of the active chamber, facing the front left (lathe angle from +z toward +x)
+const CUT: [number, number] = [-0.6, 2.0];
 
 // ───────────────────────────── materials ─────────────────────────────
 
@@ -761,9 +768,11 @@ function LoadLocks({ door, slitLL, ext }: { door: React.RefObject<THREE.Mesh | n
           )}
         </group>
       ))}
-      {/* equipment front end behind the load locks */}
-      <Box size={[1.9, 1.5, 0.52]} position={[0, 0.75, -1.36]} m="panel" radius={0.02} />
-      <Box size={[1.9, 0.1, 0.52]} position={[0, 1.55, -1.36]} m="panelGray" radius={0.02} />
+      {/* equipment front end beyond the load locks (in the bay: FrontEnd) */}
+      <StandaloneOnly>
+        <Box size={[1.9, 1.5, 0.52]} position={[0, 0.75, 1.36]} m="panel" radius={0.02} />
+        <Box size={[1.9, 0.1, 0.52]} position={[0, 1.55, 1.36]} m="panelGray" radius={0.02} />
+      </StandaloneOnly>
     </group>
   );
 }
@@ -791,16 +800,52 @@ function DepoWafer({ R, group }: { R: Recipe; group: React.RefObject<THREE.Group
   );
 }
 
+const FOUP_SHELL = new THREE.MeshStandardMaterial({ color: '#b4bcc5', metalness: 0.05, roughness: 0.5 });
+
+/** Height the front end is cut down to when the cluster is opened in the bay. */
+const FRONT_CUT = 1.3;
+
+/**
+ * In the bay: the front end where the bay model draws it (Fab.tsx `depoCluster`), each part a
+ * few millimetres larger so it covers the low-detail one left below the cut, and itself cut
+ * down to FRONT_CUT so the cluster can be seen over it: two load ports, a pod on the right one.
+ */
+function FrontEnd() {
+  const zf = 1.8;
+  const e = 0.004;
+  const h = FRONT_CUT - 0.1;
+  return (
+    <group>
+      <Box size={[2.35 + 2 * e, 0.1 + e, 0.75 + 2 * e]} position={[0, 0.05, zf - 0.4]} m="panelGray" radius={0.008} />
+      <Box size={[2.4 + 2 * e, h + e, 0.8 + 2 * e]} position={[0, 0.1 + h / 2, zf - 0.4]} m="panel" radius={0.02} />
+      {[-0.55, 0.55].map((x, i) => (
+        <group key={x}>
+          <Box size={[0.5 + 2 * e, FRONT_CUT - 0.75, 0.035 + 2 * e]} position={[x, (0.75 + FRONT_CUT) / 2, zf + 0.018]} m="steelSatin" radius={0.012} />
+          <Box size={[0.5 + 2 * e, 0.06 + 2 * e, 0.44 + 2 * e]} position={[x, 0.87, zf + 0.22]} m="panelGray" radius={0.012} />
+          <Box size={[0.42 + 2 * e, 0.8 + 2 * e, 0.06 + 2 * e]} position={[x, 0.43, zf + 0.1]} m="panelGray" radius={0.012} />
+          {i === 1 && (
+            <group position={[x, 0.9, zf + 0.24]}>
+              <Box size={[0.39 + 2 * e, 0.31 + 2 * e, 0.42 + 2 * e]} position={[0, 0.155, 0]} m={FOUP_SHELL} radius={0.04} />
+              <Box size={[0.22 + 2 * e, 0.03 + 2 * e, 0.15 + 2 * e]} position={[0, 0.325, 0]} m="panelGray" radius={0.01} />
+            </group>
+          )}
+        </group>
+      ))}
+    </group>
+  );
+}
+
 function Status({ R }: { R: Recipe }) {
   const b = useProgressBucket(100);
   const busy = (b >= R.depo[0] && b < R.depo[1]) || (R.oxidise ? b >= R.oxidise[0] && b < R.oxidise[1] : false);
-  return <LightTower position={[-0.8, 1.6, -1.45]} on={busy ? 'violet' : 'green'} />;
+  return <LightTower position={[0.8, 1.6, -1.2]} on={busy ? 'violet' : 'green'} />;
 }
 
 // ───────────────────────────── scene ─────────────────────────────
 
 export default function Depo({ variant }: ToolProps) {
   const { id } = useStep();
+  const { placed } = useStationEnv();
   const v = variant && RECIPES[variant] ? variant : id === 'pmd' ? 'oxide' : id === 'passivate' ? 'pass' : 'poly';
   const R = RECIPES[v];
 
@@ -904,9 +949,12 @@ export default function Depo({ variant }: ToolProps) {
       <ClosedChamber port="C" />
       <ClosedChamber port="D" />
       <LoadLocks door={door} slitLL={slitLL} ext={ext} />
-      {/* gas panel behind chamber B, feeding the active chamber's lid */}
-      <Box size={[0.5, 1.5, 0.5]} position={[1.45, 0.75, -0.75]} m="panelWarm" radius={0.02} />
-      <Status R={R} />
+      {placed && <FrontEnd />}
+      {/* gas panel behind chamber B, feeding the active chamber's lid (in the bay: its gas cabinet) */}
+      <StandaloneOnly>
+        <Box size={[0.5, 1.5, 0.5]} position={[1.3, 0.75, -0.75]} m="panelWarm" radius={0.02} />
+        <Status R={R} />
+      </StandaloneOnly>
       <DepoWafer R={R} group={wafer} />
     </group>
   );
