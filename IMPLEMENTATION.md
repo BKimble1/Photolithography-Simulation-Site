@@ -560,8 +560,9 @@ test explains the cause.
   the sentence describing it is spoken; captions follow the narration and the final test's
   switch flips on its cue. *Round three:* `src/three/stage/round3.test.ts` — the track's
   robot ends each lesson exactly where the next one starts (wafer, carriage, fork, pins and
-  chucks), never moves the wafer faster than 0.09 m per 1/30 s, and stops spins on whole
-  turns; the scanner's stage paths (the chuck exchange, the alignment marks, the
+  chucks), never moves the wafer faster than 0.09 m per 1/30 s, hands it between chuck and
+  fork without a step, keeps every axis under 2.8 m/s (chucks and pins under 0.5 m/s), and
+  stops spins on whole turns; the scanner's stage paths (the chuck exchange, the alignment marks, the
   step-and-scan meander) are continuous; tracks pass through intermediate framings on time
   and velocity-continuous, and hold on repeated framings; the wafer changes hands halfway
   along the first move between machines; the starting quality tier follows the device.
