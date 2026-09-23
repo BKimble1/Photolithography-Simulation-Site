@@ -164,6 +164,31 @@ test('going back a lesson on the same machine dissolves instead of jumping', asy
   expect(errors).toEqual([]);
 });
 
+test('rising out of the layers to leave for another machine, your die fades in (no pop)', async ({ page }, info) => {
+  onlyDesktop(info.project.name);
+  test.setTimeout(600_000);
+  const errors = watchErrors(page);
+  // the anneal ends in the layers; the next lesson is at the deposition tool, so the camera
+  // first rises out of the cross-section onto your die in the furnace, then leaves. The fade
+  // must show the wafer in the furnace (where the move has it until the hand-over in the aisle):
+  // drawn at the deposition tool instead, the die close-up was empty and popped in at the end
+  await freshStart(page, '/?step=anneal&virt=1');
+  await settle(page);
+  await page.evaluate(() => {
+    const c = (window as unknown as W).__fabStores.useClock.getState();
+    c.set(1);
+    c.pause();
+  });
+  await advance(page, 3);
+  const before = await sampleFrames(page, 2);
+  await page.evaluate(() => (window as unknown as W).__fabStores.useApp.getState().next());
+  const after = await sampleFrames(page, 40);
+  const all = [...before, ...after];
+  expect(worstJump(all, 2).ratio, 'no one-frame jump as the die fades in').toBeLessThan(4);
+  for (const f of all) expect(f.wafers.filter((w) => w.onScreen).length).toBeLessThanOrEqual(1);
+  expect(errors).toEqual([]);
+});
+
 test('reduced motion: moves become still cross-fades, and still nothing jumps', async ({ page }, info) => {
   onlyDesktop(info.project.name);
   test.setTimeout(600_000);

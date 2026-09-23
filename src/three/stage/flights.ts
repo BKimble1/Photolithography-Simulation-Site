@@ -20,6 +20,10 @@ export interface Leg {
   eval: (u: number, out: CamSample) => void;
   /** A move from one machine to another (the learner's wafer changes hands during it). */
   between?: boolean;
+  /** A cross-fade from one machine's picture to the other's (reduced motion): each side shows
+   * the learner's wafer where its own machine has it. Every other fade (into or out of the
+   * layers) happens at one machine, and shows the wafer where the move has it at the time. */
+  across?: boolean;
 }
 
 
@@ -95,6 +99,7 @@ export function fadeLeg(from: CamPose, target: () => CamPose): Leg {
   const f = copyPose(makePose(), from);
   return {
     dur: 0.35,
+    across: true,
     eval: (u, out) => {
       copyPose(out.a, f);
       copyPose(out.b, target());
@@ -206,6 +211,15 @@ export function handoverAt(legs: Leg[]): number {
     t += l.dur;
   }
   return t / 2;
+}
+
+/** The leg a move is in at time t (seconds from the start); null once past the end. */
+export function legAt(legs: Leg[], t: number): Leg | null {
+  for (const leg of legs) {
+    if (t < leg.dur) return leg;
+    t -= leg.dur;
+  }
+  return null;
 }
 
 /** Evaluate a list of legs at time t (seconds from the start); returns false once past the end. */

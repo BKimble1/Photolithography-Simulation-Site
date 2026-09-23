@@ -43,7 +43,7 @@ import { handover, remount } from './handover';
 import { directorCommands, publish, stageFocus } from './info';
 import { quality } from './quality';
 import { stageTime } from './time';
-import { handoverAt, planTransition, type Leg } from './flights';
+import { handoverAt, legAt, planTransition, type Leg } from './flights';
 import { BASE_FOV, copyPose, evalTrack, evalTrackStill, fovOf, makePose, makeSample, resolve, type CamPose, type CamSample, type Space } from './tracks';
 
 // ───────────────────────────── flights ─────────────────────────────
@@ -820,17 +820,21 @@ export function Director({ deviceScene, controlsRef }: { deviceScene: THREE.Scen
     const s = st.current;
     const mix = sample.mix;
     const buf = gl.getDrawingBufferSize(copies.buf);
-    // During a flight between two machines, each side of a cross-fade shows the wafer where
-    // that side of the move has it.
+    // A cross-fade from one machine's picture to the other's (a reduced-motion flight) shows
+    // the wafer on each side where that side's machine has it. Any other fade is into or out
+    // of the layers at one machine, and shows it where the move has it at the time: at the
+    // machine being left until the hand-over, then at the next (the wafer never disappears
+    // from the picture the camera is leaving or arriving at).
     const f = s.flight;
+    const across = !!f && !!legAt(f.legs, (now - f.start) / 1000)?.across;
     if (mix <= 0.001 || mix >= 0.999) {
       drawView(mix >= 0.999 ? sample.b : sample.a, s.owner);
     } else {
       // cross-fade: the outgoing view as displayed, the incoming view, blended
-      drawView(sample.a, f ? f.ownerFrom : s.owner);
+      drawView(sample.a, across ? f!.ownerFrom : s.owner);
       const tex = copies.fade.ensure(buf.x, buf.y);
       gl.copyFramebufferToTexture(tex);
-      drawView(sample.b, f ? f.to : s.owner);
+      drawView(sample.b, across ? f!.to : s.owner);
       drawOverlay(tex, 1 - mix);
     }
     applyOwner(s.owner);
