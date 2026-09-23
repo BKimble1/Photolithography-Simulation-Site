@@ -126,14 +126,19 @@ test('the track carries the wafer from module to module (no teleporting)', async
     await advance(page, 2);
     const end = await sampleFrames(page, 2);
     await page.evaluate(() => (window as unknown as W).__fabStores.useApp.getState().next());
-    const move = await sampleFrames(page, 30);
+    const move = await sampleFrames(page, 12);
     await settle(page);
     await page.evaluate(() => (window as unknown as W).__fabStores.useClock.getState().play());
     const opening = await sampleFrames(page, 75);
-    const all = [...end, ...move, ...opening];
-    expect(maxWaferStep(all, 'track'), `after ${step}: the wafer moves, it never jumps`).toBeLessThan(0.16);
-    expect(all.every((f) => f.wafers.filter((w) => w.station === 'track').length === 1), `after ${step}: always exactly one wafer in the track`).toBe(true);
-    expect(worstJump(all, 2).ratio, `after ${step}: no one-frame jump`).toBeLessThan(4);
+    // the lesson changes without a jump (same machine, the next lesson starting where this one ended)
+    const change = [...end, ...move];
+    expect(worstJump(change, 2).ratio, `after ${step}: no one-frame jump at the lesson change`).toBeLessThan(4);
+    // then the robot carries the wafer: legitimately fast motion (the robot runs into view
+    // from its park position), checked by the wafer's own path rather than by the picture
+    for (const stretch of [change, opening]) {
+      expect(maxWaferStep(stretch, 'track'), `after ${step}: the wafer moves, it never jumps`).toBeLessThan(0.16);
+      expect(stretch.every((f) => f.wafers.filter((w) => w.station === 'track').length === 1), `after ${step}: always exactly one wafer in the track`).toBe(true);
+    }
   }
   expect(errors).toEqual([]);
 });

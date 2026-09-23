@@ -671,7 +671,7 @@ run.transitions = async () => {
     await adv(page, 2);
     const before = await record(page, 2);
     const from = await page.evaluate(() => window.__fabStores.useApp.getState().step);
-    const owner0 = await page.evaluate(() => window.__fab.handover.owner);
+    const owner0 = await page.evaluate(() => window.__fab.handover?.owner ?? null);
     await page.evaluate(() => window.__fabStores.useApp.getState().next());
     const frames = [...before.frames];
     let last = before.last;
@@ -680,7 +680,7 @@ run.transitions = async () => {
       const r = await record(page, 1, last);
       last = r.last;
       const f = r.frames[0];
-      f.owner = await page.evaluate(() => window.__fab.handover.owner);
+      f.owner = await page.evaluate(() => window.__fab.handover?.owner ?? null);
       if (handAt === null && f.owner !== owner0) handAt = k;
       frames.push(f);
       if (k > 8 && !f.flying) break;
