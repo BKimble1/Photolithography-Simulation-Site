@@ -290,12 +290,20 @@ function useMounts(): { mounts: Mount[]; primary: Presentation | null; highlight
     const keep = lru.current.filter((id) => !out.has(id));
     for (const id of out.keys()) lru.current = [id, ...lru.current.filter((x) => x !== id)].slice(0, LRU_SIZE + out.size);
     for (const id of keep.slice(0, LRU_SIZE)) out.set(id, { id, pres: parkedPres(idleStep(id), reduced), variant: STEPS[FLOW[idleStep(id)].id].variant });
-    return { mounts: [...out.values()], primary, highlight };
+    // A fixed order: a machine moved within the list would be re-inserted in the scene, and
+    // the renderer re-applies every declared prop of a re-inserted subtree (resetting what the
+    // frame loop set: the station hidden, parts back at their declared places) for a frame.
+    const mounts = [...out.values()].sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+    return { mounts, primary, highlight };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, step, machine, demo, learnPres, demoPres, film, reduced, epoch]);
 }
 
-/** Releases frozen machines once they are out of view and the camera has settled. */
+/**
+ * Releases frozen machines once they are out of view and the camera has settled. (It runs
+ * after the director, so it judges the frame just drawn: this frame's camera, level of detail
+ * and whether a move has just begun.)
+ */
 function FrozenRelease() {
   const camera = useThree((s) => s.camera);
   const t = useMemo(() => ({ frustum: new THREE.Frustum(), m: new THREE.Matrix4() }), []);
@@ -317,7 +325,7 @@ function FrozenRelease() {
       }
     }
     if (changed) remount();
-  });
+  }, 2);
   return null;
 }
 
