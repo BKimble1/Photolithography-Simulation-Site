@@ -61,11 +61,6 @@ type V3 = [number, number, number];
 // ───────────────────────────── materials (shared) ─────────────────────────────
 
 const PM = {
-  combDark: new THREE.MeshStandardMaterial({
-    color: '#5f666e',
-    metalness: 0.05,
-    roughness: 0.5,
-  }),
   shell: new THREE.MeshPhysicalMaterial({
     color: '#cbd5de',
     metalness: 0,
@@ -76,42 +71,12 @@ const PM = {
     clearcoatRoughness: 0.08,
     depthWrite: false,
   }),
-  frame: new THREE.MeshStandardMaterial({
-    color: '#aab3bc',
-    metalness: 0.05,
-    roughness: 0.42,
-  }),
-  door: new THREE.MeshStandardMaterial({
-    color: '#8f99a3',
-    metalness: 0.05,
-    roughness: 0.46,
-  }),
-  base: new THREE.MeshStandardMaterial({
-    color: '#4a5058',
-    metalness: 0.1,
-    roughness: 0.55,
-  }),
-  comb: new THREE.MeshStandardMaterial({
-    color: '#d9d4c7',
-    metalness: 0,
-    roughness: 0.5,
-  }),
-  si: new THREE.MeshStandardMaterial({
-    color: '#9aa1ad',
-    metalness: 0.72,
-    roughness: 0.13,
-    envMapIntensity: 1.1,
-  }),
-  belt: new THREE.MeshStandardMaterial({
-    color: '#25272b',
-    metalness: 0.2,
-    roughness: 0.6,
-  }),
-  diffuser: new THREE.MeshStandardMaterial({
-    color: '#d3d7dc',
-    metalness: 0.6,
-    roughness: 0.5,
-  }),
+  frame: new THREE.MeshStandardMaterial({ color: '#aab3bc', metalness: 0.05, roughness: 0.42 }),
+  door: new THREE.MeshStandardMaterial({ color: '#8f99a3', metalness: 0.05, roughness: 0.46 }),
+  base: new THREE.MeshStandardMaterial({ color: '#4a5058', metalness: 0.1, roughness: 0.55 }),
+  combDark: new THREE.MeshStandardMaterial({ color: '#5f666e', metalness: 0.05, roughness: 0.5 }),
+  si: new THREE.MeshStandardMaterial({ color: '#9aa1ad', metalness: 0.72, roughness: 0.13, envMapIntensity: 1.1 }),
+  belt: new THREE.MeshStandardMaterial({ color: '#25272b', metalness: 0.2, roughness: 0.6 }),
 };
 
 // ───────────────────────────── geometry helpers ─────────────────────────────

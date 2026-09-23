@@ -42,23 +42,24 @@ function Drift() {
   return null;
 }
 
-/** Full-bleed fab overview behind the home page headline. */
+/**
+ * Full-bleed fab overview behind the home page headline. Kept cheap per pixel: no shadow
+ * pass (the bay has baked contact shadows), one hemisphere and one directional light, and
+ * an environment only for the few metallic surfaces.
+ */
 export default function HomeCanvas() {
   return (
     <Canvas
-      dpr={[1, 2]}
-      gl={{ antialias: true, toneMapping: THREE.NeutralToneMapping, preserveDrawingBuffer: true }}
+      dpr={[1, 1.5]}
+      gl={{ antialias: false, toneMapping: THREE.NeutralToneMapping, preserveDrawingBuffer: true, powerPreference: 'high-performance' }}
       camera={{ fov: 30, near: 0.1, far: 120, position: [18.8, 1.9, 1.4] }}
       aria-hidden
     >
       <color attach="background" args={['#f1f2f3']} />
       <fog attach="fog" args={['#f1f2f3', 14, 44]} />
-      {/* cleanroom light: bright, diffuse, from the ceiling */}
-      <hemisphereLight args={['#ffffff', '#c3c8ce', 1.15]} />
-      <ambientLight intensity={0.18} />
-      <directionalLight position={[-4, 10, 5]} intensity={1.1} />
-      <directionalLight position={[10, 6, -8]} intensity={0.35} color="#eef2ff" />
-      <Environment resolution={256} frames={1}>
+      <hemisphereLight args={['#ffffff', '#b4bac2', 0.55]} />
+      <directionalLight position={[5, 10, 6]} intensity={2.3} />
+      <Environment resolution={128} frames={1}>
         <color attach="background" args={['#dfe3e7']} />
         <Lightformer form="rect" intensity={2.6} position={[0, 6, 0]} rotation={[Math.PI / 2, 0, 0]} scale={[16, 16, 1]} />
         <Lightformer form="rect" intensity={1.1} position={[-6, 2, 2]} rotation={[0, Math.PI / 2, 0]} scale={[4, 8, 1]} />

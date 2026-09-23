@@ -448,12 +448,12 @@ function GasSystem({ leds }: { leds: THREE.Material[] }) {
 /** Batch wafer-transfer robot at the front of the load area (idle, parked beside the boat). */
 function LoadAreaRobot() {
   return (
-    <group position={[0.34, 0.1, 0.34]}>
+    <group position={[-0.3, 0.1, 0.36]}>
       <Box size={[0.2, 0.06, 0.2]} position={[0, 0.03, 0]} m="panelGray" radius={0.01} />
       <Cyl r={0.08} h={0.58} position={[0, 0.35, 0]} m="panel" seg={40} />
       <Cyl r={0.081} h={0.012} position={[0, 0.64, 0]} m="black" seg={40} />
       <Cyl r={0.062} h={0.2} position={[0, 0.74, 0]} m="steelSatin" seg={40} />
-      <group position={[0, 0.86, 0]} rotation={[0, 2.25, 0]}>
+      <group position={[0, 0.86, 0]} rotation={[0, 0.75, 0]}>
         <Cyl r={0.06} h={0.045} position={[0, 0.0, 0]} m="panel" seg={32} />
         <Box size={[0.24, 0.045, 0.1]} position={[0.12, 0, 0]} m="panel" radius={0.018} />
         <group position={[0.24, 0.04, 0]} rotation={[0, -2.4, 0]}>
@@ -484,7 +484,7 @@ export default function Furnace({ variant }: ToolProps) {
 
   const mats = useMemo(() => {
     const glow = new THREE.MeshStandardMaterial({
-      color: '#4a3a30',
+      color: '#5a5048',
       roughness: 0.9,
       metalness: 0,
       emissive: '#ff5a14',

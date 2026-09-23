@@ -39,10 +39,11 @@ const LIFT = 0.1; // arms rise this much before swinging over the cup lip
 // ───────────────────────────── materials ─────────────────────────────
 
 const WM = {
-  pvdf: new THREE.MeshStandardMaterial({ color: '#e7eaed', metalness: 0, roughness: 0.34 }),
+  pvdf: new THREE.MeshStandardMaterial({ color: '#e4e7ea', metalness: 0, roughness: 0.4 }),
   pvdfDark: new THREE.MeshStandardMaterial({ color: '#9aa1a8', metalness: 0, roughness: 0.4 }),
   pfa: new THREE.MeshPhysicalMaterial({ color: '#f4f6f7', metalness: 0, roughness: 0.25, transparent: true, opacity: 0.75, clearcoat: 0.5 }),
   inner: new THREE.MeshStandardMaterial({ color: '#d9dde1', metalness: 0.05, roughness: 0.45 }),
+  deck: new THREE.MeshStandardMaterial({ color: '#949ba3', metalness: 0.1, roughness: 0.6 }),
 };
 
 /** Integrated spin angle (rad) for a piecewise-linear speed profile [p, ω rad/s]. */
@@ -197,7 +198,7 @@ export default function WetClean({ variant }: ToolProps) {
   const fling = useRef<THREE.Mesh>(null);
 
   const mats = useMemo(() => {
-    const spray = new THREE.MeshBasicMaterial({ color: '#d8f1f8', transparent: true, opacity: 0.3, depthWrite: false, side: THREE.DoubleSide });
+    const spray = new THREE.MeshBasicMaterial({ color: '#cde8f2', transparent: true, opacity: 0.36, depthWrite: false, side: THREE.DoubleSide });
     const streamM = new THREE.MeshPhysicalMaterial({ color: '#e8f6ff', roughness: 0.05, transparent: true, opacity: 0.55, clearcoat: 1, depthWrite: false });
     const filmM = (MAT.water as THREE.MeshPhysicalMaterial).clone();
     filmM.opacity = 0;
@@ -236,7 +237,7 @@ export default function WetClean({ variant }: ToolProps) {
     const flick = 0.85 + 0.15 * Math.sin(t * 37) * Math.sin(t * 23);
     if (spray.current) {
       spray.current.visible = sprayOn;
-      mats.spray.opacity = 0.26 * flick;
+      mats.spray.opacity = 0.36 * flick;
     }
     if (mega.current) mega.current.visible = sprayOn;
 
@@ -285,19 +286,18 @@ export default function WetClean({ variant }: ToolProps) {
         </group>
       ))}
       {/* deck */}
-      <Box size={[CH.x1 - CH.x0, 0.04, CH.z1 - CH.z0]} position={[0, DECK_Y - 0.02, 0]} m="steelSatin" radius={0.008} />
+      <Box size={[CH.x1 - CH.x0, 0.04, CH.z1 - CH.z0]} position={[0, DECK_Y - 0.02, 0]} m={WM.deck} radius={0.008} />
       {/* chamber: back, side walls and ceiling (front cut away) */}
       <Box size={[CH.x1 - CH.x0, CH.top - DECK_Y, 0.02]} position={[0, (CH.top + DECK_Y) / 2, CH.z0 + 0.01]} m={WM.inner} radius={0.004} />
       <Box size={[0.02, CH.top - DECK_Y, CH.z1 - CH.z0]} position={[CH.x0 + 0.01, (CH.top + DECK_Y) / 2, 0]} m={WM.inner} radius={0.004} />
       <Box size={[0.02, CH.top - DECK_Y, CH.z1 - CH.z0]} position={[CH.x1 - 0.01, (CH.top + DECK_Y) / 2, 0]} m={WM.inner} radius={0.004} />
-      <Box size={[CH.x1 - CH.x0 + 0.02, 0.07, CH.z1 - CH.z0 + 0.02]} position={[0, CH.top + 0.035, 0]} m="panel" radius={0.01} castShadow={false} />
+      {/* roof over the rear half only (the front is cut away), with the filter face below it */}
+      <Box size={[CH.x1 - CH.x0 + 0.02, 0.07, 0.46]} position={[0, CH.top + 0.035, CH.z0 + 0.22]} m="panel" radius={0.01} castShadow={false} />
+      <Box size={[CH.x1 - CH.x0 - 0.04, 0.008, 0.4]} position={[0, CH.top - 0.004, CH.z0 + 0.22]} m="panelGray" radius={0.002} castShadow={false} />
+      <Box size={[CH.x1 - CH.x0 + 0.02, 0.03, 0.03]} position={[0, CH.top + 0.015, 0]} m="steelSatin" radius={0.006} castShadow={false} />
       {/* wafer transfer shutter in the right wall */}
       <Box size={[0.012, 0.07, 0.36]} position={[CH.x1 - 0.022, DECK_Y + 0.13, 0.02]} m="steelSatin" radius={0.004} />
       <Box size={[0.006, 0.03, 0.32]} position={[CH.x1 - 0.029, DECK_Y + 0.13, 0.02]} m="black" radius={0.002} castShadow={false} />
-      {/* front frame edges of the cutaway */}
-      {[CH.x0 + 0.01, CH.x1 - 0.01].map((x) => (
-        <Box key={x} size={[0.03, CH.top - DECK_Y + 0.07, 0.03]} position={[x, (CH.top + DECK_Y + 0.07) / 2, CH.z1 - 0.015]} m="steelSatin" radius={0.006} />
-      ))}
       {/* chemical valve manifold on the back wall */}
       <Box size={[0.5, 0.05, 0.05]} position={[0, DECK_Y + 0.56, CH.z0 + 0.045]} m={WM.pvdf} radius={0.008} />
       <Cyl r={0.012} h={0.54} position={[0.3, DECK_Y + 0.29, CH.z0 + 0.045]} m={WM.pvdfDark} seg={16} />

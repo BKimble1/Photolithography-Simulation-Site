@@ -97,8 +97,9 @@ function boardTexture(): THREE.CanvasTexture {
   ctx.fillText('IN', X(-92), Z(45));
   ctx.fillText('OUT', X(70), Z(56));
   ctx.font = `600 ${4.2 * k}px Inter, Arial, sans-serif`;
-  ctx.fillText('0', X(-70), Z(60));
-  ctx.fillText('1', X(-70), Z(31) - 0.5 * k);
+  // switch positions: lever toward the front = 0, toward the back = 1
+  ctx.fillText('0', X(-70), Z(59));
+  ctx.fillText('1', X(-70), Z(24));
   ctx.fillText('VDD', X(-22), Z(-58));
   ctx.fillText('GND', X(24), Z(-58));
   const t = new THREE.CanvasTexture(c);

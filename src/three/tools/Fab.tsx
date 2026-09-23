@@ -20,40 +20,73 @@ import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeom
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import type { SceneId } from '../../content/steps';
 import { useApp } from '../../state/store';
-import { CleanFloor } from '../kit/parts';
-import { MAT } from '../materials';
 import { BACKEND, BACKEND_WALL_X, BAY, STATIONS, facing } from './poses/fab';
 
 // ───────────────────────────── materials ─────────────────────────────
+//
+// Performance: the bay fills the whole screen, so the per-pixel cost of its materials sets
+// the frame time (software renderers are fill-rate bound). Matte surfaces (powder-coat,
+// plastics, floor, walls) use Lambert shading with a small emissive "fill" standing in for
+// the image-based ambient light; only metals and dark glass keep the physically based
+// shader. Glass partitions are unlit and single-pass.
 
-const foupMat = new THREE.MeshStandardMaterial({ color: '#aeb6bf', metalness: 0.05, roughness: 0.28 });
-const amberGlass = new THREE.MeshPhysicalMaterial({ color: '#ffd98a', metalness: 0, roughness: 0.05, transparent: true, opacity: 0.16, depthWrite: false, side: THREE.DoubleSide });
-const clearGlass = new THREE.MeshPhysicalMaterial({ color: '#e6eef4', metalness: 0, roughness: 0.04, transparent: true, opacity: 0.13, depthWrite: false, side: THREE.DoubleSide });
-const platenMat = new THREE.MeshStandardMaterial({ color: '#8b9097', metalness: 0.2, roughness: 0.7 });
-const recessMat = new THREE.MeshStandardMaterial({ color: '#2a2e34', metalness: 0.2, roughness: 0.6 });
+/** Matte material: Lambert with a fill term (fraction of its own colour) as baked ambient. */
+function matte(color: string, fill = 0.4, extra: THREE.MeshLambertMaterialParameters = {}) {
+  const c = new THREE.Color(color);
+  return new THREE.MeshLambertMaterial({ color: c, emissive: c.clone().multiplyScalar(fill), ...extra });
+}
+function glassPane(color: string, opacity: number) {
+  const m = new THREE.MeshBasicMaterial({ color, transparent: true, opacity, depthWrite: false, side: THREE.DoubleSide });
+  m.forceSinglePass = true;
+  return m;
+}
+
 const windowMat = new THREE.MeshStandardMaterial({ color: '#2b3239', metalness: 0.4, roughness: 0.14, envMapIntensity: 1.2 });
+// brushed stainless that stays light in both the studio (tool) and the bright (home) lighting
+const cladMat = new THREE.MeshStandardMaterial({ color: '#cdd2d8', metalness: 0.62, roughness: 0.3 });
+// fab-scale steels: less mirror-like than the tool-scale ones, so they stay light at a distance
+const fabSteel = new THREE.MeshStandardMaterial({ color: '#d3d7dc', metalness: 0.7, roughness: 0.26 });
+const fabSatin = new THREE.MeshStandardMaterial({ color: '#c4c9cf', metalness: 0.55, roughness: 0.38 });
+const fabSteelDark = new THREE.MeshStandardMaterial({ color: '#8a9098', metalness: 0.7, roughness: 0.34 });
+const fabAlu = new THREE.MeshStandardMaterial({ color: '#d5d8dc', metalness: 0.6, roughness: 0.45 });
+const foupMat = matte('#b4bcc5', 0.34);
+const whiteMat = matte('#eef0f2', 0.42);
+const warmMat = matte('#f1f0ec', 0.42);
+const grayMat = matte('#d4d7db', 0.36);
+const darkMat = matte('#3a3e45', 0.3);
+const blackMat = matte('#1f2125', 0.25);
+const platenMat = matte('#8b9097', 0.3);
+const recessMat = matte('#2a2e34', 0.3);
+const frameMat = matte('#d5d9de', 0.4); // painted aluminium: rails, partition frames
+const screenMat = new THREE.MeshBasicMaterial({ color: '#1e2c48' });
+const violetMat = new THREE.MeshBasicMaterial({ color: '#8a7dff' });
+const smokedGlass = new THREE.MeshStandardMaterial({ color: '#20262c', metalness: 0.1, roughness: 0.06, transparent: true, opacity: 0.45 });
+const amberGlass = glassPane('#ffd98a', 0.16);
+const clearGlass = glassPane('#e6eef4', 0.12);
 
 const MATS = {
-  white: MAT.panel,
-  warm: MAT.panelWarm,
-  gray: MAT.panelGray,
-  dark: MAT.panelDark,
-  steel: MAT.steel,
-  satin: MAT.steelSatin,
-  steelDark: MAT.steelDark,
-  alu: MAT.aluminum,
-  black: MAT.black,
-  glass: MAT.glassDark,
+  white: whiteMat,
+  warm: warmMat,
+  gray: grayMat,
+  dark: darkMat,
+  steel: fabSteel,
+  satin: fabSatin,
+  steelDark: fabSteelDark,
+  alu: fabAlu,
+  black: blackMat,
+  glass: smokedGlass,
   window: windowMat,
-  screen: MAT.screen,
+  screen: screenMat,
   foup: foupMat,
-  violet: MAT.violetGlow,
+  violet: violetMat,
   amber: amberGlass,
   clear: clearGlass,
   platen: platenMat,
   recess: recessMat,
-  hanger: MAT.steelSatin,
-  mullion: MAT.aluminum,
+  hanger: fabSatin,
+  mullion: frameMat,
+  rail: frameMat,
+  clad: cladMat,
 } as const;
 type FabMat = keyof typeof MATS;
 
@@ -329,11 +362,11 @@ function scanner(K: Kit) {
   // plinth; white lower band; brushed-steel upper enclosure; white end modules
   K.box('gray', w - 0.06, 0.12, d - 0.06, 0, 0.06, 0);
   K.box('white', mw, 0.9, d, mx, 0.12 + 0.45, 0, 0.035);
-  K.box('steel', mw, h - 1.02, d, mx, 1.02 + (h - 1.02) / 2, 0, 0.045);
+  K.box('clad', mw, h - 1.02, d, mx, 1.02 + (h - 1.02) / 2, 0, 0.045);
   K.box('white', 0.9, h - 0.42, d, -w / 2 + 0.45, 0.12 + (h - 0.54) / 2, 0, 0.04);
   K.box('white', 0.55, h - 0.12, d, w / 2 - 0.29, 0.12 + (h - 0.12) / 2, 0, 0.04);
   // raised illuminator / reticle-handling housing on top
-  K.box('steel', 2.4, 0.44, d - 0.6, mx + 0.15, h + 0.21, -0.12, 0.05);
+  K.box('clad', 2.4, 0.44, d - 0.6, mx + 0.15, h + 0.21, -0.12, 0.05);
   K.box('alu', 1.2, 0.32, 1.2, mx + 0.15, h + 0.58, -0.35, 0.04);
   // front: dark glazing with slim mullions, reveals, a restrained violet status line
   K.box('window', 2.9, 0.86, 0.014, mx - 0.1, 1.86, zf + 0.004, 0.006);
@@ -547,7 +580,7 @@ function buildBay(K: Kit) {
   section.lineTo(-0.06, 0.05);
   section.closePath();
   const rail = new THREE.ExtrudeGeometry(section, { steps: 420, bevelEnabled: false, extrudePath: new RaceTrack() });
-  K.add('alu', rail);
+  K.add('rail', rail);
   for (const z of [-LOOP.r, LOOP.r]) {
     for (let x = LOOP.xW; x <= LOOP.xE; x += 2.4) K.cyl('hanger', 0.011, BAY.ceiling - LOOP.y - 0.41, x, (BAY.ceiling + LOOP.y + 0.41) / 2, z, 6);
   }
@@ -657,21 +690,108 @@ function wallTexture(): THREE.CanvasTexture {
   return t;
 }
 
+/** Raised-floor tile (0.6 m): perforations and a tile border (same look as the kit floor). */
+function floorTexture(): THREE.CanvasTexture {
+  const c = document.createElement('canvas');
+  c.width = c.height = 256;
+  const ctx = c.getContext('2d')!;
+  ctx.fillStyle = '#eceef0';
+  ctx.fillRect(0, 0, 256, 256);
+  ctx.fillStyle = '#d6d9dd';
+  for (let yy = 22; yy < 240; yy += 14)
+    for (let xx = 22; xx < 240; xx += 14) {
+      ctx.beginPath();
+      ctx.arc(xx, yy, 2.6, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  ctx.strokeStyle = '#c9cdd2';
+  ctx.lineWidth = 3;
+  ctx.strokeRect(1.5, 1.5, 253, 253);
+  const t = new THREE.CanvasTexture(c);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  t.anisotropy = 8;
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+
+/**
+ * Ceiling tile of 1.2 m × 1.8 m: three fan-filter units (1.14 × 0.54 m, bright) in a grey
+ * grid, and one linear light across the tile. One textured layer replaces separate grid,
+ * panel and light meshes (less overdraw).
+ */
+function ceilingTexture(): THREE.CanvasTexture {
+  const W = 128;
+  const H = 192; // 1.2 m × 1.8 m at ~107 px/m
+  const c = document.createElement('canvas');
+  c.width = W;
+  c.height = H;
+  const ctx = c.getContext('2d')!;
+  ctx.fillStyle = '#c3c8ce';
+  ctx.fillRect(0, 0, W, H);
+  const k = W / 1.2;
+  for (let r = 0; r < 3; r++) {
+    ctx.fillStyle = '#eef1f4';
+    ctx.fillRect(0.03 * k, (r * 0.6 + 0.03) * k, 1.14 * k, 0.54 * k);
+    ctx.fillStyle = '#e4e8ec';
+    ctx.fillRect(0.1 * k, (r * 0.6 + 0.1) * k, 1.0 * k, 0.4 * k);
+  }
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 1.15 * k, W, 0.1 * k);
+  const t = new THREE.CanvasTexture(c);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  t.anisotropy = 8;
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+
+type Rect = [number, number, number, number]; // x0, x1, z0, z1
+
+/**
+ * Horizontal rectangles at height y, merged, facing up (floor) or down (ceiling), with UVs in
+ * world units divided by the tile size so a repeating texture lines up across rectangles.
+ */
+function flatRects(rects: Rect[], y: number, up: boolean, tileX: number, tileZ: number): THREE.BufferGeometry {
+  const pos: number[] = [];
+  const nor: number[] = [];
+  const uv: number[] = [];
+  const idx: number[] = [];
+  rects.forEach(([x0, x1, z0, z1], i) => {
+    const v = [
+      [x0, z0],
+      [x1, z0],
+      [x1, z1],
+      [x0, z1],
+    ];
+    for (const [x, z] of v) {
+      pos.push(x, y, z);
+      nor.push(0, up ? 1 : -1, 0);
+      uv.push(x / tileX, -z / tileZ);
+    }
+    const b = i * 4;
+    // counter-clockwise seen from the side the face points to
+    if (up) idx.push(b, b + 2, b + 1, b, b + 3, b + 2);
+    else idx.push(b, b + 1, b + 2, b, b + 2, b + 3);
+  });
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3));
+  g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+  g.setIndex(idx);
+  return g;
+}
+
 // ───────────────────────────── scene ─────────────────────────────
 
 const LITHO = { x0: 1.55, x1: 14.4, z0: BAY.z0, z1: -BAY.aisle } as const;
-const inLitho = (x: number, z: number) => x > LITHO.x0 && x < LITHO.x1 && z > LITHO.z0 && z < LITHO.z1;
+const OUT = { x0: BACKEND.x0 - 3, x1: BAY.x1 + 3, z0: BAY.z0 - 4, z1: BAY.z1 + 4 };
 
 const lensMat = new THREE.MeshBasicMaterial({ color: '#ffffff' });
-const ffuMat = new THREE.MeshBasicMaterial({ color: '#ffffff' });
-const stripMat = new THREE.MeshBasicMaterial({ color: '#ffffff' });
-const ceilMat = new THREE.MeshBasicMaterial({ color: '#c9ced4' });
 const haloLine = new THREE.MeshBasicMaterial({ color: '#6a5af9', transparent: true, opacity: 0.9, depthWrite: false });
 const haloFill = new THREE.MeshBasicMaterial({ color: '#7a6cff', transparent: true, opacity: 0.09, depthWrite: false });
-const litTint = new THREE.MeshBasicMaterial({ color: '#ffcf6b', transparent: true, opacity: 0.07, depthWrite: false });
-const aisleMat = new THREE.MeshStandardMaterial({ color: '#eef0f1', roughness: 0.22, metalness: 0.05 });
+const aisleMat = matte('#f1f2f3', 0.45);
 const lineMat = new THREE.MeshBasicMaterial({ color: '#c3c8ce' });
-const vehicleMat = MAT.panel;
+const vehicleMat = whiteMat;
+const gripMat = darkMat;
 
 const GREEN = new THREE.Color('#3ddc97');
 const VIOLET = new THREE.Color('#7a6cff');
@@ -725,56 +845,6 @@ export function FabScene({ highlight, hero }: { highlight?: SceneId; hero?: bool
     m.instanceMatrix.needsUpdate = true;
   }, [built]);
 
-  // ── ceiling: fan-filter units (instanced) and linear lights ──
-  const ffu = useRef<THREE.InstancedMesh>(null);
-  const ffuCells = useMemo(() => {
-    const cells: [number, number][] = [];
-    for (let x = BACKEND.x0 + 0.6; x < BAY.x1; x += 1.2) for (let z = BAY.z0 + 0.3; z < BAY.z1; z += 0.6) cells.push([x, z]);
-    return cells;
-  }, []);
-  useLayoutEffect(() => {
-    const m = ffu.current;
-    if (!m) return;
-    const mat = new THREE.Matrix4();
-    const q = new THREE.Quaternion().setFromEuler(new THREE.Euler(Math.PI / 2, 0, 0));
-    const white = new THREE.Color('#eef1f4');
-    const warm = new THREE.Color('#f5ecd6');
-    ffuCells.forEach(([x, z], i) => {
-      mat.compose(new THREE.Vector3(x, BAY.ceiling - 0.01, z), q, new THREE.Vector3(1.14, 0.54, 1));
-      m.setMatrixAt(i, mat);
-      m.setColorAt(i, inLitho(x, z) ? warm : white);
-    });
-    m.instanceMatrix.needsUpdate = true;
-    if (m.instanceColor) m.instanceColor.needsUpdate = true;
-  }, [ffuCells]);
-  const strips = useRef<THREE.InstancedMesh>(null);
-  const stripRows = useMemo(() => {
-    const rows: { x0: number; x1: number; z: number; warm: boolean }[] = [];
-    for (let z = BAY.z0 + 1.2; z < BAY.z1 - 0.5; z += 1.8) {
-      if (z < -BAY.aisle) {
-        rows.push({ x0: BACKEND.x0, x1: LITHO.x0, z, warm: false });
-        rows.push({ x0: LITHO.x0, x1: LITHO.x1, z, warm: true });
-        rows.push({ x0: LITHO.x1, x1: BAY.x1, z, warm: false });
-      } else rows.push({ x0: BACKEND.x0, x1: BAY.x1, z, warm: false });
-    }
-    return rows;
-  }, []);
-  useLayoutEffect(() => {
-    const m = strips.current;
-    if (!m) return;
-    const mat = new THREE.Matrix4();
-    const q = new THREE.Quaternion().setFromEuler(new THREE.Euler(Math.PI / 2, 0, 0));
-    const white = new THREE.Color('#ffffff');
-    const warm = new THREE.Color('#ffe9bd');
-    stripRows.forEach((r, i) => {
-      mat.compose(new THREE.Vector3((r.x0 + r.x1) / 2, BAY.ceiling - 0.02, r.z), q, new THREE.Vector3(r.x1 - r.x0 - 0.1, 0.1, 1));
-      m.setMatrixAt(i, mat);
-      m.setColorAt(i, r.warm ? warm : white);
-    });
-    m.instanceMatrix.needsUpdate = true;
-    if (m.instanceColor) m.instanceColor.needsUpdate = true;
-  }, [stripRows]);
-
   // ── overhead transport vehicles with FOUPs (idle motion on wall-clock time) ──
   const vBody = useRef<THREE.InstancedMesh>(null);
   const vGrip = useRef<THREE.InstancedMesh>(null);
@@ -800,33 +870,61 @@ export function FabScene({ highlight, hero }: { highlight?: SceneId; hero?: bool
     for (const r of [vBody, vGrip, vFoup]) if (r.current) r.current.instanceMatrix.needsUpdate = true;
   });
 
-  const wallTex = useMemo(() => {
-    const t = wallTexture();
-    return t;
+  // ── floor, ceiling and walls: one layer each, cheap unlit/Lambert materials ──
+  const surfaces = useMemo(() => {
+    const floorTex = floorTexture();
+    const ceilTex = ceilingTexture();
+    const wallTex = wallTexture();
+    const floor = new THREE.MeshLambertMaterial({ map: floorTex, emissive: new THREE.Color('#eceef0').multiplyScalar(0.42), emissiveMap: floorTex });
+    const floorWarm = new THREE.MeshLambertMaterial({ map: floorTex, color: '#fff4de', emissive: new THREE.Color('#f4ecd8').multiplyScalar(0.42), emissiveMap: floorTex });
+    const ceil = new THREE.MeshBasicMaterial({ map: ceilTex });
+    const ceilWarm = new THREE.MeshBasicMaterial({ map: ceilTex, color: '#f8ebce' });
+    const wall = new THREE.MeshLambertMaterial({ map: wallTex, emissive: new THREE.Color('#eef0f2').multiplyScalar(0.4), emissiveMap: wallTex });
+    const aisle = BAY.aisle;
+    // floor: aisle, two tool rows (the litho bay tinted warm) and a margin outside the walls
+    const floorRects: Rect[] = [
+      [OUT.x0, LITHO.x0, OUT.z0, -aisle],
+      [LITHO.x0, LITHO.x1, OUT.z0, LITHO.z0],
+      [LITHO.x1, OUT.x1, OUT.z0, -aisle],
+      [OUT.x0, OUT.x1, aisle, OUT.z1],
+    ];
+    const g = {
+      floor: flatRects(floorRects, 0, true, 0.6, 0.6),
+      floorWarm: flatRects([[LITHO.x0, LITHO.x1, LITHO.z0, -aisle]], 0, true, 0.6, 0.6),
+      aisle: flatRects([[OUT.x0, OUT.x1, -aisle, aisle]], 0.001, true, 1, 1),
+      ceil: flatRects(
+        [
+          [BACKEND.x0, LITHO.x0, BAY.z0, BAY.z1],
+          [LITHO.x0, LITHO.x1, -aisle, BAY.z1],
+          [LITHO.x1, BAY.x1, BAY.z0, BAY.z1],
+        ],
+        BAY.ceiling,
+        false,
+        1.2,
+        1.8,
+      ),
+      ceilWarm: flatRects([[LITHO.x0, LITHO.x1, BAY.z0, -aisle]], BAY.ceiling, false, 1.2, 1.8),
+    };
+    const wallLen = BAY.x1 - BACKEND.x0;
+    const long = new THREE.PlaneGeometry(wallLen, BAY.ceiling);
+    const end = new THREE.PlaneGeometry(BAY.z1 - BAY.z0, BAY.ceiling);
+    // world-unit UVs for the walls (panel seams every 1.2 m)
+    long.attributes.uv.array.forEach((_, i, a) => i % 2 === 0 && ((a as Float32Array)[i] *= wallLen / 1.2));
+    end.attributes.uv.array.forEach((_, i, a) => i % 2 === 0 && ((a as Float32Array)[i] *= (BAY.z1 - BAY.z0) / 1.2));
+    return { floorTex, ceilTex, wallTex, mats: { floor, floorWarm, ceil, ceilWarm, wall }, g, long, end };
   }, []);
-  const wallLen = BAY.x1 - BACKEND.x0;
-  const wallMatLong = useMemo(() => {
-    const t = wallTex.clone();
-    t.repeat.set(wallLen / 1.2, 1);
-    t.needsUpdate = true;
-    return new THREE.MeshStandardMaterial({ map: t, roughness: 0.8, metalness: 0 });
-  }, [wallTex, wallLen]);
-  const wallMatEnd = useMemo(() => {
-    const t = wallTex.clone();
-    t.repeat.set((BAY.z1 - BAY.z0) / 1.2, 1);
-    t.needsUpdate = true;
-    return new THREE.MeshStandardMaterial({ map: t, roughness: 0.8, metalness: 0 });
-  }, [wallTex]);
-
   useLayoutEffect(
     () => () => {
-      for (const m of [shadowMaterial, wallMatLong, wallMatEnd]) {
-        m.map?.dispose();
-        m.dispose();
-      }
-      wallTex.dispose();
+      const { floorTex, ceilTex, wallTex, mats, g, long, end } = surfaces;
+      [floorTex, ceilTex, wallTex].forEach((t) => t.dispose());
+      Object.values(mats).forEach((m) => m.dispose());
+      Object.values(g).forEach((x) => x.dispose());
+      long.dispose();
+      end.dispose();
+      shadowMaterial.map?.dispose();
+      shadowMaterial.dispose();
     },
-    [shadowMaterial, wallMatLong, wallMatEnd, wallTex],
+    [surfaces, shadowMaterial],
   );
 
   const halo = useMemo(() => {
@@ -854,44 +952,23 @@ export function FabScene({ highlight, hero }: { highlight?: SceneId; hero?: bool
   const midX = (BACKEND.x0 + BAY.x1) / 2;
   return (
     <group>
-      {/* raised perforated floor, glossy aisle with edge lines, warm tint in the litho bay */}
-      <group position={[midX, 0, 0]}>
-        <CleanFloor size={72} />
-      </group>
-      <mesh position={[midX, 0.003, 0]} rotation={[-Math.PI / 2, 0, 0]} material={aisleMat} receiveShadow>
-        <planeGeometry args={[wallLen, BAY.aisle * 2]} />
-      </mesh>
+      {/* raised perforated floor (the litho bay tinted by its yellow light), aisle, edge lines */}
+      <mesh geometry={surfaces.g.floor} material={surfaces.mats.floor} />
+      <mesh geometry={surfaces.g.floorWarm} material={surfaces.mats.floorWarm} />
+      <mesh geometry={surfaces.g.aisle} material={aisleMat} />
       {[-BAY.aisle, BAY.aisle].map((z) => (
         <mesh key={z} position={[midX, 0.004, z]} rotation={[-Math.PI / 2, 0, 0]} material={lineMat}>
-          <planeGeometry args={[wallLen, 0.05]} />
+          <planeGeometry args={[BAY.x1 - BACKEND.x0, 0.05]} />
         </mesh>
       ))}
-      <mesh position={[(LITHO.x0 + LITHO.x1) / 2, 0.005, (LITHO.z0 + LITHO.z1) / 2]} rotation={[-Math.PI / 2, 0, 0]} material={litTint}>
-        <planeGeometry args={[LITHO.x1 - LITHO.x0, LITHO.z1 - LITHO.z0]} />
-      </mesh>
       {/* walls (face inward only, so the bay opens up when viewed from outside) */}
-      <mesh position={[midX, BAY.ceiling / 2, BAY.z0]} material={wallMatLong}>
-        <planeGeometry args={[wallLen, BAY.ceiling]} />
-      </mesh>
-      <mesh position={[midX, BAY.ceiling / 2, BAY.z1]} rotation={[0, Math.PI, 0]} material={wallMatLong}>
-        <planeGeometry args={[wallLen, BAY.ceiling]} />
-      </mesh>
-      <mesh position={[BACKEND.x0, BAY.ceiling / 2, 0]} rotation={[0, Math.PI / 2, 0]} material={wallMatEnd}>
-        <planeGeometry args={[BAY.z1 - BAY.z0, BAY.ceiling]} />
-      </mesh>
-      <mesh position={[BAY.x1, BAY.ceiling / 2, 0]} rotation={[0, -Math.PI / 2, 0]} material={wallMatEnd}>
-        <planeGeometry args={[BAY.z1 - BAY.z0, BAY.ceiling]} />
-      </mesh>
-      {/* ceiling grid, FFUs and linear lights (all face down: invisible from above) */}
-      <mesh position={[midX, BAY.ceiling, 0]} rotation={[Math.PI / 2, 0, 0]} material={ceilMat}>
-        <planeGeometry args={[wallLen, BAY.z1 - BAY.z0]} />
-      </mesh>
-      <instancedMesh ref={ffu} args={[undefined, undefined, ffuCells.length]} material={ffuMat} frustumCulled={false}>
-        <planeGeometry args={[1, 1]} />
-      </instancedMesh>
-      <instancedMesh ref={strips} args={[undefined, undefined, stripRows.length]} material={stripMat} frustumCulled={false}>
-        <planeGeometry args={[1, 1]} />
-      </instancedMesh>
+      <mesh geometry={surfaces.long} position={[midX, BAY.ceiling / 2, BAY.z0]} material={surfaces.mats.wall} />
+      <mesh geometry={surfaces.long} position={[midX, BAY.ceiling / 2, BAY.z1]} rotation={[0, Math.PI, 0]} material={surfaces.mats.wall} />
+      <mesh geometry={surfaces.end} position={[BACKEND.x0, BAY.ceiling / 2, 0]} rotation={[0, Math.PI / 2, 0]} material={surfaces.mats.wall} />
+      <mesh geometry={surfaces.end} position={[BAY.x1, BAY.ceiling / 2, 0]} rotation={[0, -Math.PI / 2, 0]} material={surfaces.mats.wall} />
+      {/* ceiling of fan-filter units with linear lights; warm over the lithography bay */}
+      <mesh geometry={surfaces.g.ceil} material={surfaces.mats.ceil} />
+      <mesh geometry={surfaces.g.ceilWarm} material={surfaces.mats.ceilWarm} />
 
       {/* all static tool and bay panels, one mesh per material */}
       {built.meshes.map(({ k, geo }) =>
@@ -911,15 +988,12 @@ export function FabScene({ highlight, hero }: { highlight?: SceneId; hero?: bool
       <instancedMesh ref={vBody} args={[undefined, vehicleMat, N_VEHICLES]} frustumCulled={false}>
         <boxGeometry args={[0.62, 0.36, 0.5]} />
       </instancedMesh>
-      <instancedMesh ref={vGrip} args={[undefined, MAT.panelDark, N_VEHICLES]} frustumCulled={false}>
+      <instancedMesh ref={vGrip} args={[undefined, gripMat, N_VEHICLES]} frustumCulled={false}>
         <boxGeometry args={[0.44, 0.08, 0.42]} />
       </instancedMesh>
       <instancedMesh ref={vFoup} args={[undefined, foupMat, N_VEHICLES]} frustumCulled={false}>
         <boxGeometry args={[0.39, 0.31, 0.42]} />
       </instancedMesh>
-
-      {/* warm, UV-filtered light in the lithography bay */}
-      <pointLight position={[8.0, 3.8, -4.6]} color="#ffcf73" intensity={14} distance={13} decay={2} />
 
       {/* current station: a subtle violet outline on the floor */}
       {halo && (
