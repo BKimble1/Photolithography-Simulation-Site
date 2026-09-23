@@ -241,14 +241,11 @@ function OutputLed({ lit }: { lit: boolean }) {
         <mesh position={[0, 0.006, 0]} material={lit ? ledOn : ledOff} castShadow>
           <sphereGeometry args={[0.0025, 24, 12, 0, Math.PI * 2, 0, Math.PI / 2]} />
         </mesh>
-        {lit && (
-          <>
-            <mesh position={[0, 0.005, 0]} material={glowMat}>
-              <sphereGeometry args={[0.0075, 20, 14]} />
-            </mesh>
-            <pointLight position={[0, 0.012, 0]} color="#3ddc97" intensity={0.05} distance={0.2} decay={2} />
-          </>
-        )}
+        {/* soft glow around the lit lens (no extra light: changing the light count would
+            recompile every shader on each toggle) */}
+        <mesh position={[0, 0.005, 0]} material={glowMat} visible={lit}>
+          <sphereGeometry args={[0.0075, 20, 14]} />
+        </mesh>
       </group>
       {/* series resistor */}
       <group position={[LED[0], BOARD_TOP, 0.02]}>
@@ -319,7 +316,7 @@ export default function TestBench({ variant }: ToolProps) {
         target={lightTarget}
         intensity={0.9}
         castShadow
-        shadow-mapSize={[2048, 2048]}
+        shadow-mapSize={[1024, 1024]}
         shadow-camera-left={-0.4}
         shadow-camera-right={0.4}
         shadow-camera-top={0.4}

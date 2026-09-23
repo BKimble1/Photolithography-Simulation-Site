@@ -505,7 +505,7 @@ export default function Package({ variant }: ToolProps) {
         target={lightTarget}
         intensity={1.1}
         castShadow
-        shadow-mapSize={[2048, 2048]}
+        shadow-mapSize={[1024, 1024]}
         shadow-camera-left={-0.14}
         shadow-camera-right={0.14}
         shadow-camera-top={0.14}

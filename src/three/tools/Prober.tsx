@@ -475,8 +475,6 @@ export default function Prober({ variant }: ToolProps) {
       <ProbeCard />
       <TestHead />
       <Manipulator />
-      {/* a small lamp inside the stage chamber, as used for alignment optics */}
-      <pointLight position={[PX + 0.34, 0.965, PZ + 0.3]} intensity={0.35} distance={1.1} decay={2} color="#fff7ea" />
       <Loader />
       <Tester />
       {/* cable bundle: test head → tester */}

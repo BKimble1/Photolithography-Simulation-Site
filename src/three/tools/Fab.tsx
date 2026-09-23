@@ -64,6 +64,53 @@ const smokedGlass = new THREE.MeshStandardMaterial({ color: '#20262c', metalness
 const amberGlass = glassPane('#ffd98a', 0.16);
 const clearGlass = glassPane('#e6eef4', 0.12);
 
+/**
+ * Parts whose lighting is baked into vertex colours at build time (the bay is static and
+ * these surfaces are matte, so their shading does not depend on the view). They are all
+ * merged into one unlit mesh: the cheapest possible pixels. `metal` uses a harder, more
+ * top-lit ramp; `unlit` keeps the colour as is (screens, status line).
+ */
+type Bake = { color: string; metal?: boolean; unlit?: boolean; own?: boolean };
+const BAKE: Partial<Record<string, Bake>> = {
+  white: { color: '#eef0f2' },
+  warm: { color: '#f1f0ec' },
+  gray: { color: '#d4d7db' },
+  dark: { color: '#3a3e45' },
+  black: { color: '#1f2125' },
+  foup: { color: '#b4bcc5' },
+  platen: { color: '#8b9097' },
+  recess: { color: '#2a2e34' },
+  mullion: { color: '#d5d9de' },
+  rail: { color: '#d5d9de' },
+  steel: { color: '#d3d7dc', metal: true },
+  satin: { color: '#c4c9cf', metal: true },
+  alu: { color: '#d5d8dc', metal: true },
+  steelDark: { color: '#8a9098', metal: true },
+  hanger: { color: '#c4c9cf', metal: true, own: true },
+  screen: { color: '#1e2c48', unlit: true },
+  violet: { color: '#8a7dff', unlit: true },
+};
+
+/** Diffuse shading of a unit normal: bright from the ceiling, fronts on both sides alike. */
+function shadeOf(nx: number, ny: number, nz: number, metal: boolean): number {
+  return metal ? 0.66 + 0.42 * ny + 0.14 * Math.abs(nz) + 0.06 * nx : 0.76 + 0.32 * ny + 0.1 * Math.abs(nz) + 0.05 * nx;
+}
+
+function bakeColors(g: THREE.BufferGeometry, b: Bake) {
+  const c = new THREE.Color(b.color);
+  const n = g.attributes.normal;
+  const out = new Float32Array(n.count * 3);
+  for (let i = 0; i < n.count; i++) {
+    const k = b.unlit ? 1 : shadeOf(n.getX(i), n.getY(i), n.getZ(i), !!b.metal);
+    out[i * 3] = c.r * k;
+    out[i * 3 + 1] = c.g * k;
+    out[i * 3 + 2] = c.b * k;
+  }
+  g.setAttribute('color', new THREE.BufferAttribute(out, 3));
+}
+
+const bakedMat = new THREE.MeshBasicMaterial({ vertexColors: true });
+
 const MATS = {
   white: whiteMat,
   warm: warmMat,
@@ -83,10 +130,11 @@ const MATS = {
   clear: clearGlass,
   platen: platenMat,
   recess: recessMat,
-  hanger: fabSatin,
+  hanger: bakedMat,
   mullion: frameMat,
   rail: frameMat,
   clad: cladMat,
+  baked: bakedMat,
 } as const;
 type FabMat = keyof typeof MATS;
 
@@ -162,8 +210,26 @@ class Kit {
     const s = Math.sin(this.rot);
     this.feet.push({ x: this.ox + x * c + z * s, z: this.oz - x * s + z * c, w, d, rot: this.rot });
   }
-  build() {
-    return [...this.parts].map(([k, list]) => ({ k, geo: mergeGeometries(list, false) }));
+  build(): { k: FabMat; geo: THREE.BufferGeometry }[] {
+    const out: { k: FabMat; geo: THREE.BufferGeometry }[] = [];
+    const baked: THREE.BufferGeometry[] = [];
+    for (const [k, list] of this.parts) {
+      const geo = mergeGeometries(list, false);
+      list.forEach((g) => g.dispose());
+      const b = BAKE[k];
+      if (!b) {
+        out.push({ k, geo });
+        continue;
+      }
+      bakeColors(geo, b);
+      if (b.own) out.push({ k, geo });
+      else baked.push(geo);
+    }
+    if (baked.length) {
+      out.push({ k: 'baked', geo: mergeGeometries(baked, false) });
+      baked.forEach((g) => g.dispose());
+    }
+    return out;
   }
 }
 
@@ -641,8 +707,8 @@ function buildTools(K: Kit) {
   north('package', bondBenches);
   north('testbench', finalTest);
   // tools without a step of their own, to fill out the rows
-  place(undefined, 5.4, 3.1, false, (k) => genericTool(k, 2.4, 2.1, 2.2, 2));
-  place(undefined, 8.6, 3.0, false, (k) => genericTool(k, 2.2, 2.0, 2.0, 1));
+  place(undefined, 6.8, 3.1, false, (k) => genericTool(k, 2.4, 2.1, 2.2, 2));
+  place(undefined, 9.9, 3.0, false, (k) => genericTool(k, 2.2, 2.0, 2.0, 1));
   place(undefined, -13.9, 2.9, false, (k) => genericTool(k, 1.4, 1.9, 1.8, 1));
   place(undefined, -30.2, 3.4, false, (k) => rack(k));
   place(undefined, -23.6, 3.2, false, (k) => genericTool(k, 1.5, 1.7, 1.2, 1));
@@ -689,7 +755,7 @@ function wallTexture(): THREE.CanvasTexture {
   const t = new THREE.CanvasTexture(c);
   t.wrapS = t.wrapT = THREE.RepeatWrapping;
   t.colorSpace = THREE.SRGBColorSpace;
-  t.anisotropy = 4;
+  t.anisotropy = 1;
   return t;
 }
 
@@ -712,7 +778,7 @@ function floorTexture(): THREE.CanvasTexture {
   ctx.strokeRect(1.5, 1.5, 253, 253);
   const t = new THREE.CanvasTexture(c);
   t.wrapS = t.wrapT = THREE.RepeatWrapping;
-  t.anisotropy = 8;
+  t.anisotropy = 2; // software renderers pay per sample; fog hides the far floor
   t.colorSpace = THREE.SRGBColorSpace;
   return t;
 }
@@ -742,7 +808,7 @@ function ceilingTexture(): THREE.CanvasTexture {
   ctx.fillRect(0, 1.15 * k, W, 0.1 * k);
   const t = new THREE.CanvasTexture(c);
   t.wrapS = t.wrapT = THREE.RepeatWrapping;
-  t.anisotropy = 8;
+  t.anisotropy = 1;
   t.colorSpace = THREE.SRGBColorSpace;
   return t;
 }
@@ -791,7 +857,7 @@ const OUT = { x0: BACKEND.x0 - 3, x1: BAY.x1 + 3, z0: BAY.z0 - 4, z1: BAY.z1 + 4
 const lensMat = new THREE.MeshBasicMaterial({ color: '#ffffff' });
 const haloLine = new THREE.MeshBasicMaterial({ color: '#6a5af9', transparent: true, opacity: 0.9, depthWrite: false });
 const haloFill = new THREE.MeshBasicMaterial({ color: '#7a6cff', transparent: true, opacity: 0.09, depthWrite: false });
-const aisleMat = matte('#f1f2f3', 0.45);
+const aisleMat = new THREE.MeshBasicMaterial({ color: '#f4f5f6' });
 const lineMat = new THREE.MeshBasicMaterial({ color: '#c3c8ce' });
 const vehicleMat = whiteMat;
 const gripMat = darkMat;
@@ -801,53 +867,45 @@ const VIOLET = new THREE.Color('#7a6cff');
 const N_VEHICLES = 7;
 
 /**
- * Render pacing for slow renderers. While the bay is shown it takes over rendering (a
- * positive useFrame priority turns off the automatic render). On normal hardware it simply
- * renders every frame. If frames average over 70 ms (software rasterisers, headless test
- * browsers, very weak GPUs), it renders once, waits until the GPU pipeline has drained
- * (three quick animation ticks in a row) and then leaves the page idle for about twice the
- * measured frame cost, so the page stays responsive instead of stalling on every frame.
+ * Render pacing for very slow renderers. While the bay is shown it takes over rendering (a
+ * positive useFrame priority turns off the automatic render). Normally it renders every
+ * frame. If frames average over 120 ms (software rasterisers such as headless test
+ * browsers, very weak GPUs), it renders only every ~2.5 frame costs, so the page stays
+ * responsive between frames instead of stalling on every one. The frame cost is tracked as
+ * the longest animation-tick gap after each render; once it drops, rendering is continuous
+ * again.
  */
 function usePacedRender() {
-  const st = useRef({ mode: 'free' as 'free' | 'paced', last: 0, gaps: [] as number[], renderAt: 0, draining: false, fast: 0, streakStart: 0, cost: 0, idleUntil: 0 });
+  const st = useRef({ paced: false, last: 0, gaps: [] as number[], renderAt: 0, cost: 0, maxGap: 0 });
   useFrame(({ gl, scene, camera }) => {
     const s = st.current;
     const now = performance.now();
     const gap = s.last ? now - s.last : 16;
     s.last = now;
-    if (s.mode === 'free') {
+    if (!s.paced) {
       s.gaps.push(gap);
       if (s.gaps.length > 12) s.gaps.shift();
       const avg = s.gaps.reduce((a, b) => a + b, 0) / s.gaps.length;
-      if (s.gaps.length < 12 || avg <= 70) {
-        gl.render(scene, camera);
+      if (s.gaps.length === 12 && avg > 120) {
+        s.paced = true;
+        s.cost = Math.min(avg, 1500);
+        s.maxGap = 0;
+        s.renderAt = now;
         return;
       }
-      s.mode = 'paced';
-      s.cost = avg;
-      s.idleUntil = now + avg;
+      gl.render(scene, camera);
       return;
     }
-    if (s.draining) {
-      if (gap < 25) {
-        if (s.fast === 0) s.streakStart = now - gap;
-        s.fast++;
-      } else s.fast = 0;
-      if (s.fast < 3) return;
-      s.draining = false;
-      s.cost = s.cost * 0.5 + Math.max(0, s.streakStart - s.renderAt) * 0.5;
-      s.idleUntil = now + 2 * s.cost;
-      if (s.cost < 40) {
-        s.mode = 'free';
-        s.gaps = [];
-      }
-      return;
+    s.maxGap = Math.max(s.maxGap, gap);
+    if (now - s.renderAt < 2.5 * s.cost) return;
+    s.cost = Math.min(1500, s.cost * 0.5 + s.maxGap * 0.5);
+    s.maxGap = 0;
+    if (s.cost < 60) {
+      s.paced = false;
+      s.gaps = [];
     }
-    if (now < s.idleUntil) return;
     gl.render(scene, camera);
     s.renderAt = now;
-    s.draining = true;
-    s.fast = 0;
   }, 1);
 }
 
@@ -930,11 +988,12 @@ export function FabScene({ highlight, hero }: { highlight?: SceneId; hero?: bool
     const floorTex = floorTexture();
     const ceilTex = ceilingTexture();
     const wallTex = wallTexture();
-    const floor = new THREE.MeshLambertMaterial({ map: floorTex, emissive: new THREE.Color('#eceef0').multiplyScalar(0.42), emissiveMap: floorTex });
-    const floorWarm = new THREE.MeshLambertMaterial({ map: floorTex, color: '#fff4de', emissive: new THREE.Color('#f4ecd8').multiplyScalar(0.42), emissiveMap: floorTex });
+    // unlit: the floor, ceiling and walls are evenly lit by the filter ceiling
+    const floor = new THREE.MeshBasicMaterial({ map: floorTex, color: '#f6f7f8' });
+    const floorWarm = new THREE.MeshBasicMaterial({ map: floorTex, color: '#fdf6e8' });
     const ceil = new THREE.MeshBasicMaterial({ map: ceilTex });
     const ceilWarm = new THREE.MeshBasicMaterial({ map: ceilTex, color: '#f8ebce' });
-    const wall = new THREE.MeshLambertMaterial({ map: wallTex, emissive: new THREE.Color('#eef0f2').multiplyScalar(0.4), emissiveMap: wallTex });
+    const wall = new THREE.MeshBasicMaterial({ map: wallTex, color: '#dde1e5' });
     const aisle = BAY.aisle;
     // floor: aisle, two tool rows (the litho bay tinted warm) and a margin outside the walls
     const floorRects: Rect[] = [
