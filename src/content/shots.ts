@@ -80,11 +80,6 @@ export const SHOTS: Partial<Record<StepId, Key[]>> = {
     { p: 0.5, cam: tool },
     { p: 0.58, cam: section },
   ],
-  // the hot-plate lid comes down 0.08–0.22: go down to the layers before it closes
-  peb: [
-    { p: 0, cam: die },
-    { p: 0.1, cam: section },
-  ],
   // the wafer reaches the ash chamber by 0.32; the oxygen plasma (0.36–0.615) fills it with glow
   strip: [
     { p: 0, cam: tool },
@@ -111,6 +106,34 @@ export const SHOTS: Partial<Record<StepId, Key[]>> = {
     { p: 0.87, cam: tool },
     { p: 0.925, cam: die },
     { p: 0.965, cam: section },
+  ],
+  // The track's robot carries the wafer on from the module the last lesson left it in: the
+  // camera holds on the pick-up, then follows the wafer to the next module (the transfer
+  // windows are in tools/Track.tsx: ROUTES).
+  coat: [
+    { p: 0, cam: shot('prime') },
+    { p: 0.04, cam: shot('prime') },
+    { p: 0.08, cam: shot('coat') },
+  ],
+  softbake: [
+    { p: 0, cam: shot('coat') },
+    { p: 0.055, cam: shot('coat') },
+    { p: 0.11, cam: shot('bake') },
+  ],
+  // back from the scanner: onto the hot plate, then down into the layers before the lid closes
+  peb: [
+    { p: 0, cam: shot('bake') },
+    { p: 0.16, cam: waferTop },
+    { p: 0.21, cam: die },
+    { p: 0.28, cam: section },
+  ],
+  develop: [
+    { p: 0, cam: shot('bake') },
+    { p: 0.045, cam: shot('bake') },
+    { p: 0.09, cam: shot('develop') },
+    { p: 0.27, cam: waferTop },
+    { p: 0.37, cam: die },
+    { p: 0.47, cam: section },
   ],
   // the second level repeats the loop; its copper and polish land 0.06 apart, so the dual-damascene
   // fill is shown where it can be seen, in the layers, and the polisher (seen twice already) is not
