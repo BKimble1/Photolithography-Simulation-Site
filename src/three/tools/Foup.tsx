@@ -9,7 +9,7 @@
  *    to find the notch and stops with the notch toward +z.
  * Every motion is a pure function of the step progress p.
  */
-import { useLayoutEffect, useMemo, useRef, type ReactNode, type Ref, type RefObject } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, type ReactNode, type Ref, type RefObject } from 'react';
 import * as THREE from 'three';
 import { useSimState } from '../../state/sim';
 import { lerp, smooth, useProgressFrame } from '../anim';
@@ -422,6 +422,13 @@ function PortDoorMech({
 function Efem() {
   const deckTex = useMemo(() => perforatedTexture('#5d636b', '#2c3035', [10, 7]), []);
   const diffTex = useMemo(() => perforatedTexture('#e3e6ea', '#9ea5ad', [14, 10]), []);
+  useEffect(
+    () => () => {
+      deckTex.dispose();
+      diffTex.dispose();
+    },
+    [deckTex, diffTex],
+  );
   const plate = useMemo(() => {
     const g = holedPlate(0.5, 0.78, 0.358, 0.282, 0.03, FOUP_Y + 0.166 - 1.01, 0.014);
     g.translate(0, 1.01, -0.03);

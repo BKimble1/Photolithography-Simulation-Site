@@ -51,7 +51,7 @@ export default function HomeCanvas() {
   return (
     <Canvas
       dpr={[1, 1.5]}
-      gl={{ antialias: false, toneMapping: THREE.NeutralToneMapping, preserveDrawingBuffer: true, powerPreference: 'high-performance' }}
+      gl={{ antialias: true, toneMapping: THREE.NeutralToneMapping, preserveDrawingBuffer: true, powerPreference: 'high-performance' }}
       camera={{ fov: 30, near: 0.1, far: 120, position: [18.8, 1.9, 1.4] }}
       aria-hidden
     >

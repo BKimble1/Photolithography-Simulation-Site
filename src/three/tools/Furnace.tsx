@@ -8,7 +8,7 @@
  *  - 'anneal': a shorter, calmer cycle in nitrogen.
  * Heater glow is real thermal emission, kept subtle. Motion is a pure function of progress p.
  */
-import { useLayoutEffect, useMemo, useRef } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { useSimState } from '../../state/sim';
 import { clamp01, lerp, smooth, useProgressFrame } from '../anim';
@@ -46,7 +46,7 @@ interface Cycle {
   down: [number, number];
   /** temperature keyframes [p, T] with T: 0 = cold, 0.25 standby, 1 = oxidation */
   temp: [number, number][];
-  /** boat turns this many radians over the hot part of the cycle */
+  /** boat turns this many radians while sealed in the tube (whole turns, so it comes back to the loading position) */
   turn: number;
   gas: [number, number][]; // [p, which line: 0 none, 1 O2, 2 DCS+NH3, 3 N2]
 }
@@ -66,7 +66,7 @@ const CYCLES: Record<string, Cycle> = {
       [0.9, 0.3],
       [1, 0.28],
     ],
-    turn: 2.4,
+    turn: Math.PI * 2,
     gas: [
       [0.3, 1],
       [0.58, 3],
@@ -86,7 +86,7 @@ const CYCLES: Record<string, Cycle> = {
       [0.82, 0.32],
       [1, 0.28],
     ],
-    turn: 1.2,
+    turn: Math.PI * 2,
     gas: [[0.28, 3]],
   },
 };
@@ -496,6 +496,7 @@ export default function Furnace({ variant }: ToolProps) {
     const leds = [0, 1, 2].map(() => new THREE.MeshStandardMaterial({ color: '#c9d4e3', emissive: '#e8f0ff', emissiveIntensity: 0, roughness: 0.3 }));
     return { glow, coil, wafer, leds, cold: new THREE.Color('#ff3a08'), hot: new THREE.Color('#ff9a3a') };
   }, []);
+  useEffect(() => () => [mats.glow, mats.coil, mats.wafer, ...mats.leds].forEach((m) => m.dispose()), [mats]);
 
   useProgressFrame((p, t) => {
     const lift = smooth(p, cyc.up[0], cyc.up[1]) * (1 - smooth(p, cyc.down[0], cyc.down[1]));
@@ -536,7 +537,7 @@ export default function Furnace({ variant }: ToolProps) {
         <group ref={boatSpin}>
           <Boat waferMat={mats.wafer}>
             {/* the wafer we follow rides in the top slot */}
-            <Wafer look={{ summary: state.wafer, showParticles: true }} position={[0, TOP_SLOT_Y, 0]} rotation={[0, 0, 0]} size={512} />
+            <Wafer look={{ summary: state.wafer, showParticles: true }} position={[0, TOP_SLOT_Y, 0]} size={512} />
           </Boat>
         </group>
       </group>

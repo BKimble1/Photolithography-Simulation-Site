@@ -17,7 +17,7 @@ import { useFrame } from '@react-three/fiber';
 import { useLayoutEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
-import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { mergeGeometries, mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import type { SceneId } from '../../content/steps';
 import { useApp } from '../../state/store';
 import { BACKEND, BACKEND_WALL_X, BAY, STATIONS, facing } from './poses/fab';
@@ -125,22 +125,25 @@ class Kit {
     return this;
   }
   add(k: FabMat, geo: THREE.BufferGeometry) {
-    // RoundedBoxGeometry is non-indexed, so everything is merged non-indexed
-    const g = geo.index ? geo.toNonIndexed() : geo;
+    // Merged meshes carry positions and normals only (no texture maps), indexed so shared
+    // vertices are shaded once: the bay is drawn by software renderers too.
+    geo.deleteAttribute('uv');
+    const g = geo.index ? geo : mergeVertices(geo, 1e-4);
     g.applyMatrix4(this.m);
     let a = this.parts.get(k);
     if (!a) this.parts.set(k, (a = []));
     a.push(g);
   }
   box(k: FabMat, w: number, h: number, d: number, x: number, y: number, z: number, r = 0) {
-    // soft (bevelled) edges only where they read at bay scale; small parts stay plain boxes
+    // soft (bevelled) edges only on large bodies, where they read at bay scale
     const rr = Math.min(r, Math.min(w, h, d) / 2 - 1e-4);
-    const g = rr >= 0.02 && Math.min(w, h, d) > 0.08 ? new RoundedBoxGeometry(w, h, d, 2, rr) : rr > 0.002 ? new RoundedBoxGeometry(w, h, d, 1, rr) : new THREE.BoxGeometry(w, h, d);
+    const big = Math.min(w, h, d) > 0.25 && Math.max(w, h, d) > 0.9;
+    const g = rr >= 0.02 && big ? new RoundedBoxGeometry(w, h, d, 1, rr) : new THREE.BoxGeometry(w, h, d);
     g.translate(x, y, z);
     this.add(k, g);
   }
-  cyl(k: FabMat, r: number, h: number, x: number, y: number, z: number, seg = 24, axis: 'x' | 'y' | 'z' = 'y', rTop?: number) {
-    const g = new THREE.CylinderGeometry(rTop ?? r, r, h, seg);
+  cyl(k: FabMat, r: number, h: number, x: number, y: number, z: number, seg = 16, axis: 'x' | 'y' | 'z' = 'y', rTop?: number) {
+    const g = new THREE.CylinderGeometry(rTop ?? r, r, h, Math.min(seg, r > 0.3 ? 20 : 12));
     if (axis === 'x') g.rotateZ(Math.PI / 2);
     if (axis === 'z') g.rotateX(Math.PI / 2);
     g.translate(x, y, z);
@@ -657,10 +660,10 @@ function softShadowTexture(): THREE.CanvasTexture {
     for (let i = 0; i < n; i++) {
       const u = (i + 0.5) / n;
       const v = (j + 0.5) / n;
-      // distance outside the inner rectangle [0.2, 0.8]²
-      const dx = Math.max(0.2 - u, 0, u - 0.8);
-      const dy = Math.max(0.2 - v, 0, v - 0.8);
-      const d = Math.hypot(dx, dy) / 0.2;
+      // distance outside the inner rectangle [0.12, 0.88]²
+      const dx = Math.max(0.12 - u, 0, u - 0.88);
+      const dy = Math.max(0.12 - v, 0, v - 0.88);
+      const d = Math.hypot(dx, dy) / 0.12;
       const a = Math.max(0, 1 - d) ** 2;
       const k = (j * n + i) * 4;
       img.data[k] = img.data[k + 1] = img.data[k + 2] = 0;
@@ -797,8 +800,60 @@ const GREEN = new THREE.Color('#3ddc97');
 const VIOLET = new THREE.Color('#7a6cff');
 const N_VEHICLES = 7;
 
+/**
+ * Render pacing for slow renderers. While the bay is shown it takes over rendering (a
+ * positive useFrame priority turns off the automatic render). On normal hardware it simply
+ * renders every frame. If frames average over 70 ms (software rasterisers, headless test
+ * browsers, very weak GPUs), it renders once, waits until the GPU pipeline has drained
+ * (three quick animation ticks in a row) and then leaves the page idle for about twice the
+ * measured frame cost, so the page stays responsive instead of stalling on every frame.
+ */
+function usePacedRender() {
+  const st = useRef({ mode: 'free' as 'free' | 'paced', last: 0, gaps: [] as number[], renderAt: 0, draining: false, fast: 0, streakStart: 0, cost: 0, idleUntil: 0 });
+  useFrame(({ gl, scene, camera }) => {
+    const s = st.current;
+    const now = performance.now();
+    const gap = s.last ? now - s.last : 16;
+    s.last = now;
+    if (s.mode === 'free') {
+      s.gaps.push(gap);
+      if (s.gaps.length > 12) s.gaps.shift();
+      const avg = s.gaps.reduce((a, b) => a + b, 0) / s.gaps.length;
+      if (s.gaps.length < 12 || avg <= 70) {
+        gl.render(scene, camera);
+        return;
+      }
+      s.mode = 'paced';
+      s.cost = avg;
+      s.idleUntil = now + avg;
+      return;
+    }
+    if (s.draining) {
+      if (gap < 25) {
+        if (s.fast === 0) s.streakStart = now - gap;
+        s.fast++;
+      } else s.fast = 0;
+      if (s.fast < 3) return;
+      s.draining = false;
+      s.cost = s.cost * 0.5 + Math.max(0, s.streakStart - s.renderAt) * 0.5;
+      s.idleUntil = now + 2 * s.cost;
+      if (s.cost < 40) {
+        s.mode = 'free';
+        s.gaps = [];
+      }
+      return;
+    }
+    if (now < s.idleUntil) return;
+    gl.render(scene, camera);
+    s.renderAt = now;
+    s.draining = true;
+    s.fast = 0;
+  }, 1);
+}
+
 export function FabScene({ highlight, hero }: { highlight?: SceneId; hero?: boolean }) {
   const reduced = useApp((s) => s.reducedMotion);
+  usePacedRender();
   const built = useMemo(() => {
     const K = new Kit();
     buildTools(K);
@@ -839,7 +894,7 @@ export function FabScene({ highlight, hero }: { highlight?: SceneId; hero?: bool
     built.feet.forEach((f, i) => {
       // lie flat (Rx), then turn with the tool (Ry)
       q.setFromEuler(new THREE.Euler(-Math.PI / 2, f.rot, 0, 'YXZ'));
-      mat.compose(new THREE.Vector3(f.x, 0.006, f.z), q, new THREE.Vector3((f.w + 0.5) / 0.6, (f.d + 0.5) / 0.6, 1));
+      mat.compose(new THREE.Vector3(f.x, 0.006, f.z), q, new THREE.Vector3(f.w + 0.8, f.d + 0.8, 1));
       m.setMatrixAt(i, mat);
     });
     m.instanceMatrix.needsUpdate = true;

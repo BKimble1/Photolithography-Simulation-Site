@@ -6,7 +6,7 @@
  * Skipping the clean (the learner's choice) leaves the arms parked and the wafer untouched.
  * Every motion is a pure function of the step progress p; only spray flicker uses the clock.
  */
-import { useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { useSimState } from '../../state/sim';
 import { useApp } from '../../state/store';
@@ -219,6 +219,13 @@ export default function WetClean({ variant }: ToolProps) {
       water: new THREE.Color('#e6f3ff'),
     };
   }, []);
+  useEffect(
+    () => () => {
+      mats.fling.map?.dispose();
+      [mats.spray, mats.stream, mats.film, mats.fling].forEach((m) => m.dispose());
+    },
+    [mats],
+  );
 
   useProgressFrame((p, t) => {
     const on = cleanOn;
