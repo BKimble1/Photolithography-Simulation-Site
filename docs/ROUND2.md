@@ -146,9 +146,19 @@ WebKit were not available. Phone and tablet runs are emulated (viewport, touch, 
 | `npm run typecheck` | clean |
 | `npm test` | 30 tests in 3 files pass (process model 22, captions 3, film timeline 5) |
 | `npm run build` | builds; see *Sizes* below |
-| `npm run e2e` | E2E_RESULT |
+| `npm run e2e` | on the final build, 81 tests across desktop, tablet and phone: **63 passed, 18 skipped by design, 0 failed**. Size-specific tests run on one project only: hover and keyboard not on touch, the layout sweep and the offline flow once on desktop, the sync measurement not on the phone. A container restart stopped the run after 64 tests; the remaining 17 phone tests were run on the same build straight after. |
 | `node scripts/cue-alignment.mjs` | speech starts 40–60 ms after each of the 91 cue times (captions lead the voice slightly); cue ends include 100–150 ms of trailing silence; decoded lengths match the manifest exactly |
 | `node scripts/stats.mjs` | see *Performance* below |
+
+Earlier runs caught two real bugs, both fixed: a flight that began with an aisle move could
+evaluate its curve at a slightly negative time on its first frame in real time (page errors
+in the under-exposure experiment), and the phone explorer's overview left the scanner off
+screen. They also exposed test problems, fixed in the tests: frame-stepped tests counting a
+fixed number of frames (now they step until the camera has arrived), tests reading the
+stage before it had loaded, and a Resume test that paused the lesson itself before leaving.
+`e2e/canvas.spec.ts` reads the WebGL drawing buffer back and checks that a lesson and the
+film draw a picture with real contrast and that it changes from frame to frame, on desktop,
+tablet and phone.
 
 ### Sync
 

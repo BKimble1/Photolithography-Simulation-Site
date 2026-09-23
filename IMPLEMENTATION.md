@@ -327,7 +327,9 @@ The director owns the camera and the render loop in every mode:
   Explore); *Guided view* / *Reset view* flies back. Explore keeps the camera inside the
   building (camera-controls boundary).
 * Framings are composed for a landscape viewport; narrower viewports pull the camera back
-  along its view direction.
+  along its view direction. The explorer's whole-fab view on a portrait screen is instead
+  fitted to the machines' boxes (on a phone, into the space above the compact overview card),
+  and the fog is pushed back with the camera distance so a distant overview stays readable.
 * A quiet **scale label** says what the picture shows (Fab bay, Equipment view, Wafer
   surface, Magnified cross-section · schematic); it comes from the framing, not a control.
 
@@ -482,6 +484,12 @@ test explains the cause.
     no WebGL (2D lesson, equipment list, captioned film).
   * `journey`, `experiments` — round one's full first run through all 37 steps to a working
     inverter and the recap, keyboard use, and the experiments (overlay, dose, skipped clean).
+  * `canvas` — reads the WebGL drawing buffer back: a lesson and the film draw a picture
+    with real contrast, and it changes from frame to frame.
+
+  Frame-stepped tests (`?virt=1`) step until the camera has arrived (`settle`) rather than a
+  fixed number of frames. On the build machine (software WebGL, 4 cores) the whole suite
+  takes about an hour.
 * `npm run screenshots` — regenerates `docs/screenshots/round2/`.
 * `node scripts/cue-alignment.mjs` — decodes the narration in the browser and compares where
   speech starts and ends with the cue times the film uses.
