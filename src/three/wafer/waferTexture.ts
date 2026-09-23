@@ -41,6 +41,74 @@ export interface WaferLook {
 
 const css = (c: [number, number, number]) => `rgb(${toSrgb8(c[0])},${toSrgb8(c[1])},${toSrgb8(c[2])})`;
 
+/** Resist beyond this thickness is a liquid puddle: no interference colours, just its tint. */
+export const RESIST_MAX_NM = 1800;
+export const PUDDLE: [number, number, number] = [0.55, 0.47, 0.95];
+const FILM_LUT_N = 256;
+
+// sRGB 8-bit ⇄ linear light, to tint painted pixels exactly as the shader tints sampled ones
+const SRGB_TO_LIN = new Float32Array(256).map((_, i) => {
+  const c = i / 255;
+  return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+});
+const LIN_N = 4096;
+const LIN_TO_SRGB = new Uint8ClampedArray(LIN_N + 1).map((_, i) => toSrgb8(i / LIN_N));
+
+/**
+ * A resist film over everything painted so far: each pixel is tinted by the film's
+ * thin-film colour factor at its radius (the colour of the stack with the resist over the
+ * colour without it), in linear light. This is exactly what the wafer's shader does to the
+ * painted surface while a coat is going on (Wafer.tsx, the live coat, from the same
+ * thickness profile and the same thickness table), so a painted film and a live one look the
+ * same and the hand-over between them is invisible.
+ */
+function tintByResist(ctx: CanvasRenderingContext2D, size: number, films: Film[], coat: CoatOverride): void {
+  const R = WAFER.radius;
+  const base = filmsColor(films);
+  const ratio = (c: [number, number, number], i: number) => c[i] / Math.max(1e-4, base[i]);
+  const lut = new Float32Array(FILM_LUT_N * 3);
+  for (let k = 0; k < FILM_LUT_N; k++) {
+    const c = filmsColor([...films, { mat: M.RES, nm: (k / (FILM_LUT_N - 1)) * RESIST_MAX_NM }]);
+    for (let i = 0; i < 3; i++) lut[k * 3 + i] = ratio(c, i);
+  }
+  const pud = base.map((b, i) => b + (PUDDLE[i] - b) * 0.55) as [number, number, number];
+  // the factor along the radius (bins of 0.15 mm)
+  const BINS = 1024;
+  const f = new Float32Array((BINS + 1) * 3);
+  const rMax = R * coat.coverage;
+  for (let b = 0; b <= BINS; b++) {
+    const r = (b / BINS) * R;
+    const u = r / R;
+    let nm = coat.nm * radialThickness(r, coat.edgeRise) * (1 + coat.rim * Math.pow(u, 6) * 2.5);
+    if (coat.ebr && r > R - 2.2) nm = 0;
+    for (let i = 0; i < 3; i++) {
+      if (r > rMax) f[b * 3 + i] = 1;
+      else if (nm > RESIST_MAX_NM) f[b * 3 + i] = ratio(pud, i);
+      else {
+        const x = (nm / RESIST_MAX_NM) * (FILM_LUT_N - 1);
+        const k0 = Math.min(FILM_LUT_N - 2, Math.floor(x));
+        const t = x - k0;
+        f[b * 3 + i] = lut[k0 * 3 + i] * (1 - t) + lut[(k0 + 1) * 3 + i] * t;
+      }
+    }
+  }
+  const img = ctx.getImageData(0, 0, size, size);
+  const d = img.data;
+  const half = size / 2;
+  const mm = (2 * R) / size;
+  for (let y = 0; y < size; y++) {
+    const dy = (y + 0.5 - half) * mm;
+    for (let x = 0; x < size; x++) {
+      const i = (y * size + x) * 4;
+      if (d[i + 3] === 0) continue;
+      const dx = (x + 0.5 - half) * mm;
+      const b = Math.min(BINS, Math.round((Math.sqrt(dx * dx + dy * dy) / R) * BINS)) * 3;
+      for (let c = 0; c < 3; c++) d[i + c] = LIN_TO_SRGB[Math.min(LIN_N, Math.round(SRGB_TO_LIN[d[i + c]] * f[b + c] * LIN_N))];
+    }
+  }
+  ctx.putImageData(img, 0, 0);
+}
+
 function mixc(a: [number, number, number], b: [number, number, number], t: number): [number, number, number] {
   return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
 }
@@ -64,31 +132,12 @@ export function drawWafer(ctx: CanvasRenderingContext2D, size: number, look: Waf
   ctx.fillStyle = css(base);
   ctx.fillRect(0, 0, size, size);
 
-  // resist coat: radial interference colours
-  const resist = look.coat
-    ? { nm: look.coat.nm, edgeRise: look.coat.edgeRise, coverage: look.coat.coverage, rim: look.coat.rim, ebr: look.coat.ebr }
+  // resist coat (applied last: a transparent film over everything below it)
+  const resist: CoatOverride | null = look.coat
+    ? look.coat
     : s.resist && s.resist.phase !== 'developed'
       ? { nm: s.resist.nm, edgeRise: s.resist.edgeRise, coverage: 1, rim: 0, ebr: true }
       : null;
-  if (resist && resist.coverage > 0) {
-    const rings = 72;
-    const rMax = R * resist.coverage;
-    for (let i = rings; i >= 1; i--) {
-      const r = (i / rings) * rMax;
-      const u = r / R;
-      let nm = resist.nm * radialThickness(r, resist.edgeRise) * (1 + resist.rim * Math.pow(u, 6) * 2.5);
-      if (resist.ebr && r > R - 2.2) nm = 0;
-      if (nm > 1800) {
-        // a thick liquid puddle: no interference colours, just the liquid's tint
-        ctx.fillStyle = css(mixc(filmsColor(films), [0.55, 0.47, 0.95], 0.55));
-      } else {
-        ctx.fillStyle = css(filmsColor([...films, { mat: M.RES, nm }]));
-      }
-      ctx.beginPath();
-      ctx.arc(size / 2, size / 2, r * k, 0, Math.PI * 2);
-      ctx.fill();
-    }
-  }
 
   // die grid (after the first patterning)
   const patterned = s.pattern > 0 || look.developedPattern;
@@ -229,6 +278,8 @@ export function drawWafer(ctx: CanvasRenderingContext2D, size: number, look: Waf
   ctx.arc(size / 2, size / 2, (R - WAFER.edgeExclusion / 2) * k, 0, Math.PI * 2);
   ctx.stroke();
   ctx.restore();
+
+  if (resist && resist.coverage > 0) tintByResist(ctx, size, films, resist);
 }
 
 export function lookKey(l: WaferLook, size: number): string {

@@ -1,7 +1,7 @@
 import { useFrame } from '@react-three/fiber';
 import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
-import { drawWafer, lookKey, makeCanvasTexture, type WaferLook } from './waferTexture';
+import { drawWafer, lookKey, makeCanvasTexture, PUDDLE, RESIST_MAX_NM, type WaferLook } from './waferTexture';
 import { framingRegistry, waferRegistry } from '../stage/anchors';
 import { useStationEnv } from '../stage/context';
 import { usePresentation } from '../../state/presentation';
@@ -77,9 +77,8 @@ export interface LiveFilmSpec {
 }
 
 const LUT_N = 256;
-/** Resist beyond this thickness is a liquid puddle (no interference colours, just its tint). */
-const RESIST_SPEC: LiveFilmSpec = { mat: M.RES, max: 1800 };
-const PUDDLE: [number, number, number] = [0.55, 0.47, 0.95];
+/** Resist (beyond RESIST_MAX_NM it is a liquid puddle: no interference colours, just its tint). */
+const RESIST_SPEC: LiveFilmSpec = { mat: M.RES, max: RESIST_MAX_NM };
 
 /** The film stack with `nm` of the live film added (on top, or thickening the same layer). */
 function withFilm(films: Film[], spec: LiveFilmSpec, nm: number): Film[] {
