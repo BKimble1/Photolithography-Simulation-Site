@@ -7,10 +7,15 @@
  * loop whose vehicles carry FOUPs between them. Dicing, packaging and final test stand in a
  * separate room behind a glass wall at the west end.
  *
- * Built for many tools at little cost: every static panel is merged into one mesh per
- * material; FFU panels, status lenses, contact shadows and vehicles are instanced (a few
- * dozen draw calls in all). The station of the current step gets a violet floor outline
- * and a violet status lens; the others show green. Vehicles move on wall-clock time (idle
+ * Built to be cheap per pixel, because the bay fills the screen and software renderers
+ * (headless test browsers) are fill-rate bound: the static bay is indexed geometry merged
+ * per material; the matte parts have their diffuse lighting baked into vertex colours and
+ * are drawn as one unlit mesh; floor, ceiling (fan-filter units and light lines in one
+ * texture) and walls are single unlit layers; only the scanner's steel cladding and dark
+ * glass use the physically based shader. Status lenses, contact shadows and vehicles are
+ * instanced (about 40 draw calls in all), and very slow renderers get paced frames (see
+ * usePacedRender). The station of the current step gets a violet floor outline and a
+ * violet status lens; the others show green. Vehicles move on wall-clock time (idle
  * motion) and stop under reduced motion.
  */
 import { useFrame } from '@react-three/fiber';
