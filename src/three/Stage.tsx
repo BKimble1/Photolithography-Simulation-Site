@@ -13,7 +13,7 @@
  */
 import { CameraControls, Environment, Lightformer, PerformanceMonitor } from '@react-three/drei';
 import { advance, Canvas, createPortal, useFrame, useThree } from '@react-three/fiber';
-import { Component, Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { Component, memo, Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import * as THREE from 'three';
 import { DEMO_STEP, machineOfStep } from '../content/machines';
 import { trackForIndex } from '../content/shots';
@@ -553,20 +553,32 @@ function WorldLighting() {
         shadow-normalBias={0.02}
       />
       <directionalLight position={[-4, 3, -2]} intensity={0.5} color="#dfe8ff" />
-      {/* Studio environment: bright softboxes on a dark surround, so steel shows crisp
-          reflections instead of a flat grey. */}
-      <Environment resolution={256} frames={1}>
-        <color attach="background" args={['#565a62']} />
-        <Lightformer form="rect" intensity={3.4} color="#ffffff" position={[0, 5, 0]} rotation={[Math.PI / 2, 0, 0]} scale={[9, 9, 1]} />
-        <Lightformer form="rect" intensity={2.4} color="#ffffff" position={[-5, 1.8, 1.5]} rotation={[0, Math.PI / 2, 0]} scale={[1.6, 7, 1]} />
-        <Lightformer form="rect" intensity={2.0} color="#ffffff" position={[5, 2.2, -1]} rotation={[0, -Math.PI / 2, 0]} scale={[1.6, 7, 1]} />
-        <Lightformer form="rect" intensity={1.4} color="#f2f4ff" position={[0, 1.6, 6]} rotation={[0, Math.PI, 0]} scale={[7, 1.2, 1]} />
-        <Lightformer form="rect" intensity={1.0} color="#ffffff" position={[0, 1.2, -6]} rotation={[0, 0, 0]} scale={[8, 1.5, 1]} />
-        <Lightformer form="ring" intensity={1.2} color="#ffffff" position={[3, 3.5, -4]} scale={1.6} />
-      </Environment>
+      <WorldEnvironment />
     </>
   );
 }
+
+/**
+ * Studio environment: bright softboxes on a dark surround, so steel shows crisp reflections
+ * instead of a flat grey. Rendered once, at mount: drei's Environment renders its cube map
+ * again whenever it re-renders (its effect depends on its children), so it must not
+ * re-render with the lighting around it. It did, at every change of lesson or hover: a cube
+ * map and its prefiltering each time, and those re-renders came out a little darker than
+ * the first, so the shading of every machine and of the cross-section shifted at once.
+ */
+const WorldEnvironment = memo(function WorldEnvironment() {
+  return (
+    <Environment resolution={256} frames={1}>
+      <color attach="background" args={['#565a62']} />
+      <Lightformer form="rect" intensity={3.4} color="#ffffff" position={[0, 5, 0]} rotation={[Math.PI / 2, 0, 0]} scale={[9, 9, 1]} />
+      <Lightformer form="rect" intensity={2.4} color="#ffffff" position={[-5, 1.8, 1.5]} rotation={[0, Math.PI / 2, 0]} scale={[1.6, 7, 1]} />
+      <Lightformer form="rect" intensity={2.0} color="#ffffff" position={[5, 2.2, -1]} rotation={[0, -Math.PI / 2, 0]} scale={[1.6, 7, 1]} />
+      <Lightformer form="rect" intensity={1.4} color="#f2f4ff" position={[0, 1.6, 6]} rotation={[0, Math.PI, 0]} scale={[7, 1.2, 1]} />
+      <Lightformer form="rect" intensity={1.0} color="#ffffff" position={[0, 1.2, -6]} rotation={[0, 0, 0]} scale={[8, 1.5, 1]} />
+      <Lightformer form="ring" intensity={1.2} color="#ffffff" position={[3, 3.5, -4]} scale={1.6} />
+    </Environment>
+  );
+});
 
 function World({ mounts, highlight }: { mounts: Mount[]; highlight?: MachineId }) {
   const mode = useApp((s) => s.mode);
@@ -633,17 +645,24 @@ function DeviceLighting() {
       />
       <directionalLight position={[-4, 3, -2]} intensity={0.5} color="#dfe8ff" />
       <directionalLight position={[-2.5, 2.2, 7]} intensity={1.1} color="#ffffff" />
-      <Environment resolution={128} frames={1}>
-        <color attach="background" args={['#8a8d93']} />
-        <Lightformer form="rect" intensity={3.4} position={[0, 5, 0]} rotation={[Math.PI / 2, 0, 0]} scale={[9, 9, 1]} />
-        <Lightformer form="rect" intensity={2.4} position={[-5, 1.8, 1.5]} rotation={[0, Math.PI / 2, 0]} scale={[1.6, 7, 1]} />
-        <Lightformer form="rect" intensity={2.0} position={[5, 2.2, -1]} rotation={[0, -Math.PI / 2, 0]} scale={[1.6, 7, 1]} />
-        <Lightformer form="rect" intensity={1.4} color="#f2f4ff" position={[0, 1.6, 6]} rotation={[0, Math.PI, 0]} scale={[7, 1.2, 1]} />
-        <Lightformer form="ring" intensity={1.6} color="#cfc8ff" position={[3, 3.5, -4]} scale={1.6} />
-      </Environment>
+      <DeviceEnvironment />
     </>
   );
 }
+
+/** The cross-section's softboxes, rendered once (see WorldEnvironment). */
+const DeviceEnvironment = memo(function DeviceEnvironment() {
+  return (
+    <Environment resolution={128} frames={1}>
+      <color attach="background" args={['#8a8d93']} />
+      <Lightformer form="rect" intensity={3.4} position={[0, 5, 0]} rotation={[Math.PI / 2, 0, 0]} scale={[9, 9, 1]} />
+      <Lightformer form="rect" intensity={2.4} position={[-5, 1.8, 1.5]} rotation={[0, Math.PI / 2, 0]} scale={[1.6, 7, 1]} />
+      <Lightformer form="rect" intensity={2.0} position={[5, 2.2, -1]} rotation={[0, -Math.PI / 2, 0]} scale={[1.6, 7, 1]} />
+      <Lightformer form="rect" intensity={1.4} color="#f2f4ff" position={[0, 1.6, 6]} rotation={[0, Math.PI, 0]} scale={[7, 1.2, 1]} />
+      <Lightformer form="ring" intensity={1.6} color="#cfc8ff" position={[3, 3.5, -4]} scale={1.6} />
+    </Environment>
+  );
+});
 
 /** Whether a presentation's step ever shows the cross-section (so it is built in advance). */
 function wantsDevice(stepIndex: number): boolean {
