@@ -156,6 +156,9 @@ in the under-exposure experiment), and the phone explorer's overview left the sc
 screen. They also exposed test problems, fixed in the tests: frame-stepped tests counting a
 fixed number of frames (now they step until the camera has arrived), tests reading the
 stage before it had loaded, and a Resume test that paused the lesson itself before leaving.
+One failure was not explained: once, while a second software-rendered browser was capturing
+alongside it, the explorer's pointing test found no canvas on the page, although the trace's
+last frame shows the bay drawn. It passed in every other run, the final one included.
 `e2e/canvas.spec.ts` reads the WebGL drawing buffer back and checks that a lesson and the
 film draw a picture with real contrast and that it changes from frame to frame, on desktop,
 tablet and phone.
