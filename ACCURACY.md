@@ -203,7 +203,10 @@ source. "Model" says how the simulation reflects it.
 | **Wafer map and yield** | Dies share one simulation per bucket of local resist thickness and overlay; eight seeded particles; a toy kill rule. The yield number is not predictive. | Defect densities, clustering (negative-binomial yield models), parametric variation. |
 | **Film colours** | Normal-incidence thin-film interference with rounded optical constants under a 6500 K illuminant. | Colour depends on angle, lighting, dispersion and film stacks under the top layer. |
 | **Equipment** | Procedural, stylised tools with plausible layouts and proportions, not models of any vendor's product. | Each tool is a complex system (wafer handling, vacuum, gas, control). |
-| **Light paths** | Drawn only when toggled, as schematic beams (slit illumination, reticle, lens, wafer). | The illuminator shapes the pupil; the projection lens has dozens of elements. |
+| **Light paths** | Drawn only when toggled, as schematic beams (slit illumination, reticle, lens, wafer; laser and electron beams in inspection and metrology). | The illuminator shapes the pupil; the projection lens has dozens of elements. |
+| **Etch and deposition chambers** | Electrode and showerhead gaps are exaggerated so the glow reads; plasma colours are qualitative; resist is stripped with an O₂ plasma in the etch chamber. | Capacitive gaps are a few centimetres; many flows strip resist in a separate chamber. |
+| **CMP tool** | One platen; the wafer is flipped in the load cup. | Production polishers have several platens and usually flip the wafer with the robot. |
+| **Inspection and metrology** | The tool view scans in a spiral, the wafer view in a line, so particles appear in a different order. The CD-SEM images the one simulated die at each of five sites, with small offsets and noise. | Inspection recipes, sampling plans and SEM imaging physics. |
 
 The inverter layout is illustrative, not from a real design kit. Colours for doping and the
 latent image are highlights: doped silicon looks the same as undoped silicon, and a latent

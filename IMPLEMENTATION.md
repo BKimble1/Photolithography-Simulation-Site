@@ -196,16 +196,16 @@ Fifteen lazily loaded scenes, one module each, plus the fab bay:
 | scene | used by | what it shows |
 |---|---|---|
 | `Foup` | arrive, transfer | overhead hoist, FOUP on a load port, EFEM robot moving a wafer into a tool |
-| `Inspect` | scan, inspect | optical inspection: wafer on a stage under a scanning beam, defect review |
+| `Inspect` | scan (`scan`), inspect (`review`) | granite base, XY stage and spinning chuck under an optical head; a spiral laser scan reveals the simulated particles on a live defect map; in review an SEM column visits each defect |
 | `WetClean` | clean | single-wafer spin clean with chemical/rinse arms |
 | `Furnace` | padox, anneal | vertical furnace: quartz tube and boat |
-| `Etch` | sti-etch, gate-etch, contact-etch, strip | plasma etch chamber with glow, ashing variant |
-| `Cmp` | sti-fill, contact-fill, metal1, metal2 | rotating pad, carrier head, slurry arm, conditioner |
+| `Etch` | sti-etch, gate-etch, contact-etch (`etch`), strip (`ash`) | cluster (EFEM, load lock, transfer robot) and a cutaway chamber: electrostatic chuck, slit valve, endpoint viewport, turbo pump; inductive coil, showerhead or dome source depending on the step; soft plasma glow during the etch |
+| `Cmp` | sti-fill, contact-fill, metal1, metal2 | rotating grooved pad, carrier head pressing the wafer face-down, slurry arm, diamond conditioner, load cup that flips the wafer, clean/dry module |
 | `Implant` | wells, sd | ion source, analyser magnet, beamline, end station |
-| `Depo` | gatestack, pmd, passivate | deposition chamber with showerhead |
+| `Depo` | gatestack (`poly`), pmd (`oxide`), passivate (`pass`) | cluster with a frog-leg robot; the cutaway chamber's heater lifts the wafer under a showerhead; the wafer shows the thin-film colour of the growing film |
 | `Track` | prime, coat, softbake, peb, develop | coater/developer track: spin cup, dispense arm, hot plates, developer puddle |
 | `Scanner` | reticle, align, expose, contact steps | 193 nm DUV scanner: illuminator, reticle stage, projection lens, dual wafer stages; toggled light path |
-| `Metrology` | adi | CD-SEM / overlay metrology station |
+| `Metrology` | adi | CD-SEM: vacuum chamber, XY stage visiting five sites, electron column; the monitor's image and CD readout come from the simulated developed resist |
 | `Prober` | probe | probe card over a wafer on a chuck, wafer map |
 | `Dicing` | dice | blade saw on a taped wafer frame |
 | `Package` | attach, bond | die attach and wire bonder |
