@@ -32,13 +32,19 @@ for (const [name, q] of cases) {
     const { gl } = f;
     gl.info.autoReset = false;
     gl.info.reset();
-    const t0 = performance.now();
     window.__fabAdvance(1);
-    const t1 = performance.now();
-    const heap = performance.memory ? Math.round(performance.memory.usedJSHeapSize / 1048576) : null;
-    const info = { calls: gl.info.render.calls, tris: gl.info.render.triangles, geos: gl.info.memory.geometries, tex: gl.info.memory.textures, programs: gl.info.programs?.length, frameMs: +(t1 - t0).toFixed(1), heapMB: heap };
+    const info = { calls: gl.info.render.calls, tris: gl.info.render.triangles, geos: gl.info.memory.geometries, tex: gl.info.memory.textures, programs: gl.info.programs?.length };
     gl.info.autoReset = true;
-    return info;
+    // main-thread time per frame: the median of ten frames
+    const ms = [];
+    for (let i = 0; i < 10; i++) {
+      const t0 = performance.now();
+      window.__fabAdvance(1);
+      ms.push(performance.now() - t0);
+    }
+    ms.sort((a, b) => a - b);
+    const heap = performance.memory ? Math.round(performance.memory.usedJSHeapSize / 1048576) : null;
+    return { ...info, frameMs: +((ms[4] + ms[5]) / 2).toFixed(1), heapMB: heap };
   });
   console.log(name.padEnd(22), JSON.stringify(r));
 }

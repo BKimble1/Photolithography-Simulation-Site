@@ -39,7 +39,8 @@ notes for the new pieces are in [`IMPLEMENTATION.md`](../IMPLEMENTATION.md) (sec
   and the step definitions. The URL is the source of truth (`?step=…`, `?explore[=machine]`,
   `?watch[&t=…]`); Back/Forward, refresh and deep links all go through one parser.
 * **Explore** pauses and snapshots the lesson (step, progress, overlays, camera). Returning
-  restores it exactly and offers *Resume* instead of playing by surprise. Demonstrations
+  restores it exactly; a lesson that was playing offers *Resume* instead of playing by
+  surprise. Demonstrations
   run on the canonical run in an isolated preview labelled *Demonstration* and never touch
   the learner's wafer or progress; *Open this lesson* is the only way into a lesson.
 * **Watch** plays a narrated film of the canonical successful run (about 10 minutes), with
@@ -108,7 +109,9 @@ Round one's screenshots were taken from the round-one branch before any change
 | Coating, phone | ![](screenshots/round1/learn-coat-phone.png) | ![](screenshots/round2/learn-coat-phone.png) |
 | Develop, cross-section | ![](screenshots/round1/learn-develop-device-1440x900.png) | ![](screenshots/round2/learn-develop-device-1440x900.png) |
 
-New in round two: [the fab explorer](screenshots/round2/explore-overview-1440x900.png),
+New in round two: [the wafer under the etch plasma](screenshots/round2/learn-sti-etch-plasma-1440x900.png),
+[the polisher at work](screenshots/round2/learn-contact-fill-polish-1440x900.png),
+[the fab explorer](screenshots/round2/explore-overview-1440x900.png),
 [a machine card](screenshots/round2/explore-etch-1440x900.png),
 [a demonstration](screenshots/round2/explore-scanner-demo-1440x900.png),
 [the explorer on a phone](screenshots/round2/explore-phone.png),
@@ -170,7 +173,31 @@ WebKit were not available. Phone and tablet runs are emulated (viewport, touch, 
 
 ### Performance
 
-PERF_TABLE
+`node scripts/stats.mjs` at 1280 × 800 on the dev build. Draw calls and triangles are per
+frame across every pass (the shadow map included); main-thread time is the median of ten
+frames and covers the scene update and the WebGL command submission, not the GPU's own time.
+
+| view | draw calls | triangles | main thread per frame |
+|---|---|---|---|
+| home | 53 | 21 k | 0.6 ms |
+| lesson: arrive (load port) | 229 | 140 k | 1.7 ms |
+| lesson: coat (track) | 125 | 63 k | 1.5 ms |
+| lesson: expose (scanner) | 295 | 170 k | 3.0 ms |
+| lesson: develop, cross-section | 11 | 15 k | 0.7 ms |
+| lesson: gate etch (etch cluster) | 551 | 407 k | 3.8 ms |
+| lesson: STI fill (polisher) | 158 | 72 k | 1.0 ms |
+| lesson: final test, cross-section | 10 | 27 k | 0.5 ms |
+| explore: whole fab | 52 | 21 k | 0.8 ms |
+| explore: scanner | 318 | 190 k | 3.2 ms |
+| film: exposure | 323 | 190 k | 3.2 ms |
+
+The JS heap stays at about 100 MB (Chromium reports it in coarse steps). The bay itself
+costs about 50 draw calls because its static geometry is merged and its lighting baked; the
+detailed machine the story is at adds the rest. The etch cluster is the heaviest (two
+chambers, a transfer robot and a front end: about 320 meshes) and the first candidate for
+merging static parts if a real phone struggles. Rounded panels were reduced from smoothness
+3 to 2 while measuring (triangles down 15–25 %, no visible difference at the camera's
+distances). The pixel ratio adapts when frames are slow (drei's `PerformanceMonitor`).
 
 ### Sizes
 
@@ -222,6 +249,9 @@ Candidly, in rough order of how much they matter:
   cross-section, hold, retrace) built from their scene and view. Some framings are tighter
   or looser than a person would choose, and the close-up of your die is plain where the
   wafer's surface has little pattern.
+* **The whole fab is small on a phone.** The phone overview fits all fifteen machines above
+  the card, so each is only 20–40 px across: tapping works, but the Equipment list (or a
+  pinch to zoom) is the comfortable way in.
 * **The film is one fixed cut.** It covers the canonical successful run only; experiments
   and failures are Learn-only. Captions and narration are in English only.
 * **Offline is for this build, in browsers with service workers.** The download checks

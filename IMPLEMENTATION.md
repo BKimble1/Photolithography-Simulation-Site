@@ -437,6 +437,12 @@ test explains the cause.
 * The wafer map runs in a Web Worker and is cached per choice set.
 * Tool scenes are code-split and loaded on demand; the environment map is generated
   procedurally (no HDR downloads). The device ground shadow is baked once per step.
+* *Round two:* the bay is merged and pre-lit (about 50 draw calls for the whole fab); only
+  the machines near the camera draw their detailed models, and only the one the story is at
+  opens its housing. A view costs 10–550 draw calls and 15–410 k triangles, and 0.5–4 ms of
+  main-thread time per frame (`node scripts/stats.mjs`; the table is in
+  [`docs/ROUND2.md`](docs/ROUND2.md#performance)). The pixel ratio drops when frames are slow
+  (`PerformanceMonitor`), and the film preloads one narration segment ahead.
 
 ## Tests
 

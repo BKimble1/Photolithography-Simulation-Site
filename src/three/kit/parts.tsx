@@ -42,8 +42,10 @@ export function Box({
       </mesh>
     );
   }
+  // smoothness 2: a centimetre edge radius reads as rounded at any distance the camera takes,
+  // at about half the triangles of 3 (panels are the most numerous part in every tool)
   return (
-    <RoundedBox args={size} radius={r} smoothness={3} position={position} rotation={rotation} material={mat(m)} castShadow={castShadow} receiveShadow={receiveShadow}>
+    <RoundedBox args={size} radius={r} smoothness={2} position={position} rotation={rotation} material={mat(m)} castShadow={castShadow} receiveShadow={receiveShadow}>
       {children}
     </RoundedBox>
   );

@@ -6,6 +6,7 @@ test('changing scale never changes the step, choices, checks or simulated state'
   test.setTimeout(480_000); // frame-stepped on software rendering
   const errors = watchErrors(page);
   await freshStart(page, '/?step=gate-etch&virt=1');
+  await waitForStage(page);
   await advance(page, 12);
   await page.evaluate(() => {
     const w = window as unknown as { __fabStores: { useClock: { getState: () => { pause: () => void; set: (p: number) => void } } } };
@@ -97,6 +98,7 @@ test('rapid navigation: the last request wins and no stale camera move completes
   test.skip(isMobile, 'keyboard');
   const errors = watchErrors(page);
   await freshStart(page, '/?step=arrive&virt=1');
+  await waitForStage(page);
   await advance(page, 20);
   await page.locator('h1.step-title').focus();
   for (let i = 0; i < 5; i++) {
@@ -104,7 +106,7 @@ test('rapid navigation: the last request wins and no stale camera move completes
     await advance(page, 3); // mid-flight each time
   }
   await expect(page.locator('h1.step-title')).toHaveText(STEPS.padox.title);
-  await advance(page, 240);
+  await settle(page, 300);
   const s = await stageInfo(page);
   expect(s.flying).toBe(false);
   expect(s.focus).toBe('furnace');
@@ -114,6 +116,7 @@ test('rapid navigation: the last request wins and no stale camera move completes
 
 test('scrubbing forwards and back gives the same state as playing', async ({ page }) => {
   await freshStart(page, '/?step=sti-etch&virt=1');
+  await waitForStage(page);
   await advance(page, 10);
   const at = async (p: number) => {
     await page.evaluate((v) => (window as unknown as { __fabStores: { useClock: { getState: () => { set: (p: number) => void } } } }).__fabStores.useClock.getState().set(v), p);

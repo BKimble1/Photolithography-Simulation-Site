@@ -53,6 +53,7 @@ export async function advance(page: Page, n: number): Promise<void> {
  * travelling), checking every few frames; at most `max` frames.
  */
 export async function settle(page: Page, max = 240): Promise<void> {
+  await waitForStage(page);
   await advance(page, 4);
   for (let n = 4; n < max; n += 6) {
     const flying = await page.evaluate(() => (window as unknown as { __fab: { useStageInfo: { getState: () => { flying: boolean } } } }).__fab.useStageInfo.getState().flying);
