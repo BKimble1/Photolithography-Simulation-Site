@@ -598,7 +598,8 @@ test explains the cause.
     non-default dose keeps the scanner exactly as it was (run, progress, the wafer where it
     was, still in the scanner as the move begins) with one learner wafer on screen; the
     cross-section fade reversed at six points and five rapid reversals never jump and end
-    where the last request points; the track carries the wafer from module to module (no
+    where the last request points; rising out of the layers to leave for another machine,
+    your die fades in with the wafer still in the machine being left; the track carries the wafer from module to module (no
     teleport, always exactly one wafer in the track); going back on the same machine
     dissolves; reduced motion only cross-fades between still compositions; a resize during
     a move stays continuous; a forward-and-back navigation loop does not accumulate
