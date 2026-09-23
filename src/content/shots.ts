@@ -55,13 +55,15 @@ const tool = shot('establish');
 export const SHOTS: Partial<Record<StepId, Key[]>> = {
   // lithography 0.02–0.42 elsewhere; into the load lock 0.43, onto the chuck by 0.61; the trench
   // etch ends at 0.72, the resist ash at 0.9
+  // (framing the wafer or the die in the chamber would put the camera inside the plasma's glow:
+  // the camera goes down into the layers from the chamber view as the plasma strikes, as it
+  // does for the resist strip and the contact etch)
   'sti-etch': [
     { p: 0, cam: section },
     { p: 0.44, cam: section },
     { p: 0.5, cam: tool },
-    { p: 0.58, cam: tool },
-    { p: 0.64, cam: die },
-    { p: 0.69, cam: section },
+    { p: 0.6, cam: tool },
+    { p: 0.68, cam: section },
   ],
   // first mask elsewhere (0.02–0.2); in the implanter 0.195–0.405 (beam 0.27–0.33); the second
   // mask and implant are then seen in the layers
@@ -79,6 +81,12 @@ export const SHOTS: Partial<Record<StepId, Key[]>> = {
     { p: 0, cam: tool },
     { p: 0.5, cam: tool },
     { p: 0.58, cam: section },
+  ],
+  // the wafer reaches the etch chamber by 0.32; the plasma (0.38–0.71) cuts the holes by 0.7
+  'contact-etch': [
+    { p: 0, cam: tool },
+    { p: 0.34, cam: tool },
+    { p: 0.44, cam: section },
   ],
   // the wafer reaches the ash chamber by 0.32; the oxygen plasma (0.36–0.615) fills it with glow
   strip: [
@@ -120,20 +128,23 @@ export const SHOTS: Partial<Record<StepId, Key[]>> = {
     { p: 0.08, cam: shot('coat') },
     { p: 0.18, cam: shot('bake') },
   ],
-  // back from the scanner: onto the hot plate, then down into the layers before the lid closes
+  // back from the scanner: the robot sets the wafer on the hot plate, then down into the layers
+  // before the lid closes (0.3), from the plate itself: framed from above, the raised lid and
+  // its exhaust would fill the view
   peb: [
     { p: 0, cam: shot('bake') },
-    { p: 0.16, cam: waferTop },
-    { p: 0.21, cam: die },
-    { p: 0.28, cam: section },
+    { p: 0.14, cam: shot('bake') },
+    { p: 0.26, cam: section },
   ],
+  // onto the develop cup; the camera holds on the cup while the dispense bar lays the puddle
+  // across the wafer (0.23–0.43: framed closer, the bar would sweep across the lens), then goes
+  // down into the layers as the exposed resist dissolves
   develop: [
     { p: 0, cam: shot('bake') },
     { p: 0.07, cam: shot('bake') },
     { p: 0.15, cam: shot('develop') },
-    { p: 0.32, cam: waferTop },
-    { p: 0.42, cam: die },
-    { p: 0.52, cam: section },
+    { p: 0.4, cam: shot('develop') },
+    { p: 0.5, cam: section },
   ],
   // The scanner's stages carry the wafer from mark to mark and step and scan it under the lens,
   // fields a few hundredths of a second apart: the camera stays with the machine, then goes

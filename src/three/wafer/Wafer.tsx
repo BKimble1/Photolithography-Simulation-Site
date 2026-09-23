@@ -198,6 +198,18 @@ export function Wafer({
   const { index } = useStep();
   const mark = anchor && index >= STEP_INDEX.diemap && !look.highlightDie;
   look = mark ? { ...look, highlightDie: true } : look;
+  // A resist on the wafer (coated, baked or exposed: not yet developed) is drawn by the shader,
+  // exactly as the coat lesson draws it going on, so a wafer never changes look when one lesson
+  // hands it to the next; the texture shows the surface under it (and is not repainted when
+  // the resist is baked or exposed).
+  const r = look.summary.resist;
+  const resist = !live && r && r.phase !== 'developed' ? r : null;
+  const settled = useMemo<LiveCoat | null>(
+    () => (resist ? { on: true, coverage: 1, nm: resist.nm, edgeRise: resist.edgeRise, rim: 0, ebr: true } : null),
+    [resist?.nm, resist?.edgeRise], // eslint-disable-line react-hooks/exhaustive-deps
+  );
+  if (resist) look = { ...look, summary: { ...look.summary, resist: null } };
+  const coat = live ?? settled ?? undefined;
   const geo = useWaferGeometry(radius);
   const { canvas, tex } = useMemo(() => makeCanvasTexture(size), [size]);
   // The coat shader is part of every wafer's program (one program, prepared in advance).
@@ -233,16 +245,16 @@ export function Wafer({
   const films = look.summary.films;
   const filmsKey = films.map((f) => `${f.mat}:${Math.round(f.nm)}`).join(',');
   const specKey = `${liveFilm.mat}:${liveFilm.label ?? ''}:${liveFilm.max}`;
-  const lut = useMemo(() => (live ? filmLut(films, liveFilm) : null), [!!live, filmsKey, specKey]); // eslint-disable-line react-hooks/exhaustive-deps
+  const lut = useMemo(() => (coat ? filmLut(films, liveFilm) : null), [!!coat, filmsKey, specKey]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => () => lut?.tex.dispose(), [lut]);
   const fieldsTex = useMemo(() => (fieldRects ? fieldsTexture(fieldRects) : null), [fieldRects]);
   useEffect(() => () => fieldsTex?.dispose(), [fieldsTex]);
   useFrame(() => {
-    const on = !!live?.on && !!lut;
+    const on = !!coat?.on && !!lut;
     uniforms.uCoatOn.value = on ? 1 : 0;
-    if (on && live && lut) {
-      uniforms.uCoat.value.set(live.coverage, live.nm, live.edgeRise, live.rim);
-      uniforms.uEbr.value = live.ebr ? 1 : 0;
+    if (on && coat && lut) {
+      uniforms.uCoat.value.set(coat.coverage, coat.nm, coat.edgeRise, coat.rim);
+      uniforms.uEbr.value = coat.ebr ? 1 : 0;
       uniforms.uLut.value = lut.tex;
       uniforms.uLutMax.value = liveFilm.max;
       uniforms.uPuddleOn.value = liveFilm.mat === M.RES ? 1 : 0;

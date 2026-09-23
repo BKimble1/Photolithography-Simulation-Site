@@ -57,10 +57,10 @@ const LIN_TO_SRGB = new Uint8ClampedArray(LIN_N + 1).map((_, i) => toSrgb8(i / L
 /**
  * A resist film over everything painted so far: each pixel is tinted by the film's
  * thin-film colour factor at its radius (the colour of the stack with the resist over the
- * colour without it), in linear light. This is exactly what the wafer's shader does to the
- * painted surface while a coat is going on (Wafer.tsx, the live coat, from the same
- * thickness profile and the same thickness table), so a painted film and a live one look the
- * same and the hand-over between them is invisible.
+ * colour without it), in linear light — exactly what the wafer's shader does (Wafer.tsx), from
+ * the same thickness profile and the same thickness table. The 3D wafer draws its resist in
+ * the shader and never comes here (a per-pixel pass costs tens of milliseconds); this is for
+ * pictures painted on their own.
  */
 function tintByResist(ctx: CanvasRenderingContext2D, size: number, films: Film[], coat: CoatOverride): void {
   const R = WAFER.radius;
