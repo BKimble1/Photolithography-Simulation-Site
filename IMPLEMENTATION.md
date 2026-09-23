@@ -240,8 +240,8 @@ Fifteen lazily loaded scenes, one module each, plus the fab bay:
 | `Cmp` | sti-fill, contact-fill, metal1, metal2 | rotating grooved pad, carrier head pressing the wafer face-down, slurry arm, diamond conditioner, load cup that flips the wafer, clean/dry module |
 | `Implant` | wells, sd | high-voltage terminal and source, 90° analyser magnet, resolving slit, acceleration column, scanner and corrector magnet, end station with load lock; the wafer is loaded, tilted 7° to face the beam and scanned, once per mask; ion beam only with the beam-path toggle |
 | `Depo` | gatestack (`poly`), pmd (`oxide`), passivate (`pass`) | cluster with a frog-leg robot; the cutaway chamber's heater lifts the wafer under a showerhead; the wafer shows the thin-film colour of the growing film |
-| `Track` | prime, coat, softbake, peb, develop | coater/developer track: spin cup, dispense arm, hot plates, developer puddle |
-| `Scanner` | reticle, align, expose, contact steps | 193 nm DUV scanner: illuminator, reticle stage, projection lens, dual wafer stages; toggled light path |
+| `Track` | prime, coat, softbake, peb, develop | coater/developer track: a carrier block, prime chamber, spin coat and develop cups, hot plates and the scanner interface in a row; *round three:* one robot on a rail carries the one wafer between modules (lift pins on the plates, spin chucks that rise above their cups for the hand-off; `trackMotion.ts`), the resist puddle, spread and thinning drawn continuously |
+| `Scanner` | reticle, align, expose, contact steps | 193 nm DUV scanner: illuminator, reticle stage, projection lens, dual wafer stages; toggled light path; *round three:* the two chucks swap at the start of the exposure, the stage runs one continuous step-and-scan meander with the reticle scanning opposite, and each field lights up as the slit sweeps it (`scannerMotion.ts`) |
 | `Metrology` | adi | CD-SEM: vacuum chamber, XY stage visiting five sites, electron column; the monitor's image and CD readout come from the simulated developed resist |
 | `Prober` | probe | test head docked through a pogo tower to a probe card (drawn in half section so the needles show); the stage indexes and touches down die by die while the wafer map fills in; loader with a FOUP and tester cabinet |
 | `Dicing` | dice | taped wafer in a ring frame on a porous chuck; spindle and blade with coolant cut each street in both directions, then the table turns 90° |
@@ -289,7 +289,11 @@ so going back is instant.
   opening does not stall.
 * A machine the story **leaves** keeps its real last frame — its lesson, run choices,
   overlays and progress, frozen — until it is out of view (outside the camera frustum, or
-  hidden by level of detail) and the camera has settled; at most two are held.
+  hidden by level of detail) and the camera has settled; at most two are held. The release
+  is judged after the director has drawn the frame. Mounted machines are kept in a fixed
+  order: a machine moved within the scene's list is re-inserted, and the renderer then
+  re-applies every declared prop in its subtree (its station group hidden, moving parts back
+  at their declared places) for a frame.
 * **One wafer.** The learner's wafer has one owner: the director moves ownership to the next
   machine halfway along the first leg that travels between machines (the camera is in the
   aisle), and each side of a cross-fade shows the wafer where that side of the move has it;
@@ -307,7 +311,10 @@ so going back is instant.
 `cutaway: { z, y }` (station-local: toward the aisle and above the given height), the housing
 stays on show when the story is at that machine and the camera is near, and its upper front
 is clipped away (material clipping planes, animated from the roof down over 0.8 s; inner
-faces drawn double-sided) to reveal the detailed interior. A machine that loads while the
+faces drawn double-sided) to reveal the detailed interior. *Round three:* back faces of an
+opened housing are drawn one pixel's depth slope deeper than front faces (`cutMaterial`), so
+the underside of a part resting on another (a housing on its plinth, a roof unit on the
+housing top) never z-fights with the surface below it. A machine that loads while the
 camera is already there opens at once, and reduced motion skips the wipe. Machines without a
 housing hand over from the low-detail to the detailed model when the camera comes within
 16 m.
@@ -326,13 +333,21 @@ The director owns the camera and the render loop in every mode:
   a function of p only, scrubbing, replaying and the film's clock all give the same shot at
   the same moment. Steps without a hand-directed track get one from their round-one view:
   device steps go machine → wafer → die → cross-section just before their first operation.
-  Nine steps are directed by hand, because the wafer is not always in (or visible in)
+  Fifteen steps are directed by hand, because the wafer is not always in (or visible in)
   the step's machine: in sti-etch, wells, contact-fill and metal1 the lithography, deposition
   or etch before the machine's own action happens in other tools, so the camera stays with
   the layers, comes out to the machine when the wafer arrives, and goes back down through the
   wafer afterwards; the furnace, the hot-plate lid and the ash chamber's plasma enclose the
   wafer, so anneal, peb and strip go down to the layers before they close or from the
-  machine itself; sd and metal2 repeat a loop already shown and stay in the layers. A
+  machine itself; sd and metal2 repeat a loop already shown and stay in the layers.
+  *Round three:* coat, softbake and develop hold on the pick-up and follow the track's robot
+  to the next module; contact-align and contact-print stay with the scanner and go down to
+  the layers from there, instead of framing a die the stage is stepping around. Reviewed
+  frame by frame, four more hid their subject behind the machine: framed from above, the
+  post-exposure bake's raised lid and exhaust filled the die close-up, develop's dispense
+  bar swept across the lens, and in the etch chamber the wafer and die framings sat inside
+  the plasma's glow; peb, develop, sti-etch and contact-etch now hold the machine view
+  through the action and go down into the layers from it. A
   flight into or out of the cross-section anchors on your die when the machine is showing
   the wafer, and on the machine itself when it is not, so the camera never closes in on an
   empty holder.
@@ -361,10 +376,14 @@ The director owns the camera and the render loop in every mode:
   keys, tangents limited against overshoot); consecutive keys with the same framing are a
   deliberate hold; a single move still eases in and out. The **field of view** is part of
   each pose (the home and overview framings are composed for the viewport) and
-  interpolates with it, so no move or film gap switches it suddenly. No track frames your
-  die while its wafer turns (spins happen while the camera frames the machine or the whole
-  wafer, a framing that does not depend on the wafer's rotation), and spins stop on whole
-  turns, so the next lesson finds the die where it was. The key light and shadows follow the
+  interpolates with it, so no move or film gap switches it suddenly. **Moving wafers:** a
+  machine that flips, spins or steps and scans the wafer registers a steadier stand-in for
+  shots to frame (`anchors.ts` `framingRegistry`, `Wafer.tsx` `WaferFraming`) — where the
+  wafer rests, right side up: the polisher's ignores the flipper and the head's turn, the
+  track's the spin, the scanner's the steps and scans, and the inspection review frames the
+  stage's working area between the optics and the review SEM — so the wafer moves within a
+  steady view instead of the view chasing the wafer. Spins stop on whole turns, so the next
+  lesson finds the die where it was. The key light and shadows follow the
   story to the next machine at the wafer hand-over, while the camera is between machines.
 * **Clocks** (`stage/time.ts`): flights, the lesson clock and the demonstration clock run on
   the stage clock, which stops while the page is hidden, and lesson progress is measured
@@ -499,9 +518,16 @@ test explains the cause.
   the process state), cached (12 geometries) and prepared ahead for the rest of the step;
   the previous geometry stays on screen until the next arrives. The mesher itself now
   writes typed buffers (identical output, about 1.6× faster).
-* **The resist coat is drawn in the wafer's shader** from the exact lesson progress, with
-  thin-film colours from a 256-entry lookup computed once per film stack; the texture is no
-  longer repainted and re-uploaded as the coat spreads.
+* **The resist is drawn in the wafer's shader**: going on, from the exact lesson progress,
+  and afterwards (coated, baked, exposed) from the simulated film, with thin-film colours
+  from a 256-entry lookup computed once per film stack; the texture shows the surface under
+  it and is not repainted as the coat spreads or when the resist is baked or exposed, and a
+  wafer never changes look when one lesson hands it to the next. The deposited film, the
+  exposure fields and the probe map are drawn the same way.
+* **Housings open once and stay open** (a housing at its target no longer steps back and
+  forth every frame), and **the studio environments render once** (drei's `Environment`
+  re-rendered its cube map with every re-render of the lighting: at every lesson change and
+  every hover in the explorer).
 * Cross-fades copy the displayed picture instead of rendering into a 4-sample half-float
   target; the canvas no longer preserves its drawing buffer (capture tools ask for it with
   `?capture=1`).
@@ -532,7 +558,13 @@ test explains the cause.
   script and the film definition; the film runs 10–15 minutes with every step in order;
   time maps monotonically onto segments and step progress; each process change happens while
   the sentence describing it is spoken; captions follow the narration and the final test's
-  switch flips on its cue.
+  switch flips on its cue. *Round three:* `src/three/stage/round3.test.ts` — the track's
+  robot ends each lesson exactly where the next one starts (wafer, carriage, fork, pins and
+  chucks), never moves the wafer faster than 0.09 m per 1/30 s, and stops spins on whole
+  turns; the scanner's stage paths (the chuck exchange, the alignment marks, the
+  step-and-scan meander) are continuous; tracks pass through intermediate framings on time
+  and velocity-continuous, and hold on repeated framings; the wafer changes hands halfway
+  along the first move between machines; the starting quality tier follows the device.
 * `npm run e2e` — Playwright against the production build at desktop (1440 × 900), tablet
   (1024 × 768, touch) and phone (390 × 844, touch) sizes. Any console error fails a test.
   * `layout` — wordmark, headline and actions never collide or overflow at ten sizes (from
@@ -561,6 +593,23 @@ test explains the cause.
     inverter and the recap, keyboard use, and the experiments (overlay, dose, skipped clean).
   * `canvas` — reads the WebGL drawing buffer back: a lesson and the film draw a picture
     with real contrast, and it changes from frame to frame.
+  * *Round three, frame by frame (desktop):* `continuity` — leaving a lesson half-way with a
+    non-default dose keeps the scanner exactly as it was (run, progress, the wafer where it
+    was, still in the scanner as the move begins) with one learner wafer on screen; the
+    cross-section fade reversed at six points and five rapid reversals never jump and end
+    where the last request points; the track carries the wafer from module to module (no
+    teleport, always exactly one wafer in the track); going back on the same machine
+    dissolves; reduced motion only cross-fades between still compositions; a resize during
+    a move stays continuous; a forward-and-back navigation loop does not accumulate
+    geometries, textures or shader programs; a hidden page resumes a move where it left it
+    (real time). `loading` — the camera waits for a model held back 12 s at the network and
+    says what it is waiting for; changing destination while it loads; a model that cannot
+    load is shown from outside with a notice while the stage keeps working; the first
+    picture is veiled until its machine is ready. `film-continuity` — a gap's move is
+    planned once and reused, and planned again for a new viewport; a seek shows exactly the
+    frame playing reaches; chapter jumps hold the last picture until the machine is ready
+    and dissolve, never showing two wafers. `offline` also checks that the cross-section's
+    worker comes from the saved build.
 
   Frame-stepped tests (`?virt=1`) step until the camera has arrived (`settle`) rather than a
   fixed number of frames. On the build machine (software WebGL, 4 cores) the whole suite

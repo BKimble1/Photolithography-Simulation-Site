@@ -1,0 +1,4 @@
+{ "name": "r3-leave-expose", "w": 960, "h": 540, "url": "http://127.0.0.1:4173/?step=expose&dose=3&virt=1",
+  "setup": [ {"wait": 3000}, {"advance": 150}, {"eval": "const c = window.__fabStores.useClock.getState(); c.set(0.3); c.play()"}, {"advance": 2} ],
+  "during": [ {"frame": 75, "eval": "window.__fabStores.useApp.getState().next()"} ],
+  "frames": 240, "out": "docs/recordings/round3/r3-03-leave-exposure-half-way.mp4" }

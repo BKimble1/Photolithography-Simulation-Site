@@ -151,6 +151,16 @@ source. "Model" says how the simulation reflects it.
   *Model:* the learner's wafer is measured (and waits during the reticle load) on the
   measure side; at the start of the exposure the chucks swap, passing around each other.
   The swap path is schematic.
+* *Round three.* For throughput, step-and-scan exposure alternates the scan direction from
+  one field to the next, so that two fields are exposed per round trip of the reticle
+  stage; wafer and reticle scan in opposite directions.
+  [US 5,981,117, scanning exposure method](https://image-ppubs.uspto.gov/dirsearch-public/print/downloadPdf/5981117) ·
+  [US 6,028,659, scanning projection-exposure apparatus and methods](https://image-ppubs.uspto.gov/dirsearch-public/print/downloadPdf/6028659)
+  *Model:* the fields are exposed in a serpentine order, row by row, each scan in the
+  opposite direction to the last (so the stage's path is one continuous meander), 96 fields
+  in about 10.6 s of the 14 s lesson; the approach from the stage's home position to the
+  first field takes about 0.4 s. Step and scan speeds are illustrative, not a particular
+  scanner's.
 * Thin transparent films on silicon show interference colours that depend on thickness and
   viewing angle.
   [BYU oxide/nitride colour chart](https://www.cleanroom.byu.edu/color_chart)
@@ -279,10 +289,11 @@ image is invisible. The Legend says so.
 
 ## 4. How the sources were checked
 
-The round-three additions (track transfers, the dual-stage exchange) were checked the same
-way in September 2026: fetches of www.asml.com, www.epfl.ch and patents.google.com were
-refused by the build environment's network proxy, so the claims rest on the search engine's
-excerpts of those pages and are worded no more specifically than those excerpts support.
+The round-three additions (track transfers, the dual-stage exchange, alternating scan
+directions) were checked the same way in September 2026: fetches of www.asml.com,
+www.epfl.ch, patents.google.com and image-ppubs.uspto.gov were refused by the build
+environment's network proxy, so the claims rest on the search engine's excerpts of those
+pages and are worded no more specifically than those excerpts support.
 
 The facts in section 1 were researched in September 2026. Direct page fetches were blocked
 from the build environment for most domains (ASML, imec, Samsung, Wikipedia,

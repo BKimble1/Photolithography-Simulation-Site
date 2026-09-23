@@ -1,0 +1,11 @@
+{ "name": "r3-layers-interrupt", "w": 960, "h": 540, "url": "http://127.0.0.1:4173/?step=gate-etch&p=0.5&virt=1",
+  "setup": [ {"wait": 3000}, {"advance": 150}, {"eval": "window.__fabStores.useClock.getState().pause()"}, {"advance": 2} ],
+  "during": [
+    {"frame": 10, "eval": "window.__fabStores.useApp.getState().setScaleOverride('device')"},
+    {"frame": 26, "eval": "window.__fabStores.useApp.getState().setScaleOverride('tool')"},
+    {"frame": 40, "eval": "window.__fabStores.useApp.getState().setScaleOverride('device')"},
+    {"frame": 110, "eval": "window.__fabStores.useApp.getState().setScaleOverride('tool')"},
+    {"frame": 128, "eval": "window.__fabStores.useApp.getState().setScaleOverride('device')"},
+    {"frame": 136, "eval": "window.__fabStores.useApp.getState().setScaleOverride('tool')"}
+  ],
+  "frames": 230, "out": "docs/recordings/round3/r3-04-layers-reversed-mid-fade.mp4" }
