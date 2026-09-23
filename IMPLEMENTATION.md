@@ -195,13 +195,13 @@ Fifteen lazily loaded scenes, one module each, plus the fab bay:
 
 | scene | used by | what it shows |
 |---|---|---|
-| `Foup` | arrive, transfer | overhead hoist, FOUP on a load port, EFEM robot moving a wafer into a tool |
+| `Foup` | arrive (`dock`), transfer (`robot`) | equipment front end with two load ports and a fan-filter unit; an overhead hoist sets the translucent FOUP (25 wafers, yours in slot 25) on kinematic pins, the port opens the door; in `robot`, an R-θ robot lifts the wafer onto a pre-aligner that spins it past the edge sensor |
 | `Inspect` | scan (`scan`), inspect (`review`) | granite base, XY stage and spinning chuck under an optical head; a spiral laser scan reveals the simulated particles on a live defect map; in review an SEM column visits each defect |
-| `WetClean` | clean | single-wafer spin clean with chemical/rinse arms |
-| `Furnace` | padox, anneal | vertical furnace: quartz tube and boat |
+| `WetClean` | clean | edge-pin spin chuck in a splash cup; a chemical arm with spray and megasonic head sweeps, a DI-rinse arm rinses, then spin-dry; particles disappear when the model applies the clean; if the learner skips it, the arms stay parked and the particles stay |
+| `Furnace` | padox (`oxidize`), anneal | vertical furnace with a cut-away heater jacket; a quartz boat of 50 wafers (yours on top) rises into the tube; heater glow follows the temperature; gas-line indicator for O₂, nitride precursors or N₂ |
 | `Etch` | sti-etch, gate-etch, contact-etch (`etch`), strip (`ash`) | cluster (EFEM, load lock, transfer robot) and a cutaway chamber: electrostatic chuck, slit valve, endpoint viewport, turbo pump; inductive coil, showerhead or dome source depending on the step; soft plasma glow during the etch |
 | `Cmp` | sti-fill, contact-fill, metal1, metal2 | rotating grooved pad, carrier head pressing the wafer face-down, slurry arm, diamond conditioner, load cup that flips the wafer, clean/dry module |
-| `Implant` | wells, sd | ion source, analyser magnet, beamline, end station |
+| `Implant` | wells, sd | high-voltage terminal and source, 90° analyser magnet, resolving slit, acceleration column, scanner and corrector magnet, end station with load lock; the wafer is loaded, tilted 7° to face the beam and scanned, once per mask; ion beam only with the beam-path toggle |
 | `Depo` | gatestack (`poly`), pmd (`oxide`), passivate (`pass`) | cluster with a frog-leg robot; the cutaway chamber's heater lifts the wafer under a showerhead; the wafer shows the thin-film colour of the growing film |
 | `Track` | prime, coat, softbake, peb, develop | coater/developer track: spin cup, dispense arm, hot plates, developer puddle |
 | `Scanner` | reticle, align, expose, contact steps | 193 nm DUV scanner: illuminator, reticle stage, projection lens, dual wafer stages; toggled light path |

@@ -206,6 +206,8 @@ source. "Model" says how the simulation reflects it.
 | **Light paths** | Drawn only when toggled, as schematic beams (slit illumination, reticle, lens, wafer; laser and electron beams in inspection and metrology). | The illuminator shapes the pupil; the projection lens has dozens of elements. |
 | **Etch and deposition chambers** | Electrode and showerhead gaps are exaggerated so the glow reads; plasma colours are qualitative; resist is stripped with an O₂ plasma in the etch chamber. | Capacitive gaps are a few centimetres; many flows strip resist in a separate chamber. |
 | **CMP tool** | One platen; the wafer is flipped in the load cup. | Production polishers have several platens and usually flip the wafer with the robot. |
+| **Furnace** | Pad oxide and nitride are grown in the same tube, one after the other. | Fabs usually use separate furnaces for oxidation and LPCVD nitride. |
+| **Implanter and other tools** | A generic medium-current beamline; the FOUP shell is drawn translucent so the wafers show; spin speeds and robot motions are visual, not real rpm or timing. | Tool layouts differ by vendor and application. |
 | **Inspection and metrology** | The tool view scans in a spiral, the wafer view in a line, so particles appear in a different order. The CD-SEM images the one simulated die at each of five sites, with small offsets and noise. | Inspection recipes, sampling plans and SEM imaging physics. |
 
 The inverter layout is illustrative, not from a real design kit. Colours for doping and the
