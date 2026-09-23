@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { STEPS } from '../../content/steps';
 import { BRIDGED } from '../tools';
-import { FORK_Z, makeFrame, ROUTES, spinProfile, transfer } from '../tools/trackMotion';
+import { FORK_Z, makeFrame, REST, ROUTES, spinProfile, transfer, XCHG } from '../tools/trackMotion';
 import { exposurePose, FIELD_M, makeExposurePose, markPose, stageBases } from '../tools/scannerMotion';
 import { handoverAt, type Leg } from './flights';
 import { initialTier } from './quality';
@@ -47,6 +47,47 @@ describe('track: one wafer, carried', () => {
     }
   });
 
+  it('the wafer changes hands without a step (chuck to fork, fork to chuck)', () => {
+    for (const [id, r] of Object.entries(ROUTES)) {
+      const f = makeFrame();
+      let prev = transfer(r!, 0, f).wafer.slice();
+      let worst = 0;
+      for (let p = 1e-5; p <= r!.window * 1.3; p += 1e-5) {
+        const w = transfer(r!, p, f).wafer.slice();
+        worst = Math.max(worst, dist(prev, w));
+        prev = w;
+      }
+      // at the fastest carry the wafer covers about 0.25 mm per 1e-5 of a lesson
+      expect(worst, `${id}: largest wafer step per 1e-5 of progress (m)`).toBeLessThan(5e-4);
+    }
+  });
+
+  it('no axis moves faster than a track robot plausibly runs', () => {
+    for (const [id, r] of Object.entries(ROUTES)) {
+      const dur = STEPS[id as keyof typeof STEPS].duration;
+      const dp = 1e-5;
+      const f = makeFrame();
+      transfer(r!, 0, f);
+      let prev = { x: f.x, z: f.forkZ, lift: { ...f.lift } };
+      let carriage = 0;
+      let fork = 0;
+      let lift = 0;
+      for (let p = dp; p <= r!.window * 1.3; p += dp) {
+        transfer(r!, p, f);
+        const dt = dp * dur;
+        carriage = Math.max(carriage, Math.abs(f.x - prev.x) / dt);
+        fork = Math.max(fork, Math.abs(f.forkZ - prev.z) / dt);
+        for (const m of ['bake', 'coat', 'develop', 'prime'] as const) lift = Math.max(lift, (Math.abs(f.lift[m] - prev.lift[m]) * (XCHG[m] - REST[m])) / dt);
+        prev = { x: f.x, z: f.forkZ, lift: { ...f.lift } };
+      }
+      // metres per second; the lessons leave a transfer 1–2.5 s, so the carriage and fork run
+      // fast, but a spin chuck or lift pins never snap up or down
+      expect(carriage, `${id}: carriage`).toBeLessThan(2.8);
+      expect(fork, `${id}: fork`).toBeLessThan(2.8);
+      expect(lift, `${id}: chuck or pins`).toBeLessThan(0.5);
+    }
+  });
+
   it('spins stop on a whole number of turns, with the speed nudged by a few per cent at most', () => {
     for (const w of [5, 5 + 7 * 0.45, 5 + 7 * 3, 10]) {
       const f = spinProfile(0.31, 0.39, 0.84, 0.97, w, 12);
@@ -79,7 +120,7 @@ describe('scanner: the stages move, they never jump', () => {
       exposurePose(p, e);
       return [e.x, 0, e.z];
     });
-    // at 1e-5 of an 11 s lesson the fastest step moves well under a millimetre; the old path
+    // at 1e-5 of the 14 s lesson the fastest step moves about half a millimetre; the old path
     // jumped half a field (16.5 mm) at the start and end of every scan
     expect(stage, 'wafer stage (m)').toBeLessThan(0.002);
     const reticle = worstStep((p) => {

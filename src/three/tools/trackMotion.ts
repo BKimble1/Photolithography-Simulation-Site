@@ -85,17 +85,22 @@ export function transfer(r: Route, p: number, out: XferFrame): XferFrame {
   const dst = r.to;
   const lift = out.lift;
   lift.bake = lift.coat = lift.develop = lift.prime = 0;
-  const park = trapezoid(seg(u, 0.9, 1));
+  // (backing off to park may run on past the transfer's share of the lesson: the robot is
+  // only leaving, and squeezed into the last tenth it would dash off at several metres a second)
+  const park = trapezoid(seg(p / r.window, 0.9, 1.2));
   if (r.fromMod) {
     const src = r.fromMod;
-    // approach; pick: raise the wafer, slide the fork under it, lift it off, withdraw
-    const approach = trapezoid(seg(u, 0, 0.1));
-    lift[src] = ramp(u, 0.03, 0.12) * (1 - ramp(u, 0.34, 0.4));
+    // approach; pick: raise the wafer, slide the fork under it, lift it off, withdraw. The
+    // chuck or pins rise while the robot approaches and go down as soon as the fork holds the
+    // wafer, each an axis move of its own (a spin chuck's 75 mm would otherwise be a jerk)
+    const approach = trapezoid(seg(u, 0, 0.12));
+    lift[src] = axis(u, 0, 0.12) * (1 - axis(u, 0.3, 0.5));
     const reach1 = axis(u, 0.12, 0.21) * (1 - axis(u, 0.26, 0.34));
     const take = ramp(u, 0.21, 0.26);
-    // carry (the fork's height follows to the next exchange height), then place
+    // carry (the fork's height follows to the next exchange height), then place; the chuck
+    // goes down once the fork is out from under the wafer
     const go = trapezoid(seg(u, 0.34, 0.68));
-    lift[dst] = ramp(u, 0.45, 0.62) * (1 - ramp(u, 0.87, 0.97));
+    lift[dst] = axis(u, 0.4, 0.66) * (1 - axis(u, 0.87, 1));
     const reach2 = axis(u, 0.68, 0.77) * (1 - axis(u, 0.82, 0.9));
     const put = ramp(u, 0.77, 0.82);
     out.x = u < 0.34 ? lerp(r.start, r.from, approach) : u < 0.9 ? lerp(r.from, MOD_X[dst], go) : lerp(MOD_X[dst], r.park, park);
@@ -103,20 +108,24 @@ export function transfer(r: Route, p: number, out: XferFrame): XferFrame {
     const ySrc = XCHG[src] - 0.006 + 0.008 * take;
     const yDst = XCHG[dst] + 0.002 - 0.008 * put;
     out.forkY = u < 0.34 ? ySrc : u < 0.68 ? lerp(ySrc, XCHG[dst] + 0.002, go) : yDst;
-    out.onFork = u >= 0.235 && u < 0.795;
-    if (u < 0.235) out.wafer = [MOD_X[src], lerp(REST[src], XCHG[src], lift[src]), 0];
+    // the wafer changes hands where the rising fork reaches the chuck's height, and again where
+    // the lowering fork comes down to the next chuck's: never a step in its path
+    const picked = u >= 0.21 && (u >= 0.34 || ySrc >= XCHG[src]);
+    const placed = u >= 0.77 && yDst <= XCHG[dst];
+    out.onFork = picked && !placed;
+    if (!picked) out.wafer = [MOD_X[src], lerp(REST[src], XCHG[src], lift[src]), 0];
     else if (out.onFork) out.wafer = [out.x, out.forkY, out.forkZ];
     else out.wafer = [MOD_X[dst], lerp(REST[dst], XCHG[dst], lift[dst]), 0];
   } else {
     // the wafer arrives on the fork from the carrier block or the scanner interface
     const go = trapezoid(seg(u, 0, 0.42));
-    lift[dst] = ramp(u, 0.2, 0.38) * (1 - ramp(u, 0.8, 0.95));
+    lift[dst] = axis(u, 0.2, 0.38) * (1 - axis(u, 0.8, 0.95));
     const reach = axis(u, 0.42, 0.58) * (1 - axis(u, 0.66, 0.8));
     const put = ramp(u, 0.58, 0.66);
     out.x = u < 0.9 ? lerp(r.from, MOD_X[dst], go) : lerp(MOD_X[dst], r.park, park);
     out.forkZ = lerp(FORK_Z, 0, reach);
     out.forkY = XCHG[dst] + 0.002 - 0.008 * put;
-    out.onFork = u < 0.62;
+    out.onFork = !(u >= 0.58 && out.forkY <= XCHG[dst]);
     out.wafer = out.onFork ? [out.x, out.forkY, out.forkZ] : [MOD_X[dst], lerp(REST[dst], XCHG[dst], lift[dst]), 0];
   }
   return out;
