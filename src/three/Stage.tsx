@@ -32,7 +32,7 @@ import { LabelSpaceContext } from './labels';
 import { failedStations, readyStations, stationBoxes, stationCentre, stationGroups, toolMatrix, waferRegistry } from './stage/anchors';
 import { StationContext } from './stage/context';
 import { BeatLabels } from './stage/BeatLabels';
-import { Director } from './stage/Director';
+import { Director, directorView } from './stage/Director';
 import { handover, remount, useMountEpoch } from './stage/handover';
 import { stageFocus, useStageInfo } from './stage/info';
 import { useExplore } from './stage/explore';
@@ -779,6 +779,7 @@ function DevHook({ deviceScene }: { deviceScene: THREE.Scene }) {
       useFilm,
       gapStats,
       deviceMeshes,
+      directorView,
     };
     (window as unknown as { __fabQuality: () => unknown }).__fabQuality = () => ({ ...useQuality.getState(), dpr: gl.getPixelRatio(), shadowRedraws: quality.shadowRedraws });
   }, [gl, scene, camera, deviceScene]);

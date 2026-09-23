@@ -295,6 +295,9 @@ class ScreenCopy {
 
 // ───────────────────────────── the director ─────────────────────────────
 
+/** What the director is showing (read by the measurement harness: both sides of a fade). */
+export const directorView: { live: CamSample | null } = { live: null };
+
 export function Director({ deviceScene, controlsRef }: { deviceScene: THREE.Scene; controlsRef: React.RefObject<CameraControls | null> }) {
   const gl = useThree((s) => s.gl);
   const scene = useThree((s) => s.scene);
@@ -346,6 +349,8 @@ export function Director({ deviceScene, controlsRef }: { deviceScene: THREE.Scen
     /** This frame's picture is already on screen (it was drawn to be captured). */
     drawn: false,
   });
+
+  directorView.live = st.current.live;
 
   const fitRef = useRef(1);
   fitRef.current = Math.round(Math.pow(Math.max(1, DESIGN_ASPECT / Math.max(0.3, size.width / Math.max(1, size.height))), 0.8) * 20) / 20;

@@ -28,6 +28,9 @@
 //                   to the second; how far does the learner's wafer jump in one frame?
 //   anchors         the camera while it frames a wafer that the machine is moving (flipping it,
 //                   stepping and scanning it): does the camera chase it, shaking or swinging?
+//   transitions     the whole course, lesson by lesson: finish each lesson, go on, and record
+//                   every frame of the move until the camera settles (jumps, wafers on screen,
+//                   wafer teleports, the hand-over)
 import { chromium } from '@playwright/test';
 import { execSync } from 'node:child_process';
 import { writeFileSync } from 'node:fs';
@@ -37,7 +40,7 @@ const opt = (k) => {
   const i = rest.indexOf(k);
   return i >= 0 ? rest[i + 1] : undefined;
 };
-const ALL = ['leave-partial', 'back-same', 'next-same', 'interrupt', 'film-gap', 'slow-load', 'load-fail', 'shadows', 'coat-uploads', 'op-boundary', 'decor-virt', 'pairs', 'anchors'];
+const ALL = ['leave-partial', 'back-same', 'next-same', 'interrupt', 'film-gap', 'slow-load', 'load-fail', 'shadows', 'coat-uploads', 'op-boundary', 'decor-virt', 'pairs', 'anchors', 'transitions'];
 /** Consecutive lessons at the same machine: each must end where the next one starts. */
 const PAIRS = [
   ['arrive', 'foup'],
@@ -53,6 +56,8 @@ const PAIRS = [
   ['attach', 'package'],
 ];
 const cases = (opt('--cases') ?? ALL.join(',')).split(',');
+/** The lessons in order (src/sim/flow.ts). */
+const STEP_IDS = ['arrive','transfer','scan','clean','diemap','padox','sti-etch','sti-fill','wells','anneal','gatestack','prime','coat','softbake','reticle','align','expose','peb','develop','adi','gate-etch','strip','sd','pmd','contact-align','contact-print','contact-etch','contact-fill','metal1','metal2','passivate','inspect','probe','dice','attach','bond','final'];
 
 /** In-page helpers (installed before the app starts). */
 function helpers() {
@@ -606,10 +611,14 @@ run.anchors = async () => {
       const f = await page.evaluate(() => {
         window.__fabAdvance(1);
         const x = window.__fab;
-        const d = new x.THREE.Vector3();
-        x.camera.getWorldDirection(d);
-        const p = x.camera.position;
-        return { p: window.__fabStores.useClock.getState().progress, pos: [p.x, p.y, p.z], dir: [d.x, d.y, d.z], space: x.useStageInfo.getState().space };
+        const p = window.__fabStores.useClock.getState().progress;
+        // the world-side view the director drew (during a cross-fade to the layers, the side
+        // still showing the machine); the camera object itself holds whichever view was drawn last
+        const l = x.directorView.live;
+        const side = l.a.space === 'world' ? l.a : l.mix > 0 && l.b.space === 'world' ? l.b : null;
+        if (!side) return { p, space: 'device' };
+        const d = side.target.clone().sub(side.pos).normalize();
+        return { p, pos: side.pos.toArray(), dir: d.toArray(), space: 'world' };
       });
       frames.push(f);
       if (f.p >= b) break;
@@ -620,18 +629,23 @@ run.anchors = async () => {
     let reversals = 0;
     let worstAt = null;
     const world = frames.filter((f) => f.space === 'world');
-    for (let k = 1; k < world.length; k++) {
-      const m = dist(world[k - 1].pos, world[k].pos);
-      const c = world[k - 1].dir[0] * world[k].dir[0] + world[k - 1].dir[1] * world[k].dir[1] + world[k - 1].dir[2] * world[k].dir[2];
-      const t = (Math.acos(Math.max(-1, Math.min(1, c))) * 180) / Math.PI;
-      if (t > turn) worstAt = +world[k].p.toFixed(3);
+    const w = (k) => frames[k].space === 'world';
+    for (let k = 1; k < frames.length; k++) {
+      if (!w(k) || !w(k - 1)) continue;
+      const a = frames[k - 1];
+      const c = frames[k];
+      const m = dist(a.pos, c.pos);
+      const cos = a.dir[0] * c.dir[0] + a.dir[1] * c.dir[1] + a.dir[2] * c.dir[2];
+      const t = (Math.acos(Math.max(-1, Math.min(1, cos))) * 180) / Math.PI;
+      if (t > turn) worstAt = +c.p.toFixed(3);
       move = Math.max(move, m);
       turn = Math.max(turn, t);
-      if (k >= 2) {
-        const v0 = world[k - 1].pos.map((v, i) => v - world[k - 2].pos[i]);
-        const v1 = world[k].pos.map((v, i) => v - world[k - 1].pos[i]);
+      if (k >= 2 && w(k - 2)) {
+        const v0 = a.pos.map((v, i) => v - frames[k - 2].pos[i]);
+        const v1 = c.pos.map((v, i) => v - a.pos[i]);
         const n0 = Math.hypot(...v0);
         const n1 = Math.hypot(...v1);
+        // the camera reversing its motion from one frame to the next (shaking)
         if (n0 > 0.002 && n1 > 0.002 && (v0[0] * v1[0] + v0[1] * v1[1] + v0[2] * v1[2]) / (n0 * n1) < 0) reversals++;
       }
     }
@@ -640,6 +654,64 @@ run.anchors = async () => {
     console.log('  anchors', key, JSON.stringify(out[key]));
     await ctx.close();
   }
+  return out;
+};
+
+run.transitions = async () => {
+  const out = {};
+  const { ctx, page, errors } = await open('/?step=arrive&virt=1');
+  await settle(page);
+  const total = STEP_IDS.length;
+  for (let i = 0; i < total - 1; i++) {
+    await page.evaluate(() => {
+      const c = window.__fabStores.useClock.getState();
+      c.set(1);
+      c.pause();
+    });
+    await adv(page, 2);
+    const before = await record(page, 2);
+    const from = await page.evaluate(() => window.__fabStores.useApp.getState().step);
+    const owner0 = await page.evaluate(() => window.__fab.handover.owner);
+    await page.evaluate(() => window.__fabStores.useApp.getState().next());
+    const frames = [...before.frames];
+    let last = before.last;
+    let handAt = null;
+    for (let k = 0; k < 240; k++) {
+      const r = await record(page, 1, last);
+      last = r.last;
+      const f = r.frames[0];
+      f.owner = await page.evaluate(() => window.__fab.handover.owner);
+      if (handAt === null && f.owner !== owner0) handAt = k;
+      frames.push(f);
+      if (k > 8 && !f.flying) break;
+    }
+    const moved = frames.slice(2);
+    // the learner's wafer, per machine showing it: the largest move between two frames
+    let step = { m: 0, st: null };
+    for (let k = 1; k < frames.length; k++)
+      for (const w of frames[k].wafers) {
+        const a = frames[k - 1].wafers.find((x) => x.st === w.st);
+        if (a) {
+          const d = dist(a.pos, w.pos);
+          if (d > step.m) step = { m: d, st: w.st };
+        }
+      }
+    const id = await page.evaluate((i) => window.__fabStores.useApp.getState().step, i);
+    const key = `${STEP_IDS[from]}>${STEP_IDS[id]}`;
+    out[key] = {
+      frames: moved.length,
+      spike: spikes(frames, 2),
+      maxWafersOnScreen: Math.max(...moved.map((f) => f.wafersOnScreen)),
+      framesWithTwoWafers: moved.filter((f) => f.wafersOnScreen > 1).length,
+      maxWaferStepPerFrame: +step.m.toFixed(4),
+      stepAt: step.st,
+      handOverFrame: handAt,
+    };
+    console.log('  transition', key, JSON.stringify(out[key]));
+    await settle(page);
+  }
+  out.errors = errors.slice(0, 5);
+  await ctx.close();
   return out;
 };
 

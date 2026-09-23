@@ -50,6 +50,8 @@ test('leaving a lesson half-way keeps the machine left behind exactly as it was'
   expect(frozen, 'the scanner is held on its last frame').toMatchObject({ dose: 3, frozen: true });
   expect(frozen!.p).toBeGreaterThan(0.44);
   expect(frozen!.p).toBeLessThan(0.5);
+  // the wafer stays in the scanner, where it was, as the move begins (it changes hands in the aisle)
+  for (const f of after.slice(0, 10)) expect(f.wafers.some((w) => w.station === 'scanner'), 'the scanner still holds the wafer').toBe(true);
   for (const f of after) {
     const w = f.wafers.find((x) => x.station === 'scanner');
     if (w) expect(Math.hypot(w.pos[0] - scannerWafer!.pos[0], w.pos[1] - scannerWafer!.pos[1], w.pos[2] - scannerWafer!.pos[2]), 'the wafer left behind does not move').toBeLessThan(1e-4);

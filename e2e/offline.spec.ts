@@ -43,6 +43,15 @@ test.describe('offline film', () => {
     await expect
       .poll(async () => page.evaluate(() => (window as unknown as { __fabFilm: { useFilm: { getState: () => { status: string; audioOk: boolean } } } }).__fabFilm.useFilm.getState()), { timeout: 60_000 })
       .toMatchObject({ status: 'playing', audioOk: true });
+    // the cross-section is built in a worker, whose script is part of the saved build
+    await page.goto('/?step=wells&hooks=1');
+    await expect
+      .poll(async () => page.evaluate(() => (window as unknown as { __fab?: { deviceMeshes: { stats: { worker: number; main: number } } } }).__fab?.deviceMeshes.stats ?? null), { timeout: 120_000 })
+      .toMatchObject({ worker: expect.any(Number) });
+    await expect
+      .poll(async () => page.evaluate(() => (window as unknown as { __fab: { deviceMeshes: { stats: { worker: number } } } }).__fab.deviceMeshes.stats.worker), { timeout: 120_000 })
+      .toBeGreaterThan(0);
+    expect(await page.evaluate(() => (window as unknown as { __fab: { deviceMeshes: { stats: { main: number } } } }).__fab.deviceMeshes.stats.main), 'no fallback to the main thread').toBe(0);
     await context.setOffline(false);
     expect(errors.filter((e) => !/Failed to load resource/.test(e))).toEqual([]);
   });
