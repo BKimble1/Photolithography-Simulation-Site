@@ -1289,7 +1289,9 @@ export function FabScene({ highlight, hero, picking }: { highlight?: SceneId; he
       const t0 = cutT.get(id) ?? 0;
       const jump = reduced || cutInstant.has(id);
       cutInstant.delete(id);
-      const t = jump ? want : want > t0 ? Math.min(1, t0 + dt / CUT_TIME) : Math.max(0, t0 - dt / CUT_TIME);
+      // (a housing already where it should be stays there: stepping it back and forth would
+      // move the wipe plane every frame, flickering whatever lies on it)
+      const t = jump ? want : want > t0 ? Math.min(1, t0 + dt / CUT_TIME) : want < t0 ? Math.max(0, t0 - dt / CUT_TIME) : t0;
       if (t === t0 && (t === 0 || cuts.current.has(id))) {
         if (t === 0 && cuts.current.has(id)) restore(g, id);
         return;
