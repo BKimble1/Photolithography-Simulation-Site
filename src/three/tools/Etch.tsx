@@ -84,7 +84,7 @@ function crisp(pts: V2[]): V2[] {
 /** A turned solid from a closed (r, y) section, optionally over a partial arc, with flat section faces. */
 function latheParts(profile: V2[], phiStart: number, phiLen: number) {
   const pts = crisp([...profile, profile[0]]).map(([r, y]) => new THREE.Vector2(r, y));
-  const segs = Math.max(6, Math.round((96 * phiLen) / TAU));
+  const segs = Math.max(6, Math.round((72 * phiLen) / TAU));
   const body = new THREE.LatheGeometry(pts, segs, phiStart, phiLen);
   if (phiLen >= TAU - 1e-6) return { body, caps: null };
   const shape = new THREE.Shape(profile.map(([r, y]) => new THREE.Vector2(r, y)));
@@ -175,18 +175,20 @@ function coilGeometry({ r0, r1, turns, y0, rise = 0, tube }: { r0: number; r1: n
 
 /** Robot end effector: a thin ceramic fork, top face at y = 0. */
 function bladeGeometry() {
+  // tips end just past the far wafer edge (wafer centre at x = BLADE), so a retracted blade
+  // stays inside the transfer chamber
   const s = new THREE.Shape();
   s.moveTo(-0.035, -0.032);
   s.lineTo(0.17, -0.032);
   s.lineTo(0.24, -0.056);
-  s.lineTo(0.5, -0.056);
-  s.quadraticCurveTo(0.515, -0.056, 0.515, -0.042);
-  s.lineTo(0.515, -0.03);
+  s.lineTo(0.44, -0.056);
+  s.quadraticCurveTo(0.455, -0.056, 0.455, -0.042);
+  s.lineTo(0.455, -0.03);
   s.lineTo(0.3, -0.026);
   s.lineTo(0.3, 0.026);
-  s.lineTo(0.515, 0.03);
-  s.lineTo(0.515, 0.042);
-  s.quadraticCurveTo(0.515, 0.056, 0.5, 0.056);
+  s.lineTo(0.455, 0.03);
+  s.lineTo(0.455, 0.042);
+  s.quadraticCurveTo(0.455, 0.056, 0.44, 0.056);
   s.lineTo(0.24, 0.056);
   s.lineTo(0.17, 0.032);
   s.lineTo(-0.035, 0.032);
@@ -606,9 +608,10 @@ function SlitValve({ length, gate, bonnet = true }: { length: number; gate: Reac
   );
 }
 
-function Pins({ refs, r = 0.09, entry }: { refs: React.RefObject<(THREE.Mesh | null)[]>; r?: number; entry: number }) {
+function Pins({ refs, r = 0.09, entry, both = false }: { refs: React.RefObject<(THREE.Mesh | null)[]>; r?: number; entry: number; both?: boolean }) {
   // Pins sit clear of the blade: one on the far side of the entry axis, two at ±60° off it.
-  const angles = [entry + Math.PI, entry + Math.PI / 3, entry - Math.PI / 3];
+  // Where forks enter from both ends (load lock), four pins sit off-axis instead.
+  const angles = both ? [0.25, 0.75, 1.25, 1.75].map((k) => entry + k * Math.PI) : [entry + Math.PI, entry + Math.PI / 3, entry - Math.PI / 3];
   return (
     <group>
       {angles.map((a, i) => (
@@ -954,7 +957,7 @@ function TransferModule({
         <Box size={[0.46, 0.01, 0.4]} position={[0, LL_PLATE + 0.105, 0]} m="glassDark" radius={0.003} castShadow={false} />
         <Box size={[0.5, 0.016, 0.03]} position={[0, LL_PLATE + 0.106, -0.195]} m="aluminum" radius={0.004} />
         <Box size={[0.5, 0.016, 0.03]} position={[0, LL_PLATE + 0.106, 0.195]} m="aluminum" radius={0.004} />
-        <Pins refs={pinsLL} entry={Math.PI} r={0.085} />
+        <Pins refs={pinsLL} entry={Math.PI} r={0.1} both />
         <Box size={[0.3, 0.04, 0.3]} position={[0, LL_PLATE - 0.075, 0]} m="black" radius={0.006} />
         <group position={[0, 0, 0.21]} rotation={[0, -Math.PI / 2, 0]}>
           <SlitValve length={0.05} gate={doorLL} bonnet={false} />
@@ -1068,7 +1071,7 @@ export default function Etch({ variant }: ToolProps) {
     if (slitLL.current) slitLL.current.position.y = 1.01 - 0.085 * f.slitLL;
     if (doorLL.current) doorLL.current.position.y = 1.01 - 0.085 * f.doorLL;
     if (slitPC2.current) slitPC2.current.position.y = 1.01;
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < 4; i++) {
       const a = pinsPC.current[i];
       const b = pinsLL.current[i];
       if (a) a.position.y = pinTop(f.pinsPC) - 0.025;
