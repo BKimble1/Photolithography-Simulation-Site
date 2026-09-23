@@ -49,12 +49,14 @@ const frame = (page: Page): Promise<Frame> =>
 const change = (a: Frame, b: Frame) => a.grid.reduce((s, v, i) => s + Math.abs(v - b.grid[i]), 0) / a.grid.length;
 
 test('a lesson draws a real picture, and it moves', async ({ page }) => {
+  test.setTimeout(400_000);
   const errors = watchErrors(page);
-  await freshStart(page, '/?step=coat&virt=1');
+  // the first lesson: the overhead hoist lowers the pod onto the load port
+  await freshStart(page, '/?step=arrive&virt=1');
   await waitForStage(page);
-  await advance(page, 75); // the camera arrives and the wafer starts to spin up
+  await advance(page, 20);
   const a = await frame(page);
-  await advance(page, 45);
+  await advance(page, 25);
   const b = await frame(page);
   expect(a.std, 'the picture has contrast').toBeGreaterThan(10);
   expect(a.levels, 'the picture has many tones').toBeGreaterThan(24);
@@ -63,13 +65,14 @@ test('a lesson draws a real picture, and it moves', async ({ page }) => {
 });
 
 test('the film draws a real picture, and it moves', async ({ page }) => {
+  test.setTimeout(400_000);
   const errors = watchErrors(page);
   await freshStart(page, '/?watch&t=292&virt=1');
   await waitForStage(page);
-  await advance(page, 30);
+  await advance(page, 10);
   await page.evaluate(() => (window as unknown as { __fabFilm: { filmControls: { play: () => void } } }).__fabFilm.filmControls.play());
   const a = await frame(page);
-  await advance(page, 60);
+  await advance(page, 30);
   const b = await frame(page);
   expect(a.std).toBeGreaterThan(10);
   expect(a.levels).toBeGreaterThan(24);

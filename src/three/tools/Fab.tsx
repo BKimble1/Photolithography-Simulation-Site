@@ -69,6 +69,27 @@ const blackMat = matte('#1f2125', 0.25);
 const platenMat = matte('#8b9097', 0.3);
 const recessMat = matte('#2a2e34', 0.3);
 const frameMat = matte('#d5d9de', 0.4); // painted aluminium: rails, partition frames
+
+/**
+ * The overhead rail runs above the aisle-side load ports, so a camera framing a machine from
+ * across the aisle can have it right in front of the lens. The stretch within a few metres of
+ * the camera fades out (dithered), like a cutaway of the ceiling; the rest of the loop stays.
+ */
+function nearCut<T extends THREE.Material>(m: T, from: number, to: number): T {
+  m.onBeforeCompile = (sh) => {
+    sh.vertexShader = 'varying float vCamDist;\n' + sh.vertexShader.replace('#include <project_vertex>', '#include <project_vertex>\n\tvCamDist = length(mvPosition.xyz);');
+    sh.fragmentShader =
+      'varying float vCamDist;\n' +
+      sh.fragmentShader.replace(
+        '#include <clipping_planes_fragment>',
+        `#include <clipping_planes_fragment>
+        if (smoothstep(${from.toFixed(2)}, ${to.toFixed(2)}, vCamDist) < fract(52.9829189 * fract(dot(gl_FragCoord.xy, vec2(0.06711056, 0.00583715))))) discard;`,
+      );
+  };
+  m.customProgramCacheKey = () => `nearCut:${from}:${to}`;
+  return m;
+}
+const NEAR_CUT: [number, number] = [2.5, 4.5];
 const screenMat = new THREE.MeshBasicMaterial({ color: '#1e2c48' });
 const violetMat = new THREE.MeshBasicMaterial({ color: '#8a7dff' });
 const smokedGlass = new THREE.MeshStandardMaterial({ color: '#20262c', metalness: 0.1, roughness: 0.06, transparent: true, opacity: 0.45 });
@@ -92,7 +113,7 @@ const BAKE: Partial<Record<string, Bake>> = {
   platen: { color: '#8b9097' },
   recess: { color: '#2a2e34' },
   mullion: { color: '#d5d9de' },
-  rail: { color: '#d5d9de' },
+  rail: { color: '#d5d9de', own: true },
   steel: { color: '#d3d7dc', metal: true },
   satin: { color: '#c4c9cf', metal: true },
   alu: { color: '#d5d8dc', metal: true },
@@ -121,6 +142,7 @@ function bakeColors(g: THREE.BufferGeometry, b: Bake) {
 }
 
 const bakedMat = new THREE.MeshBasicMaterial({ vertexColors: true });
+const railMat = nearCut(new THREE.MeshBasicMaterial({ vertexColors: true }), ...NEAR_CUT);
 
 const MATS = {
   white: whiteMat,
@@ -143,7 +165,7 @@ const MATS = {
   recess: recessMat,
   hanger: bakedMat,
   mullion: frameMat,
-  rail: frameMat,
+  rail: railMat,
   clad: cladMat,
   baked: bakedMat,
 } as const;
@@ -1339,18 +1361,21 @@ export function FabScene({ highlight, hero, picking }: { highlight?: SceneId; he
     () => ({ p: new THREE.Vector3(), q: new THREE.Quaternion(), m: new THREE.Matrix4(), s: new THREE.Vector3(1, 1, 1), zero: new THREE.Vector3(1e-4, 1e-4, 1e-4), up: new THREE.Vector3(0, 1, 0), o: new THREE.Vector3() }),
     [],
   );
-  useFrame(({ clock }) => {
+  useFrame(({ clock, camera }) => {
     const t = reduced ? 0 : clock.elapsedTime;
     for (let i = 0; i < N_VEHICLES; i++) {
       const s = (i / N_VEHICLES) * LOOP_LEN + t * 0.85;
       const head = loopPoint(s, tmp.p);
       tmp.q.setFromAxisAngle(tmp.up, head);
-      tmp.m.compose(tmp.o.copy(tmp.p).setY(LOOP.y + 0.08), tmp.q, tmp.s);
+      // like the rail, vehicles right in front of the camera are left out
+      const shown = camera.position.distanceTo(tmp.o.copy(tmp.p).setY(LOOP.y)) > NEAR_CUT[1];
+      const scale = shown ? tmp.s : tmp.zero;
+      tmp.m.compose(tmp.o.copy(tmp.p).setY(LOOP.y + 0.08), tmp.q, scale);
       vBody.current?.setMatrixAt(i, tmp.m);
-      tmp.m.compose(tmp.o.copy(tmp.p).setY(LOOP.y - 0.2), tmp.q, tmp.s);
+      tmp.m.compose(tmp.o.copy(tmp.p).setY(LOOP.y - 0.2), tmp.q, scale);
       vGrip.current?.setMatrixAt(i, tmp.m);
       // most vehicles carry a FOUP
-      tmp.m.compose(tmp.o.copy(tmp.p).setY(LOOP.y - 0.42), tmp.q, i % 3 === 2 ? tmp.zero : tmp.s);
+      tmp.m.compose(tmp.o.copy(tmp.p).setY(LOOP.y - 0.42), tmp.q, i % 3 === 2 ? tmp.zero : scale);
       vFoup.current?.setMatrixAt(i, tmp.m);
     }
     for (const r of [vBody, vGrip, vFoup]) if (r.current) r.current.instanceMatrix.needsUpdate = true;
