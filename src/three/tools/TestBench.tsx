@@ -11,10 +11,10 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 import { engine } from '../../state/sim';
-import { useApp } from '../../state/store';
 import { Box, Cyl } from '../kit/parts';
 import { MAT } from '../materials';
 import type { ToolProps } from './index';
+import { useFinalInput, useRunChoices } from '../../state/presentation';
 
 type V3 = [number, number, number];
 
@@ -179,6 +179,7 @@ function Socket() {
 
 /** PCB toggle switch; the bat lever tilts toward the selected input level. Clickable. */
 function ToggleSwitch({ input }: { input: 0 | 1 }) {
+  const [, setInput] = useFinalInput();
   const lever = useRef<THREE.Group>(null);
   const [hover, setHover] = useState(false);
   useEffect(() => {
@@ -196,8 +197,7 @@ function ToggleSwitch({ input }: { input: 0 | 1 }) {
   });
   const toggle = (e: ThreeEvent<MouseEvent>) => {
     e.stopPropagation();
-    const s = useApp.getState();
-    s.setFinalInput(s.finalInput === 0 ? 1 : 0);
+    if (setInput) setInput(input === 0 ? 1 : 0);
   };
   return (
     <group position={SW}>
@@ -285,8 +285,8 @@ function Tester() {
 
 export default function TestBench({ variant }: ToolProps) {
   void variant;
-  const choices = useApp((s) => s.choices);
-  const input = useApp((s) => s.finalInput);
+  const choices = useRunChoices();
+  const [input] = useFinalInput();
   const e = useMemo(() => engine.electrical(choices), [choices]);
   const out = input === 0 ? e.out.in0 : e.out.in1;
   const lit = out === 1;

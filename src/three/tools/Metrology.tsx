@@ -17,12 +17,12 @@ import { CUT_Y, LAYOUT } from '../../sim/layout';
 import { M } from '../../sim/materials';
 import { mulberry32 } from '../../sim/rng';
 import { engine, useSimState } from '../../state/sim';
-import { useApp } from '../../state/store';
 import { lerp, seg, smooth, useProgressBucket, useProgressFrame } from '../anim';
 import { MAT } from '../materials';
 import { Box, CleanFloor, Cyl, Lathe, LightTower } from '../kit/parts';
 import { Wafer } from '../wafer/Wafer';
 import type { ToolProps } from './index';
+import { useOverlay, useRunChoices } from '../../state/presentation';
 
 type V3 = [number, number, number];
 
@@ -291,7 +291,7 @@ function drawSem(ctx: CanvasRenderingContext2D, W: number, H: number, g: Grid, m
 
 function SemScreen({ position, rotation }: { position: V3; rotation: V3 }) {
   const state = useSimState();
-  const choices = useApp((s) => s.choices);
+  const choices = useRunChoices();
   const b = useProgressBucket(90);
   const grid = state.grid;
   const map = useMemo(() => resistMap(grid), [grid]);
@@ -536,7 +536,7 @@ function LoadLock({ blade, pins, carriage }: { blade: React.RefObject<THREE.Grou
 export default function Metrology({ variant }: ToolProps) {
   void variant;
   const state = useSimState();
-  const lightPath = useApp((s) => s.lightPath);
+  const lightPath = useOverlay('lightPath');
   const stageX = useRef<THREE.Group>(null);
   const stageY = useRef<THREE.Group>(null);
   const chuckPins = useRef<THREE.Group>(null);
@@ -580,7 +580,7 @@ export default function Metrology({ variant }: ToolProps) {
       <SemScreen position={[0.78, 1.42, 0.34]} rotation={[-0.06, -0.3, 0]} />
       <Box size={[0.04, 0.55, 0.04]} position={[0.78, 1.0, 0.3]} m="steelSatin" radius={0.006} />
       <group ref={wafer} position={[LL_X, PIN_UP, 0]}>
-        <Wafer look={{ summary: state.wafer, showParticles: true }} size={768} />
+        <Wafer anchor look={{ summary: state.wafer, showParticles: true }} size={768} />
       </group>
     </group>
   );

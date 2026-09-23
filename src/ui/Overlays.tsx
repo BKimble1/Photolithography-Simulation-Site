@@ -11,7 +11,7 @@ import { LEGEND_HIGHLIGHT, LEGEND_PHYSICAL } from './palette';
 import { MiniWaferMap } from './panels';
 import { RichText } from './RichText';
 
-function useEscape(onClose: () => void) {
+export function useEscape(onClose: () => void) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
     window.addEventListener('keydown', onKey);
@@ -22,7 +22,7 @@ function useEscape(onClose: () => void) {
 const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])';
 
 /** Focus the dialog when it opens, keep Tab inside it, and return focus when it closes. */
-function useFocusOnOpen<T extends HTMLElement>() {
+export function useFocusOnOpen<T extends HTMLElement>() {
   const ref = useRef<T>(null);
   useEffect(() => {
     const prev = document.activeElement as HTMLElement | null;
@@ -58,62 +58,84 @@ function useFocusOnOpen<T extends HTMLElement>() {
   return ref;
 }
 
-const CloseIcon = () => (
+export const CloseIcon = () => (
   <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden>
     <path d="M3 3l10 10M13 3L3 13" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
   </svg>
 );
 
-// ───────────────────────────── Stages ─────────────────────────────
+// ───────────────────────────── Chapters ─────────────────────────────
 
-export function Stages() {
+/**
+ * One light drawer: every chapter and step, where you are, what you have visited and which
+ * knowledge checks you have answered. Choosing a step is an explicit go; nothing is marked
+ * complete just because it was skipped over.
+ */
+export function Chapters() {
   const step = useApp((s) => s.step);
-  const maxStep = useApp((s) => s.maxStep);
+  const visited = useApp((s) => s.visited);
+  const checks = useApp((s) => s.checks);
+  const mode = useApp((s) => s.mode);
   const goTo = useApp((s) => s.goTo);
   const setPanel = useApp((s) => s.setPanel);
   const close = () => setPanel(null);
   useEscape(close);
   const ref = useFocusOnOpen<HTMLDivElement>();
+  const seen = useMemo(() => new Set(visited), [visited]);
+  const current = useRef<HTMLButtonElement>(null);
+  useEffect(() => current.current?.scrollIntoView({ block: 'center' }), []);
   return (
-    <div className="stages" role="dialog" aria-modal="true" aria-labelledby="stages-title" tabIndex={-1} ref={ref}>
-      <div className="stages__inner">
-        <div className="stages__head">
-          <div>
-            <h2 className="stages__title" id="stages-title">
-              Stages
-            </h2>
-            <p className="stages__sub">
-              Jump to any step. The wafer is rebuilt from your choices, so every stage shows the state it would have at that point. Lithography — patterning — is
-              one repeated loop inside the flow, not the whole of chipmaking.
-            </p>
-          </div>
-          <button className="icon-btn" onClick={close} aria-label="Close stages">
+    <>
+      <div className="scrim scrim--light" onClick={close} />
+      <div className="drawer drawer--chapters" role="dialog" aria-modal="true" aria-labelledby="chapters-title" tabIndex={-1} ref={ref}>
+        <div className="drawer__head">
+          <h2 id="chapters-title">Chapters</h2>
+          <button className="icon-btn" onClick={close} aria-label="Close chapters">
             <CloseIcon />
           </button>
         </div>
-        <div className="stages__grid">
+        <div className="drawer__body chapters">
+          <p className="chapters__note">
+            Jump to any step: the wafer is rebuilt from your choices. <span className="chapters__key">
+              <i className="mk mk--seen" aria-hidden /> visited
+            </span>{' '}
+            <span className="chapters__key">
+              <i className="mk mk--done" aria-hidden /> check answered
+            </span>
+          </p>
           {CHAPTERS.map((c) => (
-            <section className="stages__col" key={c.id} aria-labelledby={'ch-' + c.id}>
+            <section className="chapters__ch" key={c.id} aria-labelledby={'ch-' + c.id}>
               <h3 id={'ch-' + c.id}>
                 <span>{String(c.index).padStart(2, '0')}</span>
-                {c.name}
+                {c.title}
               </h3>
-              <ol className="stages__list">
+              <ol className="chapters__list">
                 {chapterSteps(c.id).map((i) => {
                   const st = STEPS[FLOW[i].id];
-                  const tag = st.control && st.control !== 'dies' && st.control !== 'input' ? 'experiment' : st.check ? 'check' : null;
+                  const isCur = mode === 'learn' && i === step;
+                  const answered = st.check ? checks[st.check] : undefined;
+                  const state = answered ? 'check answered' : seen.has(i) ? 'visited' : 'not visited yet';
                   return (
                     <li key={i}>
                       <button
-                        className={'stages__item' + (i === step ? ' is-current' : '') + (i <= maxStep ? ' is-visited' : '')}
-                        onClick={() => goTo(i)}
-                        aria-current={i === step ? 'step' : undefined}
+                        ref={isCur ? current : undefined}
+                        className={'chapters__item' + (isCur ? ' is-current' : '') + (seen.has(i) ? ' is-seen' : '')}
+                        onClick={() => {
+                          if (!isCur) goTo(i);
+                          else close();
+                        }}
+                        aria-current={isCur ? 'step' : undefined}
+                        aria-label={`Step ${i + 1}: ${st.title}. ${isCur ? 'Current step.' : state}.`}
                       >
-                        <span className="mark" aria-hidden />
-                        <span>
-                          {st.title}
-                          {tag && <span className="tag">{tag}</span>}
+                        <span className="chapters__n" aria-hidden>
+                          {i + 1}
                         </span>
+                        <span className="chapters__t">
+                          {st.title}
+                          {st.check && <span className={'tag' + (answered ? ' tag--done' : '')}>{answered ? 'check ✓' : 'check'}</span>}
+                          {!st.check && st.control && st.control !== 'dies' && st.control !== 'input' && <span className="tag">experiment</span>}
+                        </span>
+                        <i className={'mk' + (answered ? ' mk--done' : seen.has(i) ? ' mk--seen' : '')} aria-hidden />
                       </button>
                     </li>
                   );
@@ -121,9 +143,10 @@ export function Stages() {
               </ol>
             </section>
           ))}
+          <p className="chapters__foot">Lithography — patterning — is one repeated loop inside the flow, not the whole of chipmaking.</p>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 

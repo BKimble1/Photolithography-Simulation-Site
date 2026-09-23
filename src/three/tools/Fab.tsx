@@ -24,8 +24,11 @@ import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 import { mergeGeometries, mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import type { SceneId } from '../../content/steps';
-import { useApp } from '../../state/store';
 import { BACKEND, BACKEND_WALL_X, BAY, STATIONS, facing } from './poses/fab';
+import { useReducedMotion } from '../../state/presentation';
+import { MACHINE_INFO } from '../../content/machines';
+import type { MachineId } from '../../state/nav';
+import { Label } from '../labels';
 
 // ───────────────────────────── materials ─────────────────────────────
 //
@@ -155,6 +158,7 @@ interface Foot {
   w: number;
   d: number;
   rot: number;
+  id?: SceneId;
 }
 
 /** Collects parts per material in a station's local frame (front = +z) and merges them. */
@@ -213,7 +217,7 @@ class Kit {
   foot(w: number, d: number, x = 0, z = 0) {
     const c = Math.cos(this.rot);
     const s = Math.sin(this.rot);
-    this.feet.push({ x: this.ox + x * c + z * s, z: this.oz - x * s + z * c, w, d, rot: this.rot });
+    this.feet.push({ x: this.ox + x * c + z * s, z: this.oz - x * s + z * c, w, d, rot: this.rot, id: this.id });
   }
   build(): { k: FabMat; geo: THREE.BufferGeometry }[] {
     const out: { k: FabMat; geo: THREE.BufferGeometry }[] = [];
@@ -689,8 +693,9 @@ function buildBay(K: Kit) {
   partition(-13.6, -2.35, BAY.z0, 'clear');
 }
 
-function buildTools(K: Kit) {
+function buildTools(kitFor: (id?: SceneId) => Kit) {
   const place = (id: SceneId | undefined, x: number, z: number, faceNorth: boolean, fn: (k: Kit) => void) => {
+    const K = kitFor(id);
     K.at(x, z, faceNorth ? 0 : Math.PI, id);
     fn(K);
   };
@@ -871,96 +876,117 @@ const GREEN = new THREE.Color('#3ddc97');
 const VIOLET = new THREE.Color('#7a6cff');
 const N_VEHICLES = 7;
 
-/**
- * Render pacing for very slow renderers. While the bay is shown it takes over rendering (a
- * positive useFrame priority turns off the automatic render). Normally it renders every
- * frame. If frames average over 120 ms (software rasterisers such as headless test
- * browsers, very weak GPUs), it renders only every ~2.5 frame costs, so the page stays
- * responsive between frames instead of stalling on every one. The frame cost is tracked as
- * the longest animation-tick gap after each render; once it drops, rendering is continuous
- * again.
- */
-function usePacedRender() {
-  const st = useRef({ paced: false, last: 0, gaps: [] as number[], renderAt: 0, cost: 0, maxGap: 0 });
-  useFrame(({ gl, scene, camera }) => {
-    const s = st.current;
-    const now = performance.now();
-    const gap = s.last ? now - s.last : 16;
-    s.last = now;
-    if (!s.paced) {
-      s.gaps.push(gap);
-      if (s.gaps.length > 12) s.gaps.shift();
-      const avg = s.gaps.reduce((a, b) => a + b, 0) / s.gaps.length;
-      if (s.gaps.length === 12 && avg > 120) {
-        s.paced = true;
-        s.cost = Math.min(avg, 1500);
-        s.maxGap = 0;
-        s.renderAt = now;
-        return;
-      }
-      gl.render(scene, camera);
-      return;
-    }
-    s.maxGap = Math.max(s.maxGap, gap);
-    if (now - s.renderAt < 2.5 * s.cost) return;
-    s.cost = Math.min(1500, s.cost * 0.5 + s.maxGap * 0.5);
-    s.maxGap = 0;
-    if (s.cost < 60) {
-      s.paced = false;
-      s.gaps = [];
-    }
-    gl.render(scene, camera);
-    s.renderAt = now;
-  }, 1);
+/** Stations whose detailed tool is on show: their low-detail proxy is hidden (set by the stage). */
+export const proxyHidden = new Set<SceneId>();
+
+/** Applies proxyHidden to the bay (registered by the mounted FabScene). */
+export const fabLod = { apply: () => {} };
+
+export interface FabPicking {
+  hovered: SceneId | null;
+  selected: SceneId | null;
+  onHover: (id: SceneId | null) => void;
+  onSelect: (id: SceneId) => void;
 }
 
-export function FabScene({ highlight, hero }: { highlight?: SceneId; hero?: boolean }) {
-  const reduced = useApp((s) => s.reducedMotion);
-  usePacedRender();
+export function FabScene({ highlight, hero, picking }: { highlight?: SceneId; hero?: boolean; picking?: FabPicking }) {
+  const reduced = useReducedMotion();
   const built = useMemo(() => {
-    const K = new Kit();
-    buildTools(K);
-    buildBay(K);
-    return { meshes: K.build(), towers: K.towers, feet: K.feet };
+    const shared = new Kit();
+    const kits = new Map<SceneId, Kit>();
+    const kitFor = (id?: SceneId) => {
+      if (!id) return shared;
+      let k = kits.get(id);
+      if (!k) kits.set(id, (k = new Kit()));
+      return k;
+    };
+    buildTools(kitFor);
+    buildBay(shared);
+    const all = [shared, ...kits.values()];
+    return {
+      meshes: shared.build(),
+      stations: [...kits.entries()].map(([id, k]) => ({ id, meshes: k.build() })),
+      towers: all.flatMap((k) => k.towers),
+      feet: all.flatMap((k) => k.feet),
+    };
   }, []);
   useLayoutEffect(
     () => () => {
       built.meshes.forEach((m) => m.geo.dispose());
+      built.stations.forEach((st) => st.meshes.forEach((m) => m.geo.dispose()));
     },
     [built],
   );
+  // Level of detail: hide a station's proxy (and its lens and floor shadow) while its detailed
+  // tool is shown in the same place.
+  const stationGroups = useRef(new Map<SceneId, THREE.Group>());
+  const lodKey = useRef('');
   const hl: SceneId | undefined = hero ? undefined : highlight === 'wafer' ? 'inspect' : highlight;
 
   // ── status lenses (instanced, coloured per highlight) ──
   const lenses = useRef<THREE.InstancedMesh>(null);
-  useLayoutEffect(() => {
+  const placeLenses = () => {
     const m = lenses.current;
     if (!m) return;
     const mat = new THREE.Matrix4();
     built.towers.forEach((t, i) => {
+      const hidden = t.id && proxyHidden.has(t.id);
       mat.makeTranslation(t.pos.x, t.pos.y, t.pos.z);
+      if (hidden) mat.scale(new THREE.Vector3(1e-4, 1e-4, 1e-4));
       m.setMatrixAt(i, mat);
       m.setColorAt(i, t.id && t.id === hl ? VIOLET : GREEN);
     });
     m.instanceMatrix.needsUpdate = true;
     if (m.instanceColor) m.instanceColor.needsUpdate = true;
-  }, [built, hl]);
+  };
+  useLayoutEffect(placeLenses, [built, hl]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── soft contact shadows under every tool ──
   const shadowMaterial = useMemo(() => new THREE.MeshBasicMaterial({ map: softShadowTexture(), color: '#000000', transparent: true, opacity: 0.2, depthWrite: false }), []);
   const shadows = useRef<THREE.InstancedMesh>(null);
-  useLayoutEffect(() => {
+  const placeShadows = () => {
     const m = shadows.current;
     if (!m) return;
     const q = new THREE.Quaternion();
     const mat = new THREE.Matrix4();
     built.feet.forEach((f, i) => {
+      const k = f.id && proxyHidden.has(f.id) ? 1e-4 : 1;
       // lie flat (Rx), then turn with the tool (Ry)
       q.setFromEuler(new THREE.Euler(-Math.PI / 2, f.rot, 0, 'YXZ'));
-      mat.compose(new THREE.Vector3(f.x, 0.006, f.z), q, new THREE.Vector3(f.w + 0.8, f.d + 0.8, 1));
+      mat.compose(new THREE.Vector3(f.x, 0.006, f.z), q, new THREE.Vector3((f.w + 0.8) * k, (f.d + 0.8) * k, 1));
       m.setMatrixAt(i, mat);
     });
     m.instanceMatrix.needsUpdate = true;
+  };
+  useLayoutEffect(placeShadows, [built]); // eslint-disable-line react-hooks/exhaustive-deps
+  // The director updates proxyHidden and applies it in the same frame, before it renders.
+  const applyLod = () => {
+    const key = [...proxyHidden].sort().join(',');
+    if (key === lodKey.current) return;
+    lodKey.current = key;
+    stationGroups.current.forEach((g, id) => (g.visible = !proxyHidden.has(id)));
+    placeLenses();
+    placeShadows();
+  };
+  useLayoutEffect(() => {
+    fabLod.apply = applyLod;
+    return () => {
+      if (fabLod.apply === applyLod) fabLod.apply = () => {};
+    };
+  });
+
+  // ── picking volumes for the fab explorer (one invisible box per station) ──
+  const pickBoxes = useMemo(() => {
+    return built.stations.map((st) => {
+      const box = new THREE.Box3();
+      st.meshes.forEach(({ geo }) => {
+        if (!geo.boundingBox) geo.computeBoundingBox();
+        box.union(geo.boundingBox!);
+      });
+      const size = box.getSize(new THREE.Vector3());
+      const c = box.getCenter(new THREE.Vector3());
+      return { id: st.id, size: [size.x + 0.3, size.y + 0.1, size.z + 0.3] as [number, number, number], centre: [c.x, c.y, c.z] as [number, number, number], top: box.max.y };
+    });
   }, [built]);
 
   // ── overhead transport vehicles with FOUPs (idle motion on wall-clock time) ──
@@ -1096,6 +1122,42 @@ export function FabScene({ highlight, hero }: { highlight?: SceneId; hero?: bool
           <mesh key={k} geometry={geo} material={MATS[k]} castShadow={false} receiveShadow={false} renderOrder={k === 'amber' || k === 'clear' ? 3 : 0} />
         ),
       )}
+      {built.stations.map((st) => (
+        <group
+          key={st.id}
+          ref={(g) => {
+            if (g) stationGroups.current.set(st.id, g);
+            else stationGroups.current.delete(st.id);
+          }}
+        >
+          {st.meshes.map(({ k, geo }) =>
+            k === 'hanger' && !hero ? null : (
+              <mesh key={k} geometry={geo} material={MATS[k]} castShadow={false} receiveShadow={false} renderOrder={k === 'amber' || k === 'clear' ? 3 : 0} />
+            ),
+          )}
+        </group>
+      ))}
+      {picking &&
+        pickBoxes.map((b) => (
+          <mesh
+            key={b.id}
+            position={b.centre}
+            onPointerOver={(e) => {
+              e.stopPropagation();
+              picking.onHover(b.id);
+            }}
+            onPointerOut={() => picking.onHover(null)}
+            onClick={(e) => {
+              // a drag of the view is not a tap on a machine
+              if (e.delta > 6) return;
+              e.stopPropagation();
+              picking.onSelect(b.id);
+            }}
+          >
+            <boxGeometry args={b.size} />
+            <meshBasicMaterial visible={false} />
+          </mesh>
+        ))}
       <instancedMesh ref={lenses} args={[undefined, lensMat, built.towers.length]} frustumCulled={false}>
         <cylinderGeometry args={[0.034, 0.034, 0.07, 12]} />
       </instancedMesh>
@@ -1114,6 +1176,18 @@ export function FabScene({ highlight, hero }: { highlight?: SceneId; hero?: bool
         <boxGeometry args={[0.39, 0.31, 0.42]} />
       </instancedMesh>
 
+      {/* explorer: hovered or keyboard-focused machine gets a light outline and its name */}
+      {picking && picking.hovered && picking.hovered !== hl && <HoverHalo built={built} id={picking.hovered} />}
+      {picking &&
+        (() => {
+          const id = picking.hovered ?? picking.selected;
+          const b = id ? pickBoxes.find((x) => x.id === id) : null;
+          return b ? (
+            <Label pos={[b.centre[0], b.top + 0.35, b.centre[2]]} tone="chip" priority={5}>
+              {MACHINE_INFO[b.id as MachineId]?.name ?? b.id}
+            </Label>
+          ) : null;
+        })()}
       {/* current station: a subtle violet outline on the floor */}
       {halo && (
         <group position={[halo.f.x, 0.012, halo.f.z]} rotation={[-Math.PI / 2, 0, halo.f.rot]}>
@@ -1121,6 +1195,35 @@ export function FabScene({ highlight, hero }: { highlight?: SceneId; hero?: bool
           <mesh geometry={halo.fill} material={haloFill} renderOrder={4} />
         </group>
       )}
+    </group>
+  );
+}
+
+const hoverLine = new THREE.MeshBasicMaterial({ color: '#9d93ff', transparent: true, opacity: 0.85, depthWrite: false });
+const hoverFill = new THREE.MeshBasicMaterial({ color: '#9d93ff', transparent: true, opacity: 0.1, depthWrite: false });
+
+function HoverHalo({ built, id }: { built: { feet: Foot[] }; id: SceneId }) {
+  const geo = useMemo(() => {
+    const f = built.feet[hlFootIndex(built, id)];
+    if (!f) return null;
+    const w = f.w + 0.7;
+    const d = f.d + 0.7;
+    const outer = roundedRect(w, d, 0.25);
+    outer.holes.push(roundedRect(w - 0.08, d - 0.08, 0.21));
+    return { f, line: new THREE.ShapeGeometry(outer, 8), fill: new THREE.ShapeGeometry(roundedRect(w - 0.08, d - 0.08, 0.21), 8) };
+  }, [built, id]);
+  useLayoutEffect(
+    () => () => {
+      geo?.line.dispose();
+      geo?.fill.dispose();
+    },
+    [geo],
+  );
+  if (!geo) return null;
+  return (
+    <group position={[geo.f.x, 0.014, geo.f.z]} rotation={[-Math.PI / 2, 0, geo.f.rot]}>
+      <mesh geometry={geo.line} material={hoverLine} renderOrder={4} />
+      <mesh geometry={geo.fill} material={hoverFill} renderOrder={4} />
     </group>
   );
 }

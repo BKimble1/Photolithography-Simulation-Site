@@ -18,12 +18,12 @@ import * as THREE from 'three';
 import { DIES, WAFER } from '../../sim/dies';
 import type { Particle } from '../../sim/types';
 import { useSimState, useStep } from '../../state/sim';
-import { useApp } from '../../state/store';
 import { lerp, seg, smooth, useProgressBucket, useProgressFrame } from '../anim';
 import { MAT } from '../materials';
 import { Box, CleanFloor, Cyl, LightTower } from '../kit/parts';
 import { Wafer } from '../wafer/Wafer';
 import type { ToolProps } from './index';
+import { useOverlay } from '../../state/presentation';
 
 type V3 = [number, number, number];
 const TAU = Math.PI * 2;
@@ -436,7 +436,7 @@ export default function Inspect({ variant }: ToolProps) {
   const mode: 'scan' | 'review' = variant === 'review' || id === 'inspect' ? 'review' : 'scan';
   const dur = content.duration;
   const state = useSimState();
-  const lightPath = useApp((s) => s.lightPath);
+  const lightPath = useOverlay('lightPath');
   const parts = state.wafer.particles;
 
   const stageX = useRef<THREE.Group>(null);
@@ -523,7 +523,7 @@ export default function Inspect({ variant }: ToolProps) {
         x={stageX}
         y={stageY}
         spin={spin}
-        wafer={<Wafer look={{ summary: state.wafer, showParticles: true }} position={[0, WAFER_Y, 0]} size={768} />}
+        wafer={<Wafer anchor look={{ summary: state.wafer, showParticles: true }} position={[0, WAFER_Y, 0]} size={768} />}
       />
       <OpticalHead />
       {mode === 'review' && <SemColumn />}

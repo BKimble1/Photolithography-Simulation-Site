@@ -12,12 +12,12 @@ import { useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { FIELDS, WAFER } from '../../sim/dies';
 import { useSimState, useStep } from '../../state/sim';
-import { useApp } from '../../state/store';
 import { lerp, seg, smooth, useProgressBucket, useProgressFrame } from '../anim';
 import { MAT } from '../materials';
 import { Box, Cyl, Lathe, LightTower } from '../kit/parts';
 import { Wafer } from '../wafer/Wafer';
 import type { ToolProps } from './index';
+import { useOverlay } from '../../state/presentation';
 
 const GRANITE_TOP = 0.66;
 const WAFER_Y = GRANITE_TOP + 0.075;
@@ -173,7 +173,7 @@ const FIELD_M = FIELDS.map((f) => ({ x: f.x / 1000, y: f.y / 1000, h: f.h / 1000
 export default function Scanner({ variant }: ToolProps) {
   const state = useSimState();
   const { id } = useStep();
-  const lightPath = useApp((s) => s.lightPath);
+  const lightPath = useOverlay('lightPath');
   const bucket = useProgressBucket(80);
   const v = variant ?? 'expose';
   const exposing = v === 'expose';
@@ -284,7 +284,7 @@ export default function Scanner({ variant }: ToolProps) {
       <group position={stageBase}>
         <group ref={exposeStage}>
           <Stage>
-            <Wafer look={{ summary: state.wafer, showParticles: true, exposedFields: exposing ? fieldsDone : 0, fields: FIELDS }} position={[0, WAFER_Y, 0]} size={768} />
+            <Wafer anchor look={{ summary: state.wafer, showParticles: true, exposedFields: exposing ? fieldsDone : 0, fields: FIELDS }} position={[0, WAFER_Y, 0]} size={768} />
           </Stage>
         </group>
       </group>

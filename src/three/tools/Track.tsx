@@ -9,13 +9,13 @@ import * as THREE from 'three';
 import { spinModel } from '../../sim/flow';
 import { RESIST_RECIPES } from '../../sim/ops';
 import { useSimState, useStep } from '../../state/sim';
-import { useApp } from '../../state/store';
 import { ease, lerp, seg, smooth, useProgressBucket, useProgressFrame } from '../anim';
 import { MAT } from '../materials';
 import { Bowl, Box, Chuck, Cyl, LightTower, NozzleArm } from '../kit/parts';
 import { Wafer } from '../wafer/Wafer';
 import type { CoatOverride } from '../wafer/waferTexture';
 import type { ToolProps } from './index';
+import { useRunChoices } from '../../state/presentation';
 
 const MOD_X = { bake: -0.7, coat: 0, develop: 0.7, prime: 1.4 } as const;
 const DECK_Y = 0.88;
@@ -61,7 +61,7 @@ function ModuleShell({ x, label }: { x: number; label: string }) {
 
 function CoatModule({ active }: { active: boolean }) {
   const state = useSimState();
-  const spin = useApp((s) => s.choices.spin);
+  const spin = useRunChoices().spin;
   const bucket = useProgressBucket(60);
   const { id } = useStep();
   const sp = spinModel(spin);
@@ -112,7 +112,7 @@ function CoatModule({ active }: { active: boolean }) {
       <Bowl r={0.215} h={0.1} position={[0, DECK_Y, 0]} />
       <group ref={waferSpin} position={[0, DECK_Y + 0.052, 0]}>
         <Chuck radius={0.06} position={[0, -0.008, 0]} />
-        {active && <Wafer look={{ summary: state.wafer, showParticles: true, coat }} position={[0, 0, 0]} size={768} />}
+        {active && <Wafer anchor look={{ summary: state.wafer, showParticles: true, coat }} position={[0, 0, 0]} size={768} />}
       </group>
       {/* dispense arm with resist nozzle */}
       <group position={[-0.26, DECK_Y + 0.05, -0.18]}>
@@ -158,7 +158,7 @@ function BakeModule({ active }: { active: boolean }) {
       {[0, 2.1, 4.2].map((a) => (
         <Cyl key={a} r={0.004} h={0.006} position={[Math.cos(a) * 0.11, DECK_Y + 0.028, Math.sin(a) * 0.11]} m="ceramic" />
       ))}
-      {active && <Wafer look={{ summary: state.wafer, showParticles: true }} position={[0, DECK_Y + 0.031, 0]} size={768} />}
+      {active && <Wafer anchor look={{ summary: state.wafer, showParticles: true }} position={[0, DECK_Y + 0.031, 0]} size={768} />}
       <group ref={lid} position={[0, DECK_Y + 0.34, 0]}>
         <Cyl r={0.205} h={0.05} m="steelSatin" seg={72} />
         <Cyl r={0.03} h={0.06} position={[0, 0.05, 0]} m="steelDark" />
@@ -198,7 +198,7 @@ function DevelopModule({ active }: { active: boolean }) {
       <Bowl r={0.215} h={0.1} position={[0, DECK_Y, 0]} />
       <group ref={waferSpin} position={[0, DECK_Y + 0.052, 0]}>
         <Chuck radius={0.06} position={[0, -0.008, 0]} />
-        {active && <Wafer look={{ summary: state.wafer, showParticles: true, developedPattern: state.wafer.resist?.phase === 'developed' }} size={768} />}
+        {active && <Wafer anchor look={{ summary: state.wafer, showParticles: true, developedPattern: state.wafer.resist?.phase === 'developed' }} size={768} />}
       </group>
       <mesh ref={puddle} position={[0, DECK_Y + 0.056, 0]} rotation={[0, 0, 0]} visible={false} material={MAT.water.clone()}>
         <cylinderGeometry args={[0.15, 0.15, 0.004, 64]} />
@@ -235,7 +235,7 @@ function PrimeModule({ active }: { active: boolean }) {
     <group position={[MOD_X.prime, 0, 0]}>
       <Cyl r={0.19} h={0.05} position={[0, DECK_Y, 0]} m="aluminum" seg={72} />
       <Cyl r={0.2} h={0.02} position={[0, DECK_Y - 0.03, 0]} m="black" seg={72} />
-      {active && <Wafer look={{ summary: state.wafer, showParticles: true }} position={[0, DECK_Y + 0.031, 0]} size={768} />}
+      {active && <Wafer anchor look={{ summary: state.wafer, showParticles: true }} position={[0, DECK_Y + 0.031, 0]} size={768} />}
       <mesh ref={haze} position={[0, DECK_Y + 0.06, 0]} visible={false}>
         <cylinderGeometry args={[0.18, 0.18, 0.05, 48]} />
         <meshBasicMaterial color="#fff3d6" transparent opacity={0} depthWrite={false} />

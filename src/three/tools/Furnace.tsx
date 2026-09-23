@@ -537,7 +537,7 @@ export default function Furnace({ variant }: ToolProps) {
         <group ref={boatSpin}>
           <Boat waferMat={mats.wafer}>
             {/* the wafer we follow rides in the top slot */}
-            <Wafer look={{ summary: state.wafer, showParticles: true }} position={[0, TOP_SLOT_Y, 0]} size={512} />
+            <Wafer anchor look={{ summary: state.wafer, showParticles: true }} position={[0, TOP_SLOT_Y, 0]} size={512} />
           </Boat>
         </group>
       </group>

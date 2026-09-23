@@ -6,6 +6,7 @@ import { RoundedBox } from '@react-three/drei';
 import { useMemo, type ReactNode } from 'react';
 import * as THREE from 'three';
 import { MAT, type MatKey } from '../materials';
+import { useStationEnv } from '../stage/context';
 
 type V3 = [number, number, number];
 
@@ -223,6 +224,8 @@ export function ScaraRobot({
 
 /** Raised cleanroom floor with perforated tiles (instanced). */
 export function CleanFloor({ size = 12, tile = 0.6, y = 0 }: { size?: number; tile?: number; y?: number }) {
+  // In the shared fab the bay's floor is used instead.
+  const { placed } = useStationEnv();
   const tex = useMemo(() => {
     const c = document.createElement('canvas');
     c.width = c.height = 256;
@@ -245,6 +248,7 @@ export function CleanFloor({ size = 12, tile = 0.6, y = 0 }: { size?: number; ti
     t.colorSpace = THREE.SRGBColorSpace;
     return t;
   }, [size, tile]);
+  if (placed) return null;
   return (
     <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, y, 0]} receiveShadow>
       <planeGeometry args={[size, size]} />

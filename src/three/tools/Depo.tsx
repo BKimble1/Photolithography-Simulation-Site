@@ -786,7 +786,7 @@ function DepoWafer({ R, group }: { R: Recipe; group: React.RefObject<THREE.Group
   }, [state.wafer, growing, frac, R]);
   return (
     <group ref={group} visible={false}>
-      <Wafer look={{ summary, showParticles: true }} size={768} />
+      <Wafer anchor look={{ summary, showParticles: true }} size={768} />
     </group>
   );
 }

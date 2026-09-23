@@ -6,10 +6,11 @@ import type { Grid } from '../../sim/grid';
 import { CUT_Y, LAYOUT } from '../../sim/layout';
 import { predictContacts } from '../../sim/metrology';
 import { engine, useSimState, useStep } from '../../state/sim';
-import { useApp } from '../../state/store';
 import { sectionLabels } from '../../ui/CrossSection';
 import { Labels, type Label3D } from '../labels';
 import { buildDeviceGeometry, type Group } from './mesher';
+import { useFinalInput, useOverlay, useRunChoices } from '../../state/presentation';
+import type { Choices } from '../../sim/types';
 
 export const DEV = { s: 0.05, zs: 1.3, zMin: -13 };
 
@@ -63,9 +64,9 @@ function DeviceMesh({ grid, xray, yMin, glow }: { grid: Grid; xray: boolean; yMi
 }
 
 /** Translucent pillars showing where contact holes would land for the chosen offset. */
-function ContactPreview({ grid, dx }: { grid: Grid; dx: number }) {
+function ContactPreview({ grid, dx, choices }: { grid: Grid; dx: number; choices: Choices }) {
   const land = predictContacts(dx);
-  const truth = engine.contactTouches(useApp.getState().choices);
+  const truth = engine.contactTouches(choices);
   return (
     <group>
       {land.map((c) => {
@@ -95,10 +96,10 @@ const TAG_POS: Record<'IN' | 'OUT' | 'VDD', [number, number]> = { IN: [48, 46], 
 export function DeviceScene() {
   const state = useSimState();
   const { id, index } = useStep();
-  const xray = useApp((s) => s.xray);
-  const cutaway = useApp((s) => s.cutaway);
-  const choices = useApp((s) => s.choices);
-  const finalInput = useApp((s) => s.finalInput);
+  const xray = useOverlay('xray');
+  const cutaway = useOverlay('cutaway');
+  const choices = useRunChoices();
+  const [finalInput] = useFinalInput();
   const grid = state.grid;
   const yMin = cutaway ? CUT_Y : 0;
   const isFinal = id === 'final';
@@ -125,7 +126,7 @@ export function DeviceScene() {
   return (
     <group>
       <DeviceMesh grid={grid} xray={autoXray} yMin={yMin} glow={glow} />
-      {id === 'contact-align' && <ContactPreview grid={grid} dx={choices.overlay} />}
+      {id === 'contact-align' && <ContactPreview grid={grid} dx={choices.overlay} choices={choices} />}
       <Labels items={tags} />
     </group>
   );

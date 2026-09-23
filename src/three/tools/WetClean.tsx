@@ -9,12 +9,12 @@
 import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { useSimState } from '../../state/sim';
-import { useApp } from '../../state/store';
 import { seg, smooth, useProgressFrame } from '../anim';
 import { MAT } from '../materials';
 import { Box, CleanFloor, Cyl, Lathe, LightTower } from '../kit/parts';
 import { Wafer } from '../wafer/Wafer';
 import type { ToolProps } from './index';
+import { useRunChoices } from '../../state/presentation';
 
 const DUR = 11; // step length (s), for the spin integral
 const DECK_Y = 0.9;
@@ -185,7 +185,7 @@ function SwingArm({ len, h, armRef, children }: { len: number; h: number; armRef
 export default function WetClean({ variant }: ToolProps) {
   void variant;
   const state = useSimState();
-  const cleanOn = useApp((s) => s.choices.clean);
+  const cleanOn = useRunChoices().clean;
 
   const spin = useRef<THREE.Group>(null);
   const armA = useRef<THREE.Group>(null);
@@ -325,7 +325,7 @@ export default function WetClean({ variant }: ToolProps) {
       <Cyl r={0.03} h={0.1} position={[0, DECK_Y + 0.02, 0]} m="steelDark" seg={24} />
       <group ref={spin} position={[0, BASE_Y, 0]}>
         <SpinBase />
-        <Wafer look={{ summary: state.wafer, showParticles: true }} position={[0, WAFER_Y - BASE_Y, 0]} size={768} />
+        <Wafer anchor look={{ summary: state.wafer, showParticles: true }} position={[0, WAFER_Y - BASE_Y, 0]} size={768} />
         <mesh ref={film} position={[0, SURF_Y - BASE_Y + 0.0007, 0]} material={mats.film} visible={false}>
           <cylinderGeometry args={[0.1485, 0.1485, 0.0012, 72]} />
         </mesh>

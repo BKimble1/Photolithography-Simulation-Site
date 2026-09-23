@@ -17,12 +17,12 @@
 import { useLayoutEffect, useMemo, useRef, type RefObject } from 'react';
 import * as THREE from 'three';
 import { useSimState } from '../../state/sim';
-import { useApp } from '../../state/store';
 import { lerp, seg, smooth, useProgressFrame } from '../anim';
 import { MAT } from '../materials';
 import { Box, CleanFloor, Cyl, Lathe, LightTower } from '../kit/parts';
 import { Wafer } from '../wafer/Wafer';
 import type { ToolProps } from './index';
+import { useOverlay } from '../../state/presentation';
 
 type V3 = [number, number, number];
 
@@ -538,7 +538,7 @@ function BeamOverlay({
 export default function Implant({ variant }: ToolProps) {
   void variant;
   const state = useSimState();
-  const beamPath = useApp((s) => s.lightPath);
+  const beamPath = useOverlay('lightPath');
 
   const platen = useRef<THREE.Group>(null);
   const pins = useRef<THREE.Group>(null);
@@ -605,7 +605,7 @@ export default function Implant({ variant }: ToolProps) {
       <FinalLeg />
       <EndStation platen={platen} pins={pins} gate={gate} arm={arm} />
       <group ref={wafer} visible={false}>
-        <Wafer look={{ summary: state.wafer, showParticles: true }} size={768} />
+        <Wafer anchor look={{ summary: state.wafer, showParticles: true }} size={768} />
       </group>
       <BeamOverlay group={beam} fanLine={fanLine} ribbonLine={ribbonLine} spot={spot} />
     </group>

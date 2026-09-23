@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { drawWafer, lookKey, makeCanvasTexture, type WaferLook } from './waferTexture';
+import { waferRegistry } from '../stage/anchors';
+import { useStationEnv } from '../stage/context';
+import { usePresentation } from '../../state/presentation';
 
 /**
  * A 300 mm wafer (radius 0.15 m) with a notch. The top face shows the simulated surface;
@@ -41,8 +44,11 @@ export function Wafer({
   rotation,
   roughness = 0.16,
   metalness = 0.55,
+  anchor = false,
 }: {
   look: WaferLook;
+  /** This is the learner's wafer: register it so camera shots can frame it and your die. */
+  anchor?: boolean;
   radius?: number;
   size?: number;
   position?: [number, number, number];
@@ -74,5 +80,18 @@ export function Wafer({
     },
     [tex, topMat],
   );
-  return <mesh geometry={geo} material={[topMat, edgeMat]} position={position} rotation={rotation} castShadow receiveShadow />;
+  const { station } = useStationEnv();
+  const parked = !!usePresentation()?.parked;
+  const mesh = useRef<THREE.Mesh>(null);
+  useEffect(() => {
+    if (!anchor || parked || !station || !mesh.current) return;
+    const m = mesh.current;
+    waferRegistry.set(station, m);
+    return () => {
+      if (waferRegistry.get(station) === m) waferRegistry.delete(station);
+    };
+  }, [anchor, parked, station]);
+  // An idle machine the story is not at holds no learner wafer.
+  if (anchor && parked) return null;
+  return <mesh ref={mesh} geometry={geo} material={[topMat, edgeMat]} position={position} rotation={rotation} castShadow receiveShadow />;
 }

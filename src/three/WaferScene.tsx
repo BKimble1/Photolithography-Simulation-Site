@@ -3,17 +3,17 @@ import * as THREE from 'three';
 import { DIES, FIELDS, WAFER, YOUR_DIE } from '../sim/dies';
 import { STEP_INDEX } from '../sim/flow';
 import { useSimState, useStep, useWaferMap } from '../state/sim';
-import { useApp } from '../state/store';
 import { useProgressBucket, useProgressFrame } from './anim';
 import { Cyl, ShadowBlob } from './kit/parts';
 import { Wafer } from './wafer/Wafer';
 import { Label } from './labels';
+import { useRunChoices } from '../state/presentation';
 
 /** The wafer on a neutral chuck: the "wafer" zoom level for every step. */
 export function WaferScene() {
   const state = useSimState();
   const { id, index } = useStep();
-  const choices = useApp((s) => s.choices);
+  const choices = useRunChoices();
   const b = useProgressBucket(40);
   const scanning = id === 'scan';
   const probing = id === 'probe';

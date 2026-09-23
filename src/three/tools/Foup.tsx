@@ -786,7 +786,7 @@ export default function Foup({ variant }: ToolProps) {
         <>
           <group ref={podRef} position={[PORT_X, FOUP_Y + HOIST_DROP, UNDOCK_Z]}>
             <Pod withDoor={false} skip={OUR_SLOT}>
-              <Wafer look={waferLook} position={[0, SLOT0 + OUR_SLOT * PITCH, 0]} rotation={[0, PSI0, 0]} size={768} />
+              <Wafer anchor look={waferLook} position={[0, SLOT0 + OUR_SLOT * PITCH, 0]} rotation={[0, PSI0, 0]} size={768} />
             </Pod>
           </group>
           <group ref={podDoorRef} position={[PORT_X, FOUP_Y + 0.72, UNDOCK_Z + FRONT]}>
@@ -803,7 +803,7 @@ export default function Foup({ variant }: ToolProps) {
             <PodDoor />
           </group>
           <group ref={liveWafer} position={[PORT_X, SLOT_Y, DOCK_Z]}>
-            <Wafer look={waferLook} size={768} />
+            <Wafer anchor look={waferLook} size={768} />
           </group>
         </>
       )}

@@ -24,6 +24,11 @@ const TOOLS: Partial<Record<SceneId, ComponentType<ToolProps>>> = {
   scanner: lazy(() => import('./Scanner')),
 };
 
+/** The lazily loaded scene component of a tool (suspends while its module loads). */
+export function toolComponent(id: SceneId): ComponentType<ToolProps> | null {
+  return TOOLS[id] ?? null;
+}
+
 export function ToolScene({ id, variant }: { id: SceneId; variant?: string }) {
   const T = TOOLS[id];
   if (!T) return null;

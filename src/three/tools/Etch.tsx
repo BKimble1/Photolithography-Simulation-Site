@@ -1152,7 +1152,7 @@ export default function Etch({ variant }: ToolProps) {
 
       {/* the simulated wafer */}
       <group ref={wafer} visible={false}>
-        <Wafer look={{ summary: state.wafer, showParticles: true }} size={768} />
+        <Wafer anchor look={{ summary: state.wafer, showParticles: true }} size={768} />
       </group>
     </group>
   );

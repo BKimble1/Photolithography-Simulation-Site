@@ -467,7 +467,7 @@ export default function Dicing({ variant }: ToolProps) {
             <cylinderGeometry args={[0.196, 0.196, TAPE_T, 96]} />
           </mesh>
           <mesh geometry={frameGeo} position={[0, TAPE_Y + TAPE_T, 0]} material={MAT.steel} castShadow receiveShadow />
-          <Wafer look={{ summary: state.wafer, showParticles: true }} position={[0, WAFER_Y, 0]} size={768} />
+          <Wafer anchor look={{ summary: state.wafer, showParticles: true }} position={[0, WAFER_Y, 0]} size={768} />
           <instancedMesh ref={kerf} args={[undefined, undefined, CUTS.length]} material={kerfMat} frustumCulled={false}>
             <boxGeometry args={[1, 0.0004, 0.0007]} />
           </instancedMesh>

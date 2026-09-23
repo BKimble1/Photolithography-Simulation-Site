@@ -1,4 +1,5 @@
 import type { SceneId, ViewLevel } from '../content/steps';
+import type { ToolMount } from './stage/anchors';
 import { POSE as cmp } from './tools/poses/cmp';
 import { POSE as depo } from './tools/poses/depo';
 import { POSE as dicing } from './tools/poses/dicing';
@@ -26,7 +27,13 @@ export interface Pose {
   max?: number;
 }
 
-export type ToolPose = Pose & { variants?: Record<string, Pose> };
+export type ToolPose = Pose & {
+  variants?: Record<string, Pose>;
+  /** Extra named framings in the tool frame (e.g. process chamber, load port). */
+  shots?: Record<string, Pose>;
+  /** Placement of the tool frame inside its fab station (default: identity). */
+  mount?: ToolMount;
+};
 
 export const WAFER_POSE: Pose = { pos: [0, 0.5, 0.4], target: [0, -0.02, 0.0], min: 0.15, max: 1.4 };
 export const DEVICE_POSE: Pose = { pos: [-3.9, 3.4, 7.1], target: [0, 0.35, -0.3], min: 2, max: 16 };

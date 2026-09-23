@@ -16,13 +16,13 @@ import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { DIES, type Die } from '../../sim/dies';
 import { useSimState, useWaferMap } from '../../state/sim';
-import { useApp } from '../../state/store';
 import { clamp01, lerp, smooth, useProgressBucket, useProgressFrame } from '../anim';
 import { Box, CleanFloor, Cyl, LightTower, mat } from '../kit/parts';
 import { MAT, type MatKey } from '../materials';
 import { useWaferGeometry } from '../wafer/Wafer';
 import { drawWafer, lookKey, makeCanvasTexture, type WaferLook } from '../wafer/waferTexture';
 import type { ToolProps } from './index';
+import { useRunChoices } from '../../state/presentation';
 
 type V3 = [number, number, number];
 
@@ -215,7 +215,7 @@ const edgeMat = new THREE.MeshStandardMaterial({ color: '#8f949c', metalness: 0.
  */
 function MapWafer({ groupRef }: { groupRef: React.RefObject<THREE.Group | null> }) {
   const state = useSimState();
-  const choices = useApp((s) => s.choices);
+  const choices = useRunChoices();
   const map = useWaferMap(choices);
   const b = useProgressBucket(240);
   const n = revealCount(b);

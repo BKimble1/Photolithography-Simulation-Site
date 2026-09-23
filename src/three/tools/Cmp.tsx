@@ -692,7 +692,7 @@ export default function Cmp({ variant }: ToolProps) {
       <group ref={wafer} visible={false}>
         <group ref={waferFlip}>
           <group position={[0, -WT / 2, 0]}>
-            <Wafer look={{ summary: state.wafer, showParticles: true }} size={768} />
+            <Wafer anchor look={{ summary: state.wafer, showParticles: true }} size={768} />
             <mesh position={[0, -0.0002, 0]} rotation={[Math.PI / 2, 0, 0]} material={BACKSIDE}>
               <circleGeometry args={[0.1495, 96]} />
             </mesh>

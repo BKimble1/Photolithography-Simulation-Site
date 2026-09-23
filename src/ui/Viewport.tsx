@@ -1,70 +1,118 @@
+/**
+ * The viewport: the one persistent 3D canvas (shared by every mode) plus the lesson's
+ * heads-up display. The canvas element never unmounts when the mode changes; only the
+ * surrounding layout and the controls drawn over it do.
+ */
 import { lazy, Suspense, useMemo } from 'react';
-import type { ViewLevel } from '../content/steps';
 import { CUT_Y } from '../sim/layout';
 import { M } from '../sim/materials';
 import { columnStack } from '../sim/metrology';
 import { useSimState, useStep } from '../state/sim';
-import { useApp, useClock } from '../state/store';
+import { useApp, useClock, type ScaleId } from '../state/store';
 import { LabelLayer } from '../three/labels';
-import { SCALE_TEXT } from '../three/poses';
+import { directorCommands, useStageInfo } from '../three/stage/Director';
+import { PauseIcon, PlayIcon } from './Chrome';
 import { CrossSection } from './CrossSection';
 import { ErrorBoundary, HAS_WEBGL } from './ErrorBoundary';
 import { matColor } from './palette';
 
 const Stage = lazy(() => import('../three/Stage').then((m) => ({ default: m.Stage })));
 
-const LEVELS: { id: ViewLevel; label: string; key: string }[] = [
-  { id: 'fab', label: 'Fab', key: '1' },
-  { id: 'tool', label: 'Tool', key: '2' },
-  { id: 'wafer', label: 'Wafer', key: '3' },
-  { id: 'device', label: 'Device', key: '4' },
-];
+/** Quiet, non-interactive: what scale the picture is at, and how literally to take it. */
+export const SCALE_LABEL: Record<ScaleId, [string, string]> = {
+  fab: ['Fab bay', 'conceptual layout'],
+  tool: ['Equipment view', 'stylised machine'],
+  wafer: ['Wafer surface', '300 mm wafer'],
+  device: ['Magnified cross-section', 'one inverter cell · schematic, not to scale'],
+};
 
-function ViewSwitch() {
-  const view = useApp((s) => s.view);
-  const setView = useApp((s) => s.setView);
+export function ScaleLabel() {
+  const scale = useStageInfo((s) => s.scale);
+  const [a, b] = SCALE_LABEL[scale];
   return (
-    <div className="levels" role="group" aria-label="Zoom level">
-      {LEVELS.map((l) => (
-        <button key={l.id} aria-pressed={view === l.id} onClick={() => setView(l.id)} aria-keyshortcuts={l.key} title={`${l.label} (${l.key})`}>
-          {l.label}
+    <div className="scale-label" data-occludes>
+      <b>{a}</b>
+      <span>{b}</span>
+    </div>
+  );
+}
+
+// ───────────────────────────── lesson HUD ─────────────────────────────
+
+/** Scenes whose invisible radiation (UV light, ions, electrons) can be shown as an overlay. */
+const BEAM_SCENES: Partial<Record<string, string>> = {
+  scanner: 'Light path',
+  implant: 'Beam path',
+  inspect: 'Laser path',
+  metrology: 'Beam path',
+};
+
+function Commands() {
+  const space = useStageInfo((s) => s.space);
+  const flying = useStageInfo((s) => s.flying);
+  const freeLook = useStageInfo((s) => s.freeLook);
+  const override = useApp((s) => s.scaleOverride);
+  const setOverride = useApp((s) => s.setScaleOverride);
+  const lightPath = useApp((s) => s.lightPath);
+  const xray = useApp((s) => s.xray);
+  const cutaway = useApp((s) => s.cutaway);
+  const toggle = useApp((s) => s.toggle);
+  const { content } = useStep();
+  const beam = BEAM_SCENES[content.scene];
+  const inDevice = space === 'device';
+  return (
+    <div className="vp-commands" data-occludes>
+      {inDevice ? (
+        <button className="cmd" onClick={() => setOverride('tool')} aria-keyshortcuts="I" disabled={flying && override === 'tool'}>
+          Back to equipment
         </button>
-      ))}
+      ) : (
+        <button className="cmd" onClick={() => setOverride('device')} aria-keyshortcuts="I" disabled={flying && override === 'device'}>
+          Inspect layers
+        </button>
+      )}
+      {(override !== null || freeLook) && (
+        <button
+          className="cmd cmd--quiet"
+          onClick={() => {
+            setOverride(null);
+            directorCommands.recentre();
+          }}
+          aria-keyshortcuts="G"
+        >
+          Guided view
+        </button>
+      )}
+      {!inDevice && beam && (
+        <button className="cmd cmd--toggle" aria-pressed={lightPath} onClick={() => toggle('lightPath')}>
+          <span className="sw" aria-hidden /> {beam}
+        </button>
+      )}
+      {inDevice && (
+        <>
+          <button className="cmd cmd--toggle" aria-pressed={cutaway} onClick={() => toggle('cutaway')}>
+            <span className="sw" aria-hidden /> Cutaway
+          </button>
+          <button className="cmd cmd--toggle" aria-pressed={xray} onClick={() => toggle('xray')}>
+            <span className="sw" aria-hidden /> X-ray insulators
+          </button>
+        </>
+      )}
     </div>
   );
 }
 
-function ScaleChip() {
-  const view = useApp((s) => s.view);
-  const [a, b] = SCALE_TEXT[view];
-  return (
-    <div className="scalechip" aria-live="polite">
-      <b>{a}</b> · {b}
-    </div>
-  );
-}
-
-function Scrubber() {
+export function Scrubber() {
   const progress = useClock((c) => Math.round(c.progress * 200) / 200);
-  const playing = useClock((c) => c.playing);
+  const playing = useClock((c) => c.playing || c.pendingPlay);
   const { content } = useStep();
   const toggle = useClock((c) => c.toggle);
   const set = useClock((c) => c.set);
-  const pause = useClock((c) => c.pause);
   const secs = content.duration;
   return (
-    <div className="scrub">
+    <div className="scrub" data-occludes>
       <button className="scrub__play" onClick={toggle} aria-label={playing ? 'Pause' : 'Play'} aria-keyshortcuts="Space">
-        {playing ? (
-          <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden>
-            <rect x="2" y="1" width="3" height="10" fill="currentColor" />
-            <rect x="7" y="1" width="3" height="10" fill="currentColor" />
-          </svg>
-        ) : (
-          <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden>
-            <path d="M3 1.5 L10.5 6 L3 10.5 Z" fill="currentColor" />
-          </svg>
-        )}
+        {playing ? <PauseIcon /> : <PlayIcon />}
       </button>
       <input
         className="range scrub__range"
@@ -73,10 +121,11 @@ function Scrubber() {
         max={1}
         step={0.005}
         value={progress}
-        aria-label="Scrub through this step's animation"
+        aria-label="Scrub through this step"
+        aria-valuetext={`${Math.round(progress * secs)} of ${secs} seconds`}
         style={{ ['--pct' as string]: `${progress * 100}%` }}
         onChange={(e) => {
-          pause();
+          useClock.getState().pause();
           set(Number(e.target.value));
         }}
       />
@@ -87,7 +136,25 @@ function Scrubber() {
   );
 }
 
-/** Small layer inset: the stack at one point of the die (bottom-right, like the concept). */
+/** After Explore or Watch, the lesson waits where it was: offer Resume instead of surprise playback. */
+function ResumePrompt() {
+  const from = useApp((s) => s.resumeFrom);
+  const dismiss = useApp((s) => s.dismissResume);
+  if (!from) return null;
+  return (
+    <div className="resume" role="status" data-occludes>
+      <span>Paused where you left it.</span>
+      <button className="btn btn--primary btn--small" onClick={() => useClock.getState().play()}>
+        <PlayIcon /> Resume
+      </button>
+      <button className="icon-btn icon-btn--small" onClick={dismiss} aria-label="Dismiss">
+        ×
+      </button>
+    </div>
+  );
+}
+
+/** Small layer inset: the stack at one point of your die. */
 function LayerInset() {
   const state = useSimState();
   const layers = useMemo(() => {
@@ -103,11 +170,12 @@ function LayerInset() {
     }
     return out;
   }, [state]);
+  if (!layers.length) return null;
   const H = 70;
   const total = layers.reduce((a, l) => a + Math.min(6, Math.max(1.4, l.t)), 0);
   let y = 12;
   return (
-    <div className="inset" aria-label="Layer stack at your die">
+    <div className="inset" aria-label="Layer stack at your die" data-occludes>
       <svg width="92" height="84" viewBox="0 0 92 84" aria-hidden>
         {layers.map((l, i) => {
           const h = (Math.min(6, Math.max(1.4, l.t)) / total) * H;
@@ -123,7 +191,7 @@ function LayerInset() {
         })}
       </svg>
       <div>
-        <div className="inset__title">Layers here</div>
+        <div className="inset__title">Layers at your die</div>
         <ul className="inset__legend">
           {layers.map((l, i) => (
             <li key={i}>
@@ -137,95 +205,48 @@ function LayerInset() {
   );
 }
 
-function DeviceTools() {
-  const xray = useApp((s) => s.xray);
-  const cutaway = useApp((s) => s.cutaway);
-  const toggle = useApp((s) => s.toggle);
+export function LearnHud() {
+  const space = useStageInfo((s) => s.space);
   return (
-    <div className="vp-tools">
-      <button className="pill" aria-pressed={cutaway} onClick={() => toggle('cutaway')}>
-        <span className="sw" aria-hidden /> Cutaway
-      </button>
-      <button className="pill" aria-pressed={xray} onClick={() => toggle('xray')}>
-        <span className="sw" aria-hidden /> X-ray insulators
-      </button>
-    </div>
+    <>
+      <div className="vp-top">
+        <ScaleLabel />
+        <Commands />
+      </div>
+      <div className="vp-bottom">
+        <ResumePrompt />
+        <div className="vp-bottom__row">
+          <Scrubber />
+          {space !== 'device' && <LayerInset />}
+        </div>
+      </div>
+    </>
   );
 }
 
-/** Scenes whose invisible radiation (UV light, ions, electrons) can be shown as an overlay. */
-const BEAM_SCENES: Partial<Record<string, string>> = {
-  scanner: 'Light path',
-  implant: 'Beam path',
-  inspect: 'Laser path',
-  metrology: 'Beam path',
-};
+// ───────────────────────────── the canvas host ─────────────────────────────
 
-function LightToggle({ label }: { label: string }) {
-  const on = useApp((s) => s.lightPath);
-  const toggle = useApp((s) => s.toggle);
-  return (
-    <div className="vp-tools">
-      <button className="pill" aria-pressed={on} onClick={() => toggle('lightPath')}>
-        <span className="sw" aria-hidden /> {label}
-      </button>
-    </div>
-  );
-}
-
-/** Without WebGL, the viewport shows the same state as a 2D cross-section. */
-function FlatView() {
+/** Without WebGL, the lesson shows the same state as a 2D cross-section. */
+export function FlatView() {
   const state = useSimState();
   const { content } = useStep();
   return (
     <div className="vp-flat">
       <CrossSection grid={state.grid} title={`Cross-section of your die: ${content.title}`} />
-      <p className="vp-flat__note">
-        3D isn’t available in this browser, so you’re seeing the cross-section of your die. Every step, control and result still works.
-      </p>
+      <p className="vp-flat__note">3D isn’t available in this browser, so you’re seeing the cross-section of your die. Every step, control and result still works.</p>
     </div>
   );
 }
 
-export function Viewport() {
-  const view = useApp((s) => s.view);
-  const { content } = useStep();
-  if (!HAS_WEBGL) return <FlatViewport />;
-  const describe = `${SCALE_TEXT[view][0]} view: ${content.title}`;
+export function StageHost({ fallback }: { fallback: React.ReactNode }) {
+  if (!HAS_WEBGL) return <>{fallback}</>;
   return (
-    <section className="viewport" aria-label={`3D view. ${describe}. Drag to rotate, scroll or pinch to zoom.`}>
-      <ErrorBoundary fallback={<FlatView />}>
-        <Suspense fallback={<div className="vp-message">Loading the fab…</div>}>
-          <Stage />
-        </Suspense>
-      </ErrorBoundary>
-      <LabelLayer />
-      <div className="vp-top">
-        <ViewSwitch />
-        {view === 'device' ? (
-          <DeviceTools />
-        ) : view === 'tool' && BEAM_SCENES[content.scene] ? (
-          <LightToggle label={BEAM_SCENES[content.scene]!} />
-        ) : (
-          <ScaleChip />
-        )}
-      </div>
-      <div className="vp-bottom">
-        <Scrubber />
-        {view !== 'fab' && <LayerInset />}
-      </div>
-    </section>
+    <ErrorBoundary fallback={fallback}>
+      <Suspense fallback={<div className="vp-message">Loading the fab…</div>}>
+        <Stage />
+      </Suspense>
+    </ErrorBoundary>
   );
 }
 
-function FlatViewport() {
-  return (
-    <section className="viewport viewport--flat" aria-label="Cross-section view of your die">
-      <FlatView />
-      <div className="vp-bottom">
-        <Scrubber />
-        <LayerInset />
-      </div>
-    </section>
-  );
-}
+export { HAS_WEBGL, LabelLayer };
