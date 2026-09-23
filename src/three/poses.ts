@@ -33,6 +33,12 @@ export type ToolPose = Pose & {
   shots?: Record<string, Pose>;
   /** Placement of the tool frame inside its fab station (default: identity). */
   mount?: ToolMount;
+  /**
+   * The machine's bay housing stays on show and is cut away to reveal the detailed interior:
+   * everything nearer the aisle than station-local z AND higher than y is removed. Without
+   * it, the low-detail model is simply replaced by the detailed one.
+   */
+  cutaway?: { z: number; y: number };
 };
 
 export const WAFER_POSE: Pose = { pos: [0, 0.5, 0.4], target: [0, -0.02, 0.0], min: 0.15, max: 1.4 };

@@ -222,6 +222,12 @@ export function ScaraRobot({
   );
 }
 
+/** Parts of a tool's standalone set (its own floor, backdrop) that the shared bay replaces. */
+export function StandaloneOnly({ children }: { children: ReactNode }) {
+  const { placed } = useStationEnv();
+  return placed ? null : <>{children}</>;
+}
+
 /** Raised cleanroom floor with perforated tiles (instanced). */
 export function CleanFloor({ size = 12, tile = 0.6, y = 0 }: { size?: number; tile?: number; y?: number }) {
   // In the shared fab the bay's floor is used instead.

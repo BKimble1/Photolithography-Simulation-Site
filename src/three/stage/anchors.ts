@@ -68,6 +68,9 @@ export function toolMatrix(id: MachineId, out = new THREE.Matrix4()): THREE.Matr
   return out.multiply(_m);
 }
 
+/** Each machine's footprint in the bay (world space), from its low-detail model. */
+export const stationBoxes = new Map<MachineId, THREE.Box3>();
+
 /** Stations whose detailed model is mounted and loaded (the director may hand over to it). */
 export const readyStations = new Set<MachineId>();
 

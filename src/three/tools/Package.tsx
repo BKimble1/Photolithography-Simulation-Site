@@ -16,6 +16,7 @@
  */
 import { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
+import { StandaloneOnly } from '../kit/parts';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { filmsColor, toSrgb8 } from '../../sim/filmColor';
@@ -495,10 +496,12 @@ export default function Package({ variant }: ToolProps) {
       <mesh position={[0, 0.47, 0]} material={MAT.panel} receiveShadow>
         <boxGeometry args={[1.36, 0.92, 0.76]} />
       </mesh>
-      <mesh position={[0, 0, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-        <planeGeometry args={[8, 8]} />
-        <meshStandardMaterial color="#e4e2dc" roughness={0.6} />
-      </mesh>
+      <StandaloneOnly>
+        <mesh position={[0, 0, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+          <planeGeometry args={[8, 8]} />
+          <meshStandardMaterial color="#e4e2dc" roughness={0.6} />
+        </mesh>
+      </StandaloneOnly>
       <primitive object={lightTarget} position={centre} />
       <directionalLight
         position={[centre[0] + 0.22, centre[1] + 0.5, centre[2] + 0.3]}

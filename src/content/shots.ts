@@ -9,6 +9,7 @@
  * magnified cross-section → hold → come back out before moving elsewhere.
  *
  * Framings:
+ *   machine the whole machine from the aisle, framed from its footprint (establishing shot)
  *   shot    a named framing of the step's machine (tools/poses/<tool>.ts: POSE, variants, shots)
  *   wafer   'top' = the whole wafer where it is right now; 'die' = close over your die
  *   fab     the machine's place in the bay ('overview' = the whole bay)
@@ -21,6 +22,7 @@ import type { MachineId } from '../state/nav';
 import { STEPS } from './steps';
 
 export type CamRef =
+  | { kind: 'machine'; station?: MachineId }
   | { kind: 'shot'; name: string; station?: MachineId }
   | { kind: 'wafer'; framing: 'top' | 'die'; station?: MachineId }
   | { kind: 'fab'; station?: MachineId | 'overview' }

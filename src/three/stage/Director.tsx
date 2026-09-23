@@ -29,11 +29,12 @@ import type { MachineId } from '../../state/nav';
 import { cameraBridge, useApp, useClock, type CamPose as StoredPose, type ScaleId } from '../../state/store';
 import { labelStations, projectLabels } from '../labels';
 import { BAY, BACKEND } from '../tools/poses/fab';
-import { fabLod, proxyHidden } from '../tools/Fab';
+import { TOOL_POSES } from '../poses';
+import { cutAmount, cutOpen, fabLod, proxyHidden } from '../tools/Fab';
 import { readyStations, stationCentre, stationGroups } from './anchors';
 import { filmSample, filmBridge } from './filmBridge';
 import { stageTime } from './time';
-import { copyPose, deviceToWorld, evalTrack, lerpPose, makePose, makeSample, resolve, worldToDevice, type CamPose, type CamSample, type Space } from './tracks';
+import { copyPose, deviceToWorld, evalTrack, lerpPose, machinePose, makePose, makeSample, resolve, worldToDevice, type CamPose, type CamSample, type Space } from './tracks';
 
 // ───────────────────────────── published stage info (for the DOM UI) ─────────────────────────────
 
@@ -155,6 +156,27 @@ function fadeLeg(from: CamPose, target: () => CamPose): Leg {
   };
 }
 
+/** Hold a framing for a moment (the establishing beat on arriving at a new machine). */
+function holdLeg(pose: CamPose, dur: number): Leg & { pose: CamPose } {
+  return {
+    pose,
+    dur,
+    eval: (_, out) => {
+      out.mix = 0;
+      copyPose(out.a, pose);
+    },
+  };
+}
+
+/** The establishing pose held in a flight so far, if any (the next leg starts from it). */
+function establishPose(legs: Leg[]): CamPose | null {
+  for (let i = legs.length - 1; i >= 0; i--) {
+    const l = legs[i] as Leg & { pose?: CamPose };
+    if (l.pose) return l.pose;
+  }
+  return null;
+}
+
 // ───────────────────────────── hero (home) ─────────────────────────────
 
 const HERO_WIDE = { pos: new THREE.Vector3(18.8, 2.3, 1.6), target: new THREE.Vector3(-4, 1.45, -1.9), fov: 34 };
@@ -188,6 +210,9 @@ function overviewPose(aspect: number, out: CamPose) {
 
 // ───────────────────────────── helpers ─────────────────────────────
 
+/** Development check of the level-of-detail hand-over: ?lod=proxy keeps the low-detail bay. */
+const FORCE_PROXY = import.meta.env.DEV && typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('lod') === 'proxy';
+
 const BASE_FOV = 32;
 const LOD_DISTANCE = 16;
 /** Framings are composed for a landscape viewport; narrower canvases pull the camera back. */
@@ -210,6 +235,7 @@ const shown = (s: CamSample) => (s.mix >= 0.5 ? s.b : s.a);
 function scaleOf(p: CamPose, mode: string): ScaleId {
   if (p.space === 'device') return 'device';
   if (mode === 'home') return 'fab';
+  if (p.scale) return p.scale;
   const d = p.pos.distanceTo(p.target);
   if (d < 0.9) return 'wafer';
   if (p.pos.y > 6 || d > 11) return 'fab';
@@ -305,7 +331,7 @@ export function Director({ deviceScene, controlsRef }: { deviceScene: THREE.Scen
           const d = useDemo.getState();
           const id = DEMO_STEP[a.machine];
           evalTrack(trackFor(id), d.progress, { station: a.machine, variant: STEPS[id].variant }, out);
-        } else if (a.machine) resolve({ kind: 'shot', name: 'establish', station: a.machine }, { station: a.machine }, out.a);
+        } else if (a.machine) resolve({ kind: 'machine', station: a.machine }, { station: a.machine }, out.a);
         else {
           overviewPose(size.width / Math.max(1, size.height), out.a);
           return fov;
@@ -325,34 +351,52 @@ export function Director({ deviceScene, controlsRef }: { deviceScene: THREE.Scen
   /** Build a flight from the live camera to a (live) target pose. */
   const planFlight = (target: () => CamPose, reduced: boolean, thenFree = false): Flight => {
     const s = st.current;
+    const a = useApp.getState();
     const startPose = copyPose(makePose(), shown(s.live));
     const probe = target();
     const legs: Leg[] = [];
     const station = focusStation();
+    const from = s.lastStation;
+    // Arriving at a different machine in a lesson: establish the whole machine first.
+    const establish = a.mode === 'learn' && !!station && from !== station;
+
+    /** World to world, via the new machine's establishing shot when changing machine. */
+    const worldPath = (start: CamPose) => {
+      if (establish && station) {
+        const est = machinePose(station, makePose());
+        fitPose(est, fitRef.current);
+        legs.push(worldLeg(start, () => est));
+        legs.push(holdLeg(est, 0.35));
+        legs.push(worldLeg(est, target));
+      } else legs.push(worldLeg(start, target));
+    };
+
     if (reduced) {
       legs.push(fadeLeg(startPose, target));
     } else if (startPose.space === 'world' && probe.space === 'world') {
-      legs.push(worldLeg(startPose, target));
+      worldPath(startPose);
     } else if (startPose.space === 'device' && probe.space === 'device') {
       legs.push({ dur: 0.8, eval: (u, out) => ((out.mix = 0), lerpPose(startPose, target(), smooth(u), out.a)) });
     } else if (startPose.space === 'device') {
-      // Retrace: out of the cross-section onto the wafer, then on to the new framing.
-      const from = s.lastStation ?? station;
+      // Retrace: out of the cross-section onto the wafer it came from, then on to the new framing.
+      const origin = from ?? station;
       const onWafer = makePose();
-      resolve({ kind: 'wafer', framing: 'die' }, { station: from }, onWafer);
+      resolve({ kind: 'wafer', framing: 'die' }, { station: origin }, onWafer);
       fitPose(onWafer, fitRef.current);
-      legs.push({ dur: 1.1, eval: (u, out) => deviceToWorld(startPose, onWafer, u, from, out) });
-      legs.push(worldLeg(onWafer, target));
+      legs.push({ dur: 1.1, eval: (u, out) => deviceToWorld(startPose, onWafer, u, origin, out) });
+      worldPath(onWafer);
     } else {
       // Down to the wafer, pick out your die, then reveal the cross-section.
       const onDie = makePose();
       resolve({ kind: 'wafer', framing: 'die' }, { station }, onDie);
       fitPose(onDie, fitRef.current);
-      legs.push(worldLeg(startPose, () => onDie));
+      worldPath(startPose);
+      legs.pop();
+      legs.push(worldLeg(legs.length ? (establishPose(legs) ?? startPose) : startPose, () => onDie));
       legs.push({ dur: 1.2, eval: (u, out) => worldToDevice(onDie, target(), u, station, out) });
     }
     const total = legs.reduce((t, l) => t + l.dur, 0);
-    return { legs, total, start: stageTime.now(), to: station, from: s.lastStation, thenFree };
+    return { legs, total, start: stageTime.now(), to: station, from, thenFree };
   };
 
   const guidedTarget = () => {
@@ -487,6 +531,7 @@ export function Director({ deviceScene, controlsRef }: { deviceScene: THREE.Scen
         controls.getPosition(s.live.a.pos);
         controls.getTarget(s.live.a.target);
         s.live.a.space = s.lastSpace;
+        s.live.a.scale = undefined;
         s.live.mix = 0;
       }
     } else {
@@ -530,17 +575,26 @@ export function Director({ deviceScene, controlsRef }: { deviceScene: THREE.Scen
     const s = st.current;
     const a = useApp.getState();
     const cam = shown(s.live);
-    // Detailed machines replace their proxies when the camera is near (never on the home view).
+    // Level of detail (never on the home view). A housed machine keeps its enclosure and opens
+    // it (cutaway) when it is the one the story is at and the camera is near; other machines
+    // hand over from the low-detail model to the detailed one when the camera is near.
     proxyHidden.clear();
-    if (a.mode !== 'home') {
+    cutOpen.clear();
+    if (a.mode !== 'home' && !FORCE_PROXY) {
+      const focus = focusStation();
+      const f = s.flight;
+      const mid = s.live.mix > 0 && s.live.mix < 1;
       for (const id of readyStations) {
-        if (cam.space === 'device' || cam.pos.distanceTo(stationCentre(id, tmp.c)) < LOD_DISTANCE) proxyHidden.add(id);
+        const near = cam.space === 'device' || mid || cam.pos.distanceTo(stationCentre(id, tmp.c)) < LOD_DISTANCE;
+        if (!near) continue;
+        if (TOOL_POSES[id].cutaway) {
+          const inStory = id === focus || (f && (id === f.from || id === f.to));
+          if (inStory) cutOpen.add(id);
+        } else proxyHidden.add(id);
       }
-      // mid-cross-fade both spaces are drawn: keep the world side detailed too
-      if (s.live.mix > 0 && s.live.mix < 1) for (const id of readyStations) proxyHidden.add(id);
     }
-    stationGroups.forEach((g, id) => (g.visible = proxyHidden.has(id)));
     fabLod.apply();
+    stationGroups.forEach((g, id) => (g.visible = proxyHidden.has(id) || cutAmount(id) > 0.001 || cutOpen.has(id)));
 
     labelStations.clear();
     const f = focusStation();

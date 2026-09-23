@@ -11,7 +11,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 import { engine } from '../../state/sim';
-import { Box, Cyl } from '../kit/parts';
+import { Box, Cyl, StandaloneOnly } from '../kit/parts';
 import { MAT } from '../materials';
 import type { ToolProps } from './index';
 import { useFinalInput, useRunChoices } from '../../state/presentation';
@@ -297,10 +297,12 @@ export default function TestBench({ variant }: ToolProps) {
   return (
     <group>
       {/* floor and bench */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-        <planeGeometry args={[10, 10]} />
-        <meshStandardMaterial color="#e4e2dc" roughness={0.6} />
-      </mesh>
+      <StandaloneOnly>
+        <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+          <planeGeometry args={[10, 10]} />
+          <meshStandardMaterial color="#e4e2dc" roughness={0.6} />
+        </mesh>
+      </StandaloneOnly>
       <Box size={[1.5, 0.04, 0.8]} position={[0, BENCH_Y - 0.024, -0.05]} m="panelWarm" radius={0.006} />
       {[-0.7, 0.7].map((x) => (
         <Box key={x} size={[0.05, BENCH_Y - 0.044, 0.7]} position={[x, (BENCH_Y - 0.044) / 2, -0.05]} m="steelSatin" radius={0.01} />

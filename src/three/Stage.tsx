@@ -417,6 +417,10 @@ export function Stage() {
       dpr={dpr}
       gl={{ antialias: true, toneMapping: THREE.NeutralToneMapping, toneMappingExposure: 1.0, powerPreference: 'high-performance', preserveDrawingBuffer: true }}
       camera={{ fov: 34, near: 0.05, far: 400, position: [18.8, 2.3, 1.6] }}
+      onCreated={({ gl }) => {
+        // cutaway housings clip their own materials
+        gl.localClippingEnabled = true;
+      }}
       aria-hidden
     >
       <ClockDriver />

@@ -11,7 +11,7 @@ import { RESIST_RECIPES } from '../../sim/ops';
 import { useSimState, useStep } from '../../state/sim';
 import { ease, lerp, seg, smooth, useProgressBucket, useProgressFrame } from '../anim';
 import { MAT } from '../materials';
-import { Bowl, Box, Chuck, Cyl, LightTower, NozzleArm } from '../kit/parts';
+import { Bowl, Box, Chuck, Cyl, LightTower, NozzleArm, StandaloneOnly } from '../kit/parts';
 import { Wafer } from '../wafer/Wafer';
 import type { CoatOverride } from '../wafer/waferTexture';
 import type { ToolProps } from './index';
@@ -272,10 +272,12 @@ export default function Track({ variant }: ToolProps) {
       <PrimeModule active={active === 'prime'} />
       <LightTower position={[1.6, DECK_Y + 0.6, -0.3]} on="violet" />
       {/* floor */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
-        <planeGeometry args={[14, 14]} />
-        <meshStandardMaterial color="#e4e1d8" roughness={0.5} />
-      </mesh>
+      <StandaloneOnly>
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
+          <planeGeometry args={[14, 14]} />
+          <meshStandardMaterial color="#e4e1d8" roughness={0.5} />
+        </mesh>
+      </StandaloneOnly>
     </group>
   );
 }

@@ -398,3 +398,8 @@ export function installHistorySync(): () => void {
   window.addEventListener('popstate', on);
   return () => window.removeEventListener('popstate', on);
 }
+
+// Test harness: expose the stores in development builds (e2e specs and capture scripts).
+if (import.meta.env.DEV && typeof window !== 'undefined') {
+  (window as unknown as { __fabStores: unknown }).__fabStores = { useApp, useClock };
+}

@@ -14,7 +14,7 @@ import { FIELDS, WAFER } from '../../sim/dies';
 import { useSimState, useStep } from '../../state/sim';
 import { lerp, seg, smooth, useProgressBucket, useProgressFrame } from '../anim';
 import { MAT } from '../materials';
-import { Box, Cyl, Lathe, LightTower } from '../kit/parts';
+import { Box, Cyl, Lathe, LightTower, StandaloneOnly } from '../kit/parts';
 import { Wafer } from '../wafer/Wafer';
 import type { ToolProps } from './index';
 import { useOverlay } from '../../state/presentation';
@@ -257,10 +257,12 @@ export default function Scanner({ variant }: ToolProps) {
   return (
     <group>
       {/* floor */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-        <planeGeometry args={[16, 16]} />
-        <meshStandardMaterial color="#e2dfd6" roughness={0.55} />
-      </mesh>
+      <StandaloneOnly>
+        <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+          <planeGeometry args={[16, 16]} />
+          <meshStandardMaterial color="#e2dfd6" roughness={0.55} />
+        </mesh>
+      </StandaloneOnly>
       {/* vibration isolators and granite base */}
       {[-0.55, 0.55].flatMap((x) => [-0.38, 0.38].map((z) => <Cyl key={`${x},${z}`} r={0.06} h={0.28} position={[x, 0.14, z]} m="panelDark" />))}
       <Box size={[1.5, 0.36, 1.0]} position={[0, GRANITE_TOP - 0.18 - 0.02, 0]} m="granite" radius={0.02} />

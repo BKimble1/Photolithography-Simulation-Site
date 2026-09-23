@@ -29,6 +29,9 @@ import { useReducedMotion } from '../../state/presentation';
 import { MACHINE_INFO } from '../../content/machines';
 import type { MachineId } from '../../state/nav';
 import { Label } from '../labels';
+import { stationBoxes, stationMatrix } from '../stage/anchors';
+import { stageTime } from '../stage/time';
+import { TOOL_POSES } from '../poses';
 
 // ───────────────────────────── materials ─────────────────────────────
 //
@@ -879,8 +882,23 @@ const N_VEHICLES = 7;
 /** Stations whose detailed tool is on show: their low-detail proxy is hidden (set by the stage). */
 export const proxyHidden = new Set<SceneId>();
 
+/** Housed stations whose enclosure is opened (cut away) to show the detailed interior. */
+export const cutOpen = new Set<SceneId>();
+
+/** How far each housing's cutaway has opened (0 closed … 1 open); animated by the bay. */
+const cutT = new Map<SceneId, number>();
+export const cutAmount = (id: SceneId) => cutT.get(id) ?? 0;
+
 /** Applies proxyHidden to the bay (registered by the mounted FabScene). */
 export const fabLod = { apply: () => {} };
+
+/** Seconds for a housing to open or close. */
+const CUT_TIME = 0.8;
+
+interface CutMats {
+  planes: [THREE.Plane, THREE.Plane];
+  byBase: Map<THREE.Material, THREE.Material>;
+}
 
 export interface FabPicking {
   hovered: SceneId | null;
@@ -930,7 +948,7 @@ export function FabScene({ highlight, hero, picking }: { highlight?: SceneId; he
     if (!m) return;
     const mat = new THREE.Matrix4();
     built.towers.forEach((t, i) => {
-      const hidden = t.id && proxyHidden.has(t.id);
+      const hidden = t.id && proxyHidden.has(t.id) && !TOOL_POSES[t.id].cutaway;
       mat.makeTranslation(t.pos.x, t.pos.y, t.pos.z);
       if (hidden) mat.scale(new THREE.Vector3(1e-4, 1e-4, 1e-4));
       m.setMatrixAt(i, mat);
@@ -950,7 +968,7 @@ export function FabScene({ highlight, hero, picking }: { highlight?: SceneId; he
     const q = new THREE.Quaternion();
     const mat = new THREE.Matrix4();
     built.feet.forEach((f, i) => {
-      const k = f.id && proxyHidden.has(f.id) ? 1e-4 : 1;
+      const k = f.id && proxyHidden.has(f.id) && !TOOL_POSES[f.id].cutaway ? 1e-4 : 1;
       // lie flat (Rx), then turn with the tool (Ry)
       q.setFromEuler(new THREE.Euler(-Math.PI / 2, f.rot, 0, 'YXZ'));
       mat.compose(new THREE.Vector3(f.x, 0.006, f.z), q, new THREE.Vector3((f.w + 0.8) * k, (f.d + 0.8) * k, 1));
@@ -964,7 +982,7 @@ export function FabScene({ highlight, hero, picking }: { highlight?: SceneId; he
     const key = [...proxyHidden].sort().join(',');
     if (key === lodKey.current) return;
     lodKey.current = key;
-    stationGroups.current.forEach((g, id) => (g.visible = !proxyHidden.has(id)));
+    stationGroups.current.forEach((g, id) => (g.visible = !proxyHidden.has(id) || !!TOOL_POSES[id].cutaway));
     placeLenses();
     placeShadows();
   };
@@ -974,6 +992,67 @@ export function FabScene({ highlight, hero, picking }: { highlight?: SceneId; he
       if (fabLod.apply === applyLod) fabLod.apply = () => {};
     };
   });
+
+  // ── cutaway housings: the upper front of an opened machine wipes away from the top down ──
+  const cuts = useRef(new Map<SceneId, CutMats>());
+  const cutTmp = useMemo(() => ({ m: new THREE.Matrix4(), n: new THREE.Vector3(), p: new THREE.Vector3() }), []);
+  useFrame((_, raw) => {
+    const dt = stageTime.virtual ? stageTime.dt : Math.min(raw, 0.1);
+    stationGroups.current.forEach((g, id) => {
+      const spec = TOOL_POSES[id].cutaway;
+      if (!spec) return;
+      const want = cutOpen.has(id) ? 1 : 0;
+      const t0 = cutT.get(id) ?? 0;
+      const t = reduced ? want : want > t0 ? Math.min(1, t0 + dt / CUT_TIME) : Math.max(0, t0 - dt / CUT_TIME);
+      if (t === t0 && (t === 0 || cuts.current.has(id))) {
+        if (t === 0 && cuts.current.has(id)) restore(g, id);
+        return;
+      }
+      cutT.set(id, t);
+      if (t === 0) {
+        restore(g, id);
+        return;
+      }
+      let c = cuts.current.get(id);
+      if (!c) {
+        c = { planes: [new THREE.Plane(), new THREE.Plane()], byBase: new Map() };
+        cuts.current.set(id, c);
+        const planes = c.planes;
+        const byBase = c.byBase;
+        g.traverse((o) => {
+          const mesh = o as THREE.Mesh;
+          if (!mesh.isMesh) return;
+          const base = (mesh.userData.base as THREE.Material) ?? (mesh.material as THREE.Material);
+          mesh.userData.base = base;
+          let cm = byBase.get(base);
+          if (!cm) {
+            cm = base.clone();
+            cm.side = THREE.DoubleSide;
+            cm.clippingPlanes = planes;
+            cm.clipIntersection = true;
+            byBase.set(base, cm);
+          }
+          mesh.material = cm;
+        });
+      }
+      // station-local planes → world: remove z > spec.z (toward the aisle) AND y > wipe height
+      const top = stationBoxes.get(id as MachineId)?.max.y ?? 3;
+      const e = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+      const yCut = top + 0.05 + (spec.y - top - 0.05) * e;
+      stationMatrix(id as MachineId, cutTmp.m);
+      c.planes[0].setFromNormalAndCoplanarPoint(cutTmp.n.set(0, 0, -1), cutTmp.p.set(0, 0, spec.z)).applyMatrix4(cutTmp.m);
+      c.planes[1].setFromNormalAndCoplanarPoint(cutTmp.n.set(0, -1, 0), cutTmp.p.set(0, yCut, 0)).applyMatrix4(cutTmp.m);
+    });
+  });
+  const restore = (g: THREE.Group, id: SceneId) => {
+    g.traverse((o) => {
+      const mesh = o as THREE.Mesh;
+      if (mesh.isMesh && mesh.userData.base) mesh.material = mesh.userData.base as THREE.Material;
+    });
+    cuts.current.get(id)?.byBase.forEach((m) => m.dispose());
+    cuts.current.delete(id);
+    cutT.set(id, 0);
+  };
 
   // ── picking volumes for the fab explorer (one invisible box per station) ──
   const pickBoxes = useMemo(() => {
@@ -985,6 +1064,8 @@ export function FabScene({ highlight, hero, picking }: { highlight?: SceneId; he
       });
       const size = box.getSize(new THREE.Vector3());
       const c = box.getCenter(new THREE.Vector3());
+      // the explorer and the flights frame each machine by its footprint
+      if (st.id !== 'wafer') stationBoxes.set(st.id as MachineId, box.clone());
       return { id: st.id, size: [size.x + 0.3, size.y + 0.1, size.z + 0.3] as [number, number, number], centre: [c.x, c.y, c.z] as [number, number, number], top: box.max.y };
     });
   }, [built]);

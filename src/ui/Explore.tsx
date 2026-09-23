@@ -3,7 +3,7 @@
  * an isolated demonstration on a sample wafer. Nothing here changes the learning run: the
  * only way into a lesson is the explicit "Open this lesson" link.
  */
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { DEMO_STEP, lessonsFor, MACHINE_INFO } from '../content/machines';
 import { STEPS } from '../content/steps';
 import { FLOW, STEP_INDEX } from '../sim/flow';
@@ -21,13 +21,13 @@ const AREA_NAME = { fab: 'Clean room', backend: 'Test and packaging' } as const;
 function Lessons({ id }: { id: MachineId }) {
   const goTo = useApp((s) => s.goTo);
   const lessons = lessonsFor(id);
+  const [open, setOpen] = useState(false);
+  const shown = open ? lessons : lessons.slice(0, 2);
   return (
     <div className="mcard__lessons">
-      <p className="mcard__k">
-        {lessons.length > 1 ? `Used in ${lessons.length} steps: the wafer comes back here for later layers` : 'Used in one step'}
-      </p>
+      <p className="mcard__k">{lessons.length > 1 ? `Used in ${lessons.length} steps: the wafer comes back here for later layers.` : 'Used in one step.'}</p>
       <ul>
-        {lessons.map((i) => (
+        {shown.map((i) => (
           <li key={i}>
             <button className="lesson-chip" onClick={() => goTo(i)} title="Open this lesson">
               <span className="lesson-chip__n">{i + 1}</span>
@@ -35,6 +35,13 @@ function Lessons({ id }: { id: MachineId }) {
             </button>
           </li>
         ))}
+        {lessons.length > 2 && (
+          <li>
+            <button className="lesson-chip lesson-chip--more" onClick={() => setOpen(!open)} aria-expanded={open}>
+              {open ? 'Fewer' : `+${lessons.length - 2} more`}
+            </button>
+          </li>
+        )}
       </ul>
     </div>
   );

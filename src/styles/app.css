@@ -1688,6 +1688,10 @@ a {
   border-color: var(--ink-4);
   color: var(--ink);
 }
+.lesson-chip--more {
+  padding: 3px 10px;
+  color: var(--ink-3);
+}
 .lesson-chip__n {
   min-width: 22px;
   height: 22px;

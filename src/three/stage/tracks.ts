@@ -13,7 +13,9 @@ import type { CamRef, Key } from '../../content/shots';
 import type { MachineId } from '../../state/nav';
 import { DEVICE_POSE, type Pose } from '../poses';
 import { fabPoseFor, POSE as FAB_POSE } from '../tools/poses/fab';
-import { anchorsOf, toolMatrix, waferFrame } from './anchors';
+import { facing } from '../tools/poses/fab';
+import type { ScaleId } from '../../state/store';
+import { anchorsOf, stationBoxes, toolMatrix, waferFrame } from './anchors';
 
 export type Space = 'world' | 'device';
 
@@ -21,6 +23,8 @@ export interface CamPose {
   space: Space;
   pos: THREE.Vector3;
   target: THREE.Vector3;
+  /** What the framing shows (for the scale label); unset for free camera positions. */
+  scale?: ScaleId;
 }
 
 export const makePose = (space: Space = 'world'): CamPose => ({ space, pos: new THREE.Vector3(), target: new THREE.Vector3() });
@@ -29,6 +33,7 @@ export function copyPose(dst: CamPose, src: CamPose): CamPose {
   dst.space = src.space;
   dst.pos.copy(src.pos);
   dst.target.copy(src.target);
+  dst.scale = src.scale;
   return dst;
 }
 
@@ -59,6 +64,7 @@ const v2 = new THREE.Vector3();
 
 function setPose(out: CamPose, space: Space, pose: Pose, m?: THREE.Matrix4): CamPose {
   out.space = space;
+  out.scale = space === 'device' ? 'device' : 'tool';
   out.pos.set(pose.pos[0], pose.pos[1], pose.pos[2]);
   out.target.set(pose.target[0], pose.target[1], pose.target[2]);
   if (m) {
@@ -75,6 +81,29 @@ function toolShot(id: MachineId, name: string, out: CamPose): CamPose {
   return setPose(out, 'world', pose, toolMatrix(id, tmpM));
 }
 
+const MACHINE_ELEV = 0.42; // ~24° above horizontal
+const MACHINE_YAW = 0.52; // ~30° off the machine's front axis, toward the east
+const HALF_FOV = (32 / 2) * (Math.PI / 180);
+const mc = new THREE.Vector3();
+const ms = new THREE.Vector3();
+
+/** The whole machine from the aisle side, at a three-quarter angle, sized to its footprint. */
+export function machinePose(id: MachineId, out: CamPose): CamPose {
+  const box = stationBoxes.get(id);
+  if (!box) return toolShot(id, 'establish', out);
+  box.getCenter(mc);
+  box.getSize(ms);
+  const r = 0.5 * Math.hypot(ms.x, ms.y * 0.8, ms.z);
+  const dist = Math.max(3.6, Math.min(8.5, (r / Math.sin(HALF_FOV)) * 0.92));
+  const f = facing(id);
+  out.space = 'world';
+  out.scale = 'tool';
+  out.target.set(mc.x, Math.min(1.05, mc.y), mc.z);
+  const ce = Math.cos(MACHINE_ELEV);
+  out.pos.set(Math.sin(MACHINE_YAW) * ce, Math.sin(MACHINE_ELEV), f * Math.cos(MACHINE_YAW) * ce).multiplyScalar(dist).add(out.target);
+  return out;
+}
+
 /**
  * Resolve a framing. Wafer framings look at the wafer where the tool holds it right now,
  * from the side the machine is normally seen from; if no wafer is present, they fall back to
@@ -82,12 +111,18 @@ function toolShot(id: MachineId, name: string, out: CamPose): CamPose {
  */
 export function resolve(ref: CamRef, ctx: ResolveCtx, out: CamPose): CamPose {
   switch (ref.kind) {
+    case 'machine': {
+      const st = ref.station ?? ctx.station;
+      if (!st) return setPose(out, 'world', FAB_POSE);
+      return machinePose(st, out);
+    }
     case 'device':
       return setPose(out, 'device', DEVICE_FRAMINGS[ref.framing]);
     case 'fab': {
       const st = ref.station ?? ctx.station;
-      if (!st || st === 'overview') return setPose(out, 'world', FAB_POSE);
-      return setPose(out, 'world', fabPoseFor(st));
+      setPose(out, 'world', !st || st === 'overview' ? FAB_POSE : fabPoseFor(st));
+      out.scale = 'fab';
+      return out;
     }
     case 'shot': {
       const st = ref.station ?? ctx.station;
@@ -110,6 +145,7 @@ export function resolve(ref: CamRef, ctx: ResolveCtx, out: CamPose): CamPose {
       const centre = top ? wf.centre : wf.die;
       v2.copy(v1).multiplyScalar(Math.cos(elev)).addScaledVector(wf.up, Math.sin(elev)).multiplyScalar(dist);
       out.space = 'world';
+      out.scale = 'wafer';
       out.target.copy(centre);
       out.pos.copy(centre).add(v2);
       return out;
@@ -181,6 +217,7 @@ export function deviceToWorld(deviceFrom: CamPose, worldTo: CamPose, t: number, 
 /** Plain move within one space. */
 export function lerpPose(a: CamPose, b: CamPose, t: number, out: CamPose): CamPose {
   out.space = b.space;
+  out.scale = t < 0.5 ? a.scale : b.scale;
   out.pos.lerpVectors(a.pos, b.pos, t);
   out.target.lerpVectors(a.target, b.target, t);
   return out;
