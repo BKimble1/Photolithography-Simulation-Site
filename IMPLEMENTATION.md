@@ -286,10 +286,12 @@ test explains the cause.
   exposed areas; litho precedes etch (exposure alone changes no geometry; etch follows the
   developed openings); deterministic replay and seek (cached vs fresh, any order); overlay
   failure; the inverter truth table; wafer map; diagnosis.
-* `npm run e2e` — Playwright against the production build at desktop, tablet and mobile
-  sizes: the full first-run journey to a working inverter and the recap; keyboard use;
-  reduced motion; overlay failure and restore; under-exposure, rework and recovery;
-  skipped clean lowering yield. Console errors fail the tests.
+* `npm run e2e` — Playwright against the production build at desktop (1440 × 900), tablet
+  (1024 × 768, touch) and phone (390 × 844, touch) sizes: the full first-run journey through
+  all 37 steps to a working inverter and the recap (desktop and phone); keyboard use
+  (desktop and tablet); reduced motion; overlay failure and restore; under-exposure, rework
+  and recovery; skipped clean lowering yield. Any console error fails a test. A full run
+  takes about 9 minutes with software WebGL.
 * `npm run screenshots` — regenerates `docs/screenshots/`.
 
 ## Adding a step

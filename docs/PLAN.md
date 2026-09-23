@@ -14,7 +14,8 @@ a procedural environment, fonts are bundled from `@fontsource`.
 
 `src/sim` is plain TypeScript with no React or Three.js imports.
 
-* **Die grid.** The illustrative inverter cell is a 96 × 64 grid of columns. Each column is
+* **Die grid.** The illustrative inverter cell is a 96 × 64 grid of columns (the finished
+  model refines x to 192 columns of 0.5 grid units). Each column is
   a bottom-to-top stack of segments `(material, top z, doping/state tag, aux value)`.
   Deposition, oxidation, coating, etching, implanting, CMP and stripping are pure functions
   on this grid. The 3D cutaway, the 2D cross-section, the layer inset and the electrical

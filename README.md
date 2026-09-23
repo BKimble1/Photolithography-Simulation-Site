@@ -16,8 +16,10 @@ change the chip you end up testing.
 | Coating | Exposure (light path on) |
 |---|---|
 | ![Coat the wafer](docs/screenshots/02-coating.png) | ![Expose](docs/screenshots/03-exposure-light-path.png) |
-| **Develop: cross-section** | **Final test** |
+| **Develop: cross-section** | **Final test (input 1 → output 0)** |
 | ![Develop](docs/screenshots/04-develop-cross-section.png) | ![Final test](docs/screenshots/05-final-test.png) |
+| **Wafer sort** | **Phone: coat and final test** |
+| ![Probe every die](docs/screenshots/06-wafer-map.png) | ![Phone coat](docs/screenshots/07-mobile-coating.png) ![Phone final test](docs/screenshots/08-mobile-final-test.png) |
 
 ## Run it locally
 
