@@ -63,6 +63,23 @@ export function fixedProgress(p: number): ProgressSource {
   return { get: () => p, subscribe: () => () => {} };
 }
 
+/**
+ * The lesson clock as seen by one lesson: it follows the clock while that lesson is the one
+ * in the store, and keeps its last value once the store has moved to another lesson. (The
+ * store resets the clock the moment the lesson changes; the machine left behind is only
+ * re-rendered, frozen, a moment later, and must not show its lesson restarting meanwhile.)
+ */
+function lessonProgress(stepIndex: number): ProgressSource {
+  let last = useApp.getState().step === stepIndex ? useClock.getState().progress : 0;
+  return {
+    get: () => {
+      if (useApp.getState().step === stepIndex) last = useClock.getState().progress;
+      return last;
+    },
+    subscribe: (fn) => useClock.subscribe((s, p) => s.progress !== p.progress && useApp.getState().step === stepIndex && fn()),
+  };
+}
+
 /** Build the Learn presentation from the store (used by the stage while in Learn). */
 export function useLearnPresentation(): Presentation {
   const stepIndex = useApp((s) => s.step);
@@ -73,9 +90,10 @@ export function useLearnPresentation(): Presentation {
   const finalInput = useApp((s) => s.finalInput);
   const reducedMotion = useApp((s) => s.reducedMotion);
   const setFinalInput = useApp((s) => s.setFinalInput);
+  const progress = useMemo(() => lessonProgress(stepIndex), [stepIndex]);
   return useMemo(
-    () => ({ kind: 'learn', stepIndex, choices, progress: learnProgress, lightPath, xray, cutaway, finalInput, reducedMotion, setFinalInput }),
-    [stepIndex, choices, lightPath, xray, cutaway, finalInput, reducedMotion, setFinalInput],
+    () => ({ kind: 'learn', stepIndex, choices, progress, lightPath, xray, cutaway, finalInput, reducedMotion, setFinalInput }),
+    [stepIndex, choices, progress, lightPath, xray, cutaway, finalInput, reducedMotion, setFinalInput],
   );
 }
 

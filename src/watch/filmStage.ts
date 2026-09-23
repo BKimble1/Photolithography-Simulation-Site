@@ -42,8 +42,11 @@ let clock: Clock | null = null;
 const presCache = new Map<string, Presentation>();
 
 function progressSource(stepIndex: number): ProgressSource {
+  // (after the film is closed, the machines it showed keep their last picture until the stage
+  // has frozen them)
+  let last = 0;
   return {
-    get: () => (clock ? progressOf(clock.tl, stepIndex, clock.t()) : 0),
+    get: () => (clock ? (last = progressOf(clock.tl, stepIndex, clock.t())) : last),
     subscribe: (fn) => (clock ? clock.subscribe(fn) : () => {}),
   };
 }

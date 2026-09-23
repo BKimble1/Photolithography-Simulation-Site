@@ -1,6 +1,6 @@
 // Real-time playback measurements on a running build (normal wall-clock time, never ?virt=1).
 //
-//   node scripts/perf.mjs <baseUrl> <out.json> [--scenarios a,b,c] [--video dir] [--label text] [--query k=v&k2=v2]
+//   node scripts/perf.mjs <baseUrl> <out.json> [--scenarios a,b,c] [--video dir] [--label text] [--query k=v&k2=v2] [--gpu] [--headed]
 //
 // Each scenario drives the app the way a learner would (clicks, keys) and records, per phase:
 // the interval between animation frames (median, p95, p99, max, frames over 50 and 100 ms),
@@ -309,7 +309,17 @@ const sha = (() => {
   }
 })();
 
-const browser = await chromium.launch({ args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist', '--enable-webgl', '--enable-precise-memory-info'] });
+// Software rendering (SwiftShader) by default, so runs are comparable on machines without a
+// GPU; --gpu uses the machine's graphics hardware (with --headed, in a visible window, which
+// some drivers need for hardware acceleration).
+const gpu = args.includes('--gpu');
+const headed = args.includes('--headed');
+const browser = await chromium.launch({
+  headless: !headed,
+  args: gpu
+    ? ['--ignore-gpu-blocklist', '--enable-gpu-rasterization', '--enable-webgl', '--enable-precise-memory-info']
+    : ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist', '--enable-webgl', '--enable-precise-memory-info'],
+});
 const report = { label, base, query: extra.slice(1), sha, date: new Date().toISOString(), host: { cpus: os.cpus().length, cpu: os.cpus()[0]?.model, memGB: Math.round(os.totalmem() / 2 ** 30) }, scenarios: {} };
 const viewports = { desktop: { width: 1280, height: 800, deviceScaleFactor: 1 }, phone: { width: 390, height: 844, deviceScaleFactor: 2, isMobile: true, hasTouch: true } };
 const list = Object.keys(scenarios).filter((k) => !only || only.includes(k));
