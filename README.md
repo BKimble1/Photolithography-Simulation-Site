@@ -59,10 +59,11 @@ npm run preview        # http://127.0.0.1:4173
 | `npm run typecheck` | TypeScript only |
 | `npm test` | unit tests (Vitest): process model, captions, film timeline |
 | `npm run e2e` | browser tests (Playwright) on desktop, tablet and phone sizes against the production build; builds and starts the preview server itself |
-| `npm run screenshots` | regenerate `docs/screenshots/` |
+| `npm run screenshots` | regenerate `docs/screenshots/round2/` from the production build |
 | `tools/narration/build.sh` | re-render the film's narration from `src/content/narration.json` (offline; see [its README](tools/narration/README.md)) |
 | `node scripts/record.mjs scripts/recordings/<name>.json` | render a recording frame by frame (dev server running) |
-| `node scripts/stats.mjs` | draw calls, triangles and per-frame CPU cost for a set of views |
+| `node scripts/stats.mjs` | draw calls, triangles, per-frame CPU cost and JS heap for a set of views (dev server running) |
+| `node scripts/cue-alignment.mjs` | decode the narration in the browser and compare where speech starts and ends with the film's cue times |
 
 The browser tests use Playwright's Chromium with software WebGL (SwiftShader), so they
 also run on machines without a GPU. If Playwright's browser isn't installed yet, run

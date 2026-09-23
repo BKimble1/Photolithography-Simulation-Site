@@ -30,7 +30,7 @@ import { labelStations, projectLabels } from '../labelProjection';
 import { BAY, BACKEND } from '../tools/poses/fab';
 import { TOOL_POSES } from '../poses';
 import { cutAmount, cutInstant, cutOpen, fabLod, proxyHidden } from '../tools/Fab';
-import { readyStations, stationCentre, stationGroups } from './anchors';
+import { readyStations, stationBoxes, stationCentre, stationGroups } from './anchors';
 import { filmSample, filmBridge } from './filmBridge';
 import { directorCommands, publish, stageFocus } from './info';
 import { stageTime } from './time';
@@ -83,6 +83,75 @@ export function overviewPose(aspect: number, out: CamPose) {
   out.scale = 'fab';
   out.pos.lerpVectors(OV_WIDE.pos, OV_TALL.pos, k);
   out.target.lerpVectors(OV_WIDE.target, OV_TALL.target, k);
+  if (aspect < 1) fitOverview(aspect, out);
+}
+
+const ovCam = new THREE.PerspectiveCamera(32, 1, 0.5, 500);
+const ovPt = new THREE.Vector3();
+const ovRight = new THREE.Vector3();
+const ovUp = new THREE.Vector3();
+const ovCache = new Map<string, { pos: THREE.Vector3; target: THREE.Vector3 }>();
+
+/**
+ * Portrait screens: move the overview so every machine is on screen, and on phones above the
+ * overview card, which covers the bottom of the view (so each one can be tapped). The view
+ * direction stays; the camera is centred on the machines and pulled back until they fit.
+ */
+function fitOverview(aspect: number, out: CamPose) {
+  if (!stationBoxes.size) return;
+  const key = `${aspect.toFixed(2)}:${stationBoxes.size}`;
+  let hit = ovCache.get(key);
+  if (!hit) {
+    const pts: THREE.Vector3[] = [];
+    stationBoxes.forEach((b) => {
+      for (let i = 0; i < 8; i++) pts.push(new THREE.Vector3(i & 1 ? b.max.x : b.min.x, i & 2 ? b.max.y : b.min.y, i & 4 ? b.max.z : b.min.z));
+    });
+    // the visible band of the view in NDC y: phones keep the machines above the (compact) card
+    const yLo = aspect < 0.7 ? -0.6 : -0.88;
+    const yHi = 0.88;
+    const xLim = 0.88;
+    const pos = out.pos.clone();
+    const target = out.target.clone();
+    ovCam.aspect = aspect;
+    ovCam.updateProjectionMatrix();
+    const place = (dist: number) => {
+      const dir = ovPt.copy(pos).sub(target).normalize();
+      ovCam.position.copy(target).addScaledVector(dir, dist);
+      ovCam.lookAt(target);
+      ovCam.updateMatrixWorld();
+    };
+    const bounds = () => {
+      let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+      for (const p of pts) {
+        ovPt.copy(p).project(ovCam);
+        x0 = Math.min(x0, ovPt.x);
+        x1 = Math.max(x1, ovPt.x);
+        y0 = Math.min(y0, ovPt.y);
+        y1 = Math.max(y1, ovPt.y);
+      }
+      return { x0, x1, y0, y1 };
+    };
+    let dist = pos.distanceTo(target);
+    for (let it = 0; it < 6; it++) {
+      place(dist);
+      const b = bounds();
+      // centre the machines in the visible band (shift the target along the screen axes)
+      ovRight.setFromMatrixColumn(ovCam.matrixWorld, 0);
+      ovUp.setFromMatrixColumn(ovCam.matrixWorld, 1);
+      const halfW = dist * Math.tan(THREE.MathUtils.degToRad(16)) * aspect;
+      const halfH = dist * Math.tan(THREE.MathUtils.degToRad(16));
+      target.addScaledVector(ovRight, ((b.x0 + b.x1) / 2) * halfW);
+      target.addScaledVector(ovUp, ((b.y0 + b.y1) / 2 - (yLo + yHi) / 2) * halfH);
+      // then scale the distance so the spread fits
+      const need = Math.max((b.x1 - b.x0) / (2 * xLim), (b.y1 - b.y0) / (yHi - yLo));
+      dist *= Math.max(0.6, Math.min(1.8, need));
+    }
+    place(dist);
+    hit = { pos: ovCam.position.clone(), target: target.clone() };
+    ovCache.set(key, hit);
+  }
+  out.pos.copy(hit.pos);
+  out.target.copy(hit.target);
 }
 
 // ───────────────────────────── helpers ─────────────────────────────
@@ -91,6 +160,8 @@ export function overviewPose(aspect: number, out: CamPose) {
 const FORCE_PROXY = import.meta.env.DEV && typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('lod') === 'proxy';
 
 const BASE_FOV = 32;
+/** The world's fog (Stage.tsx), near and far in metres. */
+const FOG: [number, number] = [34, 110];
 const LOD_DISTANCE = 16;
 /** Framings are composed for a landscape viewport; narrower canvases pull the camera back. */
 const DESIGN_ASPECT = 1.4;
@@ -451,6 +522,14 @@ export function Director({ deviceScene, controlsRef }: { deviceScene: THREE.Scen
     labelStations.clear();
     const f = focusStation();
     if (f) labelStations.add(f);
+
+    // Fog hides the far end of the floor; a distant overview (a phone's, say) pushes it back
+    // with the camera so the bay stays readable.
+    if (scene.fog instanceof THREE.Fog && cam.space === 'world') {
+      const d = cam.pos.distanceTo(cam.target);
+      scene.fog.near = Math.max(FOG[0], d * 0.75);
+      scene.fog.far = Math.max(FOG[1], d * 2.2);
+    }
 
     s.lastSpace = cam.space;
     if (!flying) s.lastStation = f;

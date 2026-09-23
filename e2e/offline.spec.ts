@@ -12,6 +12,7 @@ test.describe('offline film', () => {
   });
 
   test.afterEach(async ({ page }) => {
+    if (!page.url().startsWith('http')) return; // skipped: the page never left about:blank
     await page.evaluate(async () => {
       for (const k of await caches.keys()) await caches.delete(k);
       for (const r of await navigator.serviceWorker.getRegistrations()) await r.unregister();

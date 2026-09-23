@@ -257,8 +257,8 @@ const PLANS: Record<string, Plan> = {
   // litho/etch/strip elsewhere until 0.55; copper plated at 0.7 (while the wafer is in the head); polish at 0.85;
   // the wafer then waits in the cup (the cap is deposited elsewhere, seen in the cross-section)
   metal1: { arrive: [0.58, 0.64], load: [0.645, 0.71], polish: [0.71, 0.85], unload: [0.85, 0.915] },
-  // second level: strip at 0.72, copper at 0.84 (hidden, face-down), polish at 0.9
-  metal2: { arrive: [0.722, 0.755], load: [0.755, 0.79], polish: [0.79, 0.9], unload: [0.9, 0.965] },
+  // second level: strip at 0.72 elsewhere; copper at 0.84 (while the wafer is in the head, face-down); polish to 0.9
+  metal2: { arrive: [0.76, 0.79], load: [0.79, 0.835], polish: [0.845, 0.9], unload: [0.9, 0.965] },
 };
 
 interface Frame {

@@ -19,6 +19,8 @@ const SHOTS: { file: string; path: string; w: number; h: number; answered?: bool
   { file: 'learn-coat-phone.png', path: '/?step=coat&p=0.35', w: 390, h: 844 },
   { file: 'learn-expose-light-path-1440x900.png', path: '/?step=expose&p=0.45&lp=1', w: 1440, h: 900 },
   { file: 'learn-gate-etch-1440x900.png', path: '/?step=gate-etch&p=0.55', w: 1440, h: 900 },
+  { file: 'learn-sti-etch-plasma-1440x900.png', path: '/?step=sti-etch&p=0.62', w: 1440, h: 900 },
+  { file: 'learn-contact-fill-polish-1440x900.png', path: '/?step=contact-fill&p=0.65', w: 1440, h: 900 },
   { file: 'learn-final-test-1440x900.png', path: '/?step=final&p=1&in=1', w: 1440, h: 900 },
   { file: 'learn-chapters-1440x900.png', path: '/?step=develop&p=1&panel=chapters', w: 1440, h: 900, answered: true },
   { file: 'explore-overview-1440x900.png', path: '/?explore', w: 1440, h: 900 },

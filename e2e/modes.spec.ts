@@ -1,8 +1,9 @@
 import { expect, test } from '@playwright/test';
 import { STEPS } from '../src/content/steps';
-import { advance, freshStart, press, runState, stageInfo, watchErrors } from './helpers';
+import { advance, freshStart, press, runState, settle, stageInfo, waitForStage, watchErrors } from './helpers';
 
 test('changing scale never changes the step, choices, checks or simulated state', async ({ page, hasTouch }) => {
+  test.setTimeout(480_000); // frame-stepped on software rendering
   const errors = watchErrors(page);
   await freshStart(page, '/?step=gate-etch&virt=1');
   await advance(page, 12);
@@ -14,46 +15,51 @@ test('changing scale never changes the step, choices, checks or simulated state'
   await advance(page, 2);
   const before = await runState(page);
   await press(page.getByRole('button', { name: 'Inspect layers' }), hasTouch);
-  await advance(page, 120);
+  await settle(page);
   expect((await stageInfo(page)).space).toBe('device');
   expect(await runState(page)).toEqual(before);
   await press(page.getByRole('button', { name: 'Back to equipment' }), hasTouch);
-  await advance(page, 120);
+  await settle(page);
   expect((await stageInfo(page)).space).toBe('world');
   expect(await runState(page)).toEqual(before);
   expect(errors).toEqual([]);
 });
 
 test('Explore fab pauses the lesson; returning restores it exactly and offers Resume', async ({ page, hasTouch }) => {
+  test.setTimeout(480_000); // frame-stepped on software rendering
   const errors = watchErrors(page);
   await freshStart(page, '/?step=coat&virt=1');
-  await advance(page, 90); // the camera arrives and the step plays for a while
-  await page.evaluate(() => (window as unknown as { __fabStores: { useClock: { getState: () => { pause: () => void } } } }).__fabStores.useClock.getState().pause());
-  await advance(page, 2);
-  const before = await runState(page);
+  await waitForStage(page);
+  await advance(page, 45); // the step is playing
+  expect((await runState(page)).playing).toBe(true);
   const camBefore = (await stageInfo(page)).cam;
-  expect(before.progress).toBeGreaterThan(0.05);
 
+  // Leaving for Explore pauses the lesson exactly where it was (no frame is drawn in between).
   await press(page.getByRole('button', { name: 'Explore fab' }), hasTouch);
+  const before = { ...(await runState(page)), mode: 'learn' };
+  expect(before.playing).toBe(false);
+  expect(before.progress).toBeGreaterThan(0.05);
   await expect(page).toHaveURL(/\?explore$/);
-  await advance(page, 90);
+  await settle(page);
   await press(page.getByRole('button', { name: 'Equipment', exact: true }), hasTouch);
   await press(page.getByRole('button', { name: /^Plasma etch cluster/ }), hasTouch);
   await expect(page.getByRole('heading', { name: 'Plasma etch cluster' })).toBeVisible();
   await expect(page).toHaveURL(/\?explore=etch$/);
   await press(page.getByRole('button', { name: 'See it work' }), hasTouch);
   await expect(page.getByText('Demonstration', { exact: true })).toBeVisible();
-  await advance(page, 150);
+  await settle(page);
+  await advance(page, 45);
   // the demonstration runs on a sample wafer: the learning run is untouched
   const during = await runState(page);
-  expect({ ...during, mode: 'learn', progress: before.progress, playing: before.playing, key: before.key }).toEqual(before);
+  expect({ ...during, mode: 'learn', key: before.key }).toEqual(before);
   expect(during.saved).toBe(before.saved);
 
   await press(page.getByRole('button', { name: 'Return to lesson' }), hasTouch);
   await expect(page).toHaveURL(/\?step=coat$/);
   await expect(page.locator('h1.step-title')).toHaveText(STEPS.coat.title);
+  // it was playing when we left, so it offers Resume rather than playing by surprise
   await expect(page.getByText('Paused where you left it.')).toBeVisible();
-  await advance(page, 150);
+  await settle(page);
   const after = await runState(page);
   expect(after).toEqual(before);
   // back at the same framing

@@ -31,12 +31,12 @@ export async function waitForCanvas(page: Page): Promise<void> {
   await page.waitForTimeout(600);
 }
 
-/** Wait until the 3D stage (and, with ?virt=1, its frame-stepping harness) is ready. */
+/** Wait until the 3D stage, the bay's machines (and, with ?virt=1, the frame-stepping harness) are ready. */
 export async function waitForStage(page: Page): Promise<void> {
   await page.waitForFunction(() => {
-    const w = window as unknown as { __fab?: unknown; __fabAdvance?: unknown };
-    return !!w.__fab && (!new URLSearchParams(location.search).has('virt') || !!w.__fabAdvance);
-  }, undefined, { timeout: 60_000 });
+    const w = window as unknown as { __fab?: { stationBoxes?: Map<string, unknown> }; __fabAdvance?: unknown };
+    return !!w.__fab && (w.__fab.stationBoxes?.size ?? 1) > 0 && (!new URLSearchParams(location.search).has('virt') || !!w.__fabAdvance);
+  }, undefined, { timeout: 90_000 });
 }
 
 /**
@@ -46,6 +46,20 @@ export async function waitForStage(page: Page): Promise<void> {
 export async function advance(page: Page, n: number): Promise<void> {
   await page.waitForFunction(() => !!(window as unknown as { __fabAdvance?: unknown }).__fabAdvance, undefined, { timeout: 60_000 });
   for (let i = 0; i < n; i++) await page.evaluate(() => (window as unknown as { __fabAdvance?: (n: number) => void }).__fabAdvance?.(1));
+}
+
+/**
+ * Frame-stepped harness: render frames until the camera has arrived (the director is not
+ * travelling), checking every few frames; at most `max` frames.
+ */
+export async function settle(page: Page, max = 240): Promise<void> {
+  await advance(page, 4);
+  for (let n = 4; n < max; n += 6) {
+    const flying = await page.evaluate(() => (window as unknown as { __fab: { useStageInfo: { getState: () => { flying: boolean } } } }).__fab.useStageInfo.getState().flying);
+    if (!flying) break;
+    await advance(page, 6);
+  }
+  await advance(page, 2);
 }
 
 type Win = {

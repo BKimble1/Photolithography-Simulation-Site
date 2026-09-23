@@ -105,26 +105,40 @@ function MachineCard({ id }: { id: MachineId }) {
   );
 }
 
+const PHONE = '(max-width: 600px)';
+const isPhone = () => typeof window !== 'undefined' && window.matchMedia(PHONE).matches;
+
 function OverviewCard() {
   const setPanel = useApp((s) => s.setPanel);
+  // On a phone the card starts compact, so the bay keeps most of the screen; its notes open on request.
+  const [open, setOpen] = useState(() => !isPhone());
   return (
-    <section className="mcard mcard--overview" aria-labelledby="ov-title" data-occludes>
-      <h2 id="ov-title" className="mcard__title">
-        The fab
-      </h2>
-      <p className="mcard__job">Choose a machine to see what it does to the wafer. Drag to look around; scroll or pinch to zoom.</p>
-      <ul className="areas">
-        <li>
-          <i className="areas__sw areas__sw--fab" aria-hidden /> Clean room: fabrication, east of the glass wall
-        </li>
-        <li>
-          <i className="areas__sw areas__sw--backend" aria-hidden /> Test and packaging, west of it
-        </li>
-      </ul>
-      <p className="mcard__fine">
-        Conceptual layout. Real fabs group many copies of each tool into bays and move wafers between them by overhead transport; packaging and final test
-        usually happen at separate sites.
+    <section className={'mcard mcard--overview' + (open ? '' : ' is-compact')} aria-labelledby="ov-title" data-occludes>
+      <div className="mcard__head">
+        <h2 id="ov-title" className="mcard__title">
+          The fab {!open && <span className="mcard__tag">conceptual layout</span>}
+        </h2>
+        <button className="linklike mcard__more" aria-expanded={open} aria-controls="ov-notes" onClick={() => setOpen((o) => !o)}>
+          {open ? 'Less' : 'About the layout'}
+        </button>
+      </div>
+      <p className="mcard__job">
+        Choose a machine to see what it does to the wafer.<span className="mcard__hint"> Drag to look around; scroll or pinch to zoom.</span>
       </p>
+      <div id="ov-notes" hidden={!open}>
+        <ul className="areas">
+          <li>
+            <i className="areas__sw areas__sw--fab" aria-hidden /> Clean room: fabrication, east of the glass wall
+          </li>
+          <li>
+            <i className="areas__sw areas__sw--backend" aria-hidden /> Test and packaging, west of it
+          </li>
+        </ul>
+        <p className="mcard__fine">
+          Conceptual layout. Real fabs group many copies of each tool into bays and move wafers between them by overhead transport; packaging and final test
+          usually happen at separate sites.
+        </p>
+      </div>
       <button className="btn btn--small" onClick={() => setPanel('equipment')}>
         Equipment list
       </button>

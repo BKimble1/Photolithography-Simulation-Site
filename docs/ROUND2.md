@@ -132,7 +132,58 @@ frame on the app's virtual clock (the build machine has no GPU; see the README):
 
 ## Verification
 
-Filled in below with the commands actually run and their results.
+Everything below was run on the build machine: a 4-core Linux container with no GPU, using
+Playwright's Chromium (headless shell 1194) with software WebGL (SwiftShader). Firefox and
+WebKit were not available. Phone and tablet runs are emulated (viewport, touch, pixel ratio).
+
+### Commands and results
+
+| command | result |
+|---|---|
+| `npm run typecheck` | clean |
+| `npm test` | 30 tests in 3 files pass (process model 22, captions 3, film timeline 5) |
+| `npm run build` | builds; see *Sizes* below |
+| `npm run e2e` | E2E_RESULT |
+| `node scripts/cue-alignment.mjs` | speech starts 40–60 ms after each of the 91 cue times (captions lead the voice slightly); cue ends include 100–150 ms of trailing silence; decoded lengths match the manifest exactly |
+| `node scripts/stats.mjs` | see *Performance* below |
+
+### Sync
+
+* **Clock against narration.** `e2e/watch.spec.ts` samples, every 100 ms, the time the
+  picture is drawn at (`FilmPlayer.now()`) against the playing audio element's own
+  position. Worst difference: 0.0 ms over 40 samples during normal playback, and 0.0 ms over
+  20 samples after two seconds in the background (animation frames withheld,
+  `document.hidden` true). This is zero by construction: the picture reads the audio
+  element's position whenever it draws, rather than counting frames, so it cannot drift.
+  The same test checks pause (time holds), seek, 1.5× speed and mute (time still runs from
+  the muted audio), a chapter jump, and the 150 ms bound.
+* **Cues against the audio.** The captions and every semantic event (the camera's and the
+  process's cue points) are placed at the manifest's cue times, which the narration pipeline
+  measured from the synthesised audio. Decoding the MP3s in the browser and finding speech
+  by energy puts speech onset 40–60 ms after each cue start (all 91 cues).
+* **Buffering and failure.** With the network throttled, seeking into an unloaded segment
+  holds the picture until the narration can play, then carries on; with the MP3s blocked, the
+  film says so and plays on the page clock with captions.
+* **Not measured:** the output latency of real audio hardware and displays, and anything
+  that depends on real frame rates. Software rendering here manages a few frames a second,
+  so the picture updates in steps even though each step is drawn at the right time.
+
+### Performance
+
+PERF_TABLE
+
+### Sizes
+
+From `npm run build` (gzip as served by a typical static host):
+
+| part | size | loaded |
+|---|---|---|
+| app shell: HTML, main script, styles | 477 KB (148 KB gzip) | first visit |
+| 3D stage: director, bay, three.js, React Three Fiber | 1.07 MB (289 KB gzip) | right after the first paint |
+| machine scenes: 15 tools, wafer, shared parts | 236 KB (80 KB gzip), 3–30 KB each | when a machine is first needed (the next one is preloaded) |
+| web fonts (Inter, Archivo; woff2 subsets) | 419 KB in all, 135 KB for Latin | by the browser, per character range |
+| film narration: 39 MP3 segments, 64 kbps mono | 4.0 MB | one segment ahead while watching |
+| *Save for offline*: all 37 app files and the narration | 6.4 MB | only when asked |
 
 ## Known limitations
 

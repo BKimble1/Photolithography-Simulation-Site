@@ -92,6 +92,7 @@ test('every machine opens by pointing at it in the bay (click or tap)', async ({
 test('hovering names a machine; a drag of the view is not a click', async ({ page, hasTouch }) => {
   test.skip(hasTouch, 'pointer hover');
   await freshStart(page, '/?explore&virt=1');
+  await waitForStage(page);
   await advance(page, 12);
   await page.evaluate(() => document.querySelector('.explore-dock')?.setAttribute('style', 'display:none'));
   const pt = (await screenPoint(page, 'scanner'))!;

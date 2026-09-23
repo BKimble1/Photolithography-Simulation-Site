@@ -252,6 +252,19 @@ Fifteen lazily loaded scenes, one module each, plus the fab bay:
 Equipment is stylised and procedural (no external models or textures). Light paths are
 drawn only when the learner turns them on.
 
+*Round two:* every scene is also the interior of its machine's housing in the bay
+(`tools/Fab.tsx` builds the housings; each pose file gives the scene's `mount` in its
+station and the `cutaway` that opens). Placed in the bay, a scene draws only what is inside
+the housing (`StandaloneOnly` wraps the floor, walls and status lights it needs on its own):
+the load-port scene is the inside of a wafer sorter whose hoist hangs from the bay's rail;
+the furnace is the middle unit of a bank of three, its boat on a raised floor in the tall
+back tower; the implanter is mounted a quarter turn round, its terminal in a closed
+high-voltage cage; the etch cluster has the etch chamber on the right and the ash chamber on
+the left of one transfer hub; the polisher fills the polisher cell of its housing, next to a
+closed clean/dry module; the back-end benches (die bonder, wire bonder) open above their
+work holders. The overhead rail and its vehicles fade out within a few metres of the camera,
+so a machine framed from across the aisle is not cut by the rail in front of the lens.
+
 ### The stage *(round two)* (`src/three/Stage.tsx`, `src/three/stage/`)
 
 One canvas serves every mode and never unmounts. Its world is the fab bay in metres
