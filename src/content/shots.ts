@@ -156,6 +156,10 @@ export const SHOTS: Partial<Record<StepId, Key[]>> = {
     { p: 0, cam: shot('align') },
     { p: 0.18, cam: shot('align') },
     { p: 0.28, cam: section },
+    // out of the layers into the exposure framing, where the next lesson starts: a move to it
+    // from your die on the measuring chuck would run through the scanner's metrology frame
+    { p: 0.88, cam: section },
+    { p: 1, cam: shot('expose') },
   ],
   'contact-print': [
     { p: 0, cam: shot('expose') },
