@@ -6,7 +6,7 @@
  */
 import * as THREE from 'three';
 import { DIES, WAFER, YOUR_DIE, radialThickness } from '../../sim/dies';
-import { filmsColor, toSrgb8 } from '../../sim/filmColor';
+import { colorsWithTop, filmsColor, toSrgb8 } from '../../sim/filmColor';
 import { M } from '../../sim/materials';
 import { mulberry32 } from '../../sim/rng';
 import type { Film, Particle, WaferSummary } from '../../sim/types';
@@ -67,10 +67,8 @@ function tintByResist(ctx: CanvasRenderingContext2D, size: number, films: Film[]
   const base = filmsColor(films);
   const ratio = (c: [number, number, number], i: number) => c[i] / Math.max(1e-4, base[i]);
   const lut = new Float32Array(FILM_LUT_N * 3);
-  for (let k = 0; k < FILM_LUT_N; k++) {
-    const c = filmsColor([...films, { mat: M.RES, nm: (k / (FILM_LUT_N - 1)) * RESIST_MAX_NM }]);
-    for (let i = 0; i < 3; i++) lut[k * 3 + i] = ratio(c, i);
-  }
+  const cols = colorsWithTop(films, M.RES, Array.from({ length: FILM_LUT_N }, (_, k) => (k / (FILM_LUT_N - 1)) * RESIST_MAX_NM));
+  for (let k = 0; k < FILM_LUT_N; k++) for (let i = 0; i < 3; i++) lut[k * 3 + i] = ratio(cols[k], i);
   const pud = base.map((b, i) => b + (PUDDLE[i] - b) * 0.55) as [number, number, number];
   // the factor along the radius (bins of 0.15 mm)
   const BINS = 1024;

@@ -7,7 +7,7 @@ import { useStationEnv } from '../stage/context';
 import { usePresentation } from '../../state/presentation';
 import { useStep } from '../../state/sim';
 import { STEP_INDEX } from '../../sim/flow';
-import { filmsColor } from '../../sim/filmColor';
+import { colorsWithTop, filmsColor } from '../../sim/filmColor';
 import { WAFER } from '../../sim/dies';
 import { M } from '../../sim/materials';
 import type { Film } from '../../sim/types';
@@ -96,9 +96,13 @@ function filmLut(films: Film[], spec: LiveFilmSpec): { tex: THREE.DataTexture; p
   const base = filmsColor(films);
   const data = new Uint16Array(LUT_N * 4);
   const ratio = (c: [number, number, number], i: number) => c[i] / Math.max(1e-4, base[i]);
+  // the stack of withFilm() at each thickness: the live film on top, or thickening the top film
+  const top = withFilm(films, spec, 0);
+  const under = top.slice(0, -1);
+  const from = top[top.length - 1].nm;
+  const cols = colorsWithTop(under, spec.mat, Array.from({ length: LUT_N }, (_, k) => from + (k / (LUT_N - 1)) * spec.max));
   for (let k = 0; k < LUT_N; k++) {
-    const c = filmsColor(withFilm(films, spec, (k / (LUT_N - 1)) * spec.max));
-    for (let i = 0; i < 3; i++) data[k * 4 + i] = THREE.DataUtils.toHalfFloat(ratio(c, i));
+    for (let i = 0; i < 3; i++) data[k * 4 + i] = THREE.DataUtils.toHalfFloat(ratio(cols[k], i));
     data[k * 4 + 3] = THREE.DataUtils.toHalfFloat(1);
   }
   const tex = new THREE.DataTexture(data, LUT_N, 1, THREE.RGBAFormat, THREE.HalfFloatType);

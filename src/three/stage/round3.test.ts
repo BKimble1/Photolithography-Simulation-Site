@@ -7,6 +7,8 @@ import { handoverAt, type Leg } from './flights';
 import { initialTier } from './quality';
 import { evalTrack, makeSample } from './tracks';
 import type { Key } from '../../content/shots';
+import { colorsWithTop, stackColor } from '../../sim/filmColor';
+import { M } from '../../sim/materials';
 
 const dist = (a: number[], b: number[]) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
 
@@ -195,6 +197,27 @@ describe('camera tracks', () => {
     // the move after a hold starts from rest
     const h = 1e-4;
     expect(dist(at(track, 0.5), at(track, 0.5 + h)) / h).toBeLessThan(0.05);
+  });
+});
+
+describe('thin-film colour table', () => {
+  it('the fast table equals the full stack computation at every thickness', () => {
+    const stacks: { mat: number; nm: number }[][] = [
+      [],
+      [{ mat: M.OX, nm: 12 }],
+      [{ mat: M.OX, nm: 300 }, { mat: M.POLY, nm: 180 }, { mat: M.NIT, nm: 40 }],
+      [{ mat: M.OX, nm: 20 }, { mat: M.W, nm: 400 }, { mat: M.ILD, nm: 600 }],
+      [{ mat: M.OX, nm: 0.1 }, { mat: M.RES, nm: 900 }],
+    ];
+    const nms = [0, 0.1, 0.3, 7, 55, 60, 61, 250, 1234.5];
+    for (const under of stacks)
+      for (const top of [M.RES, M.OX, M.POLY, M.NIT, M.W, M.CU]) {
+        const fast = colorsWithTop(under, top, nms);
+        nms.forEach((nm, k) => {
+          const full = stackColor([...under, { mat: top, nm }]);
+          for (let i = 0; i < 3; i++) expect(Math.abs(fast[k][i] - full[i])).toBeLessThan(1e-9);
+        });
+      }
   });
 });
 
