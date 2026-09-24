@@ -342,7 +342,9 @@ The director owns the camera and the render loop in every mode:
   machine itself; sd and metal2 repeat a loop already shown and stay in the layers.
   *Round three:* coat, softbake and develop hold on the pick-up and follow the track's robot
   to the next module; contact-align and contact-print stay with the scanner and go down to
-  the layers from there, instead of framing a die the stage is stepping around. Reviewed
+  the layers from there, instead of framing a die the stage is stepping around; contact-align
+  comes back out onto the exposure framing at its end, where contact-print starts (a move from
+  your die on the measuring chuck to the lens would pass through the metrology frame). Reviewed
   frame by frame, four more hid their subject behind the machine: framed from above, the
   post-exposure bake's raised lid and exhaust filled the die close-up, develop's dispense
   bar swept across the lens, and in the etch chamber the wafer and die framings sat inside
