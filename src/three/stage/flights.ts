@@ -65,9 +65,14 @@ export function worldLeg(from: CamPose, target: () => CamPose): Leg {
   const p1 = new THREE.Vector3(f.pos.x + dirX * lead, y, aisleZ(f.pos.z));
   const p2 = new THREE.Vector3(probe.pos.x - dirX * Math.min(2.6, dx * 0.2), y, aisleZ(probe.pos.z));
   const path = new THREE.CatmullRomCurve3([f.pos.clone(), p1, p2, probe.pos.clone()], false, 'centripetal');
-  // look ahead along the aisle while travelling, then onto the next machine
-  const t1 = p1.clone().add(new THREE.Vector3(dirX * 6, -0.35, 0));
-  const t2 = p2.clone().add(new THREE.Vector3(dirX * 3, -0.3, 0)).lerp(probe.target, 0.55);
+  // look ahead along the aisle while travelling, then onto the next machine; never further ahead
+  // than the machine itself (in the short back-end room, looking 6 m ahead from the dicing saw
+  // meant looking at the end wall from close by, a picture of nothing but wall)
+  const t1 = p1.clone().add(new THREE.Vector3(dirX * Math.min(6, Math.abs(probe.target.x - p1.x)), -0.35, 0));
+  const t2 = p2
+    .clone()
+    .add(new THREE.Vector3(dirX * Math.min(3, Math.abs(probe.target.x - p2.x)), -0.3, 0))
+    .lerp(probe.target, 0.55);
   const look = new THREE.CatmullRomCurve3([f.target.clone(), t1, t2, probe.target.clone()], false, 'centripetal');
   const len = path.getLength();
   const dur = clamp(1.3 + len / 16, 1.6, 3.0);
