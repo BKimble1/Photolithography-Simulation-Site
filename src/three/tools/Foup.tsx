@@ -21,6 +21,7 @@ import { lerp, smooth, useProgressFrame } from '../anim';
 import { MAT } from '../materials';
 import { Box, CleanFloor, Cyl, LightTower } from '../kit/parts';
 import { useStationEnv } from '../stage/context';
+import { StationLight } from '../stage/StationLight';
 import { Wafer } from '../wafer/Wafer';
 import type { ToolProps } from './index';
 
@@ -484,7 +485,7 @@ function Efem() {
           <planeGeometry args={[W - 0.06, diff.z1 - diff.z0]} />
           <meshStandardMaterial map={diffTex} metalness={0.4} roughness={0.5} side={THREE.DoubleSide} />
         </mesh>
-        <pointLight position={[xc, EF.top - 0.25, zc]} intensity={1.6} distance={3} decay={1.6} color="#f4f7ff" />
+        <StationLight position={[xc, EF.top - 0.25, zc]} intensity={1.6} distance={3} decay={1.6} color="#f4f7ff" />
       </group>
     );
   }
@@ -550,7 +551,7 @@ function Efem() {
         <planeGeometry args={[W - 0.08, D - 0.08]} />
         <meshStandardMaterial map={diffTex} metalness={0.4} roughness={0.5} side={THREE.DoubleSide} />
       </mesh>
-      <pointLight position={[xc, EF.top - 0.25, zc]} intensity={1.6} distance={3} decay={1.6} color="#f4f7ff" />
+      <StationLight position={[xc, EF.top - 0.25, zc]} intensity={1.6} distance={3} decay={1.6} color="#f4f7ff" />
       <Cyl r={0.22} h={0.05} position={[xc - 0.2, EF.top + 0.185, zc]} m="steelSatin" seg={48} castShadow={false} />
       <Box size={[0.26, 0.07, 0.18]} position={[xc + 0.36, EF.top + 0.195, zc - 0.1]} m="panelGray" radius={0.01} />
       <LightTower position={[EF.x0 + 0.1, EF.top + 0.16, -0.12]} on="violet" />

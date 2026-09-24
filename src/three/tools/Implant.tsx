@@ -24,6 +24,7 @@ import { useSimState } from '../../state/sim';
 import { lerp, seg, smooth, useProgressFrame } from '../anim';
 import { MAT } from '../materials';
 import { Box, CleanFloor, Cyl, Lathe, LightTower, StandaloneOnly } from '../kit/parts';
+import { StationLight } from '../stage/StationLight';
 import { Wafer } from '../wafer/Wafer';
 import type { ToolProps } from './index';
 import { useOverlay } from '../../state/presentation';
@@ -425,7 +426,7 @@ function EndStation({
       <Box size={[W - 0.1, ES.y0 - 0.02, D - 0.14]} position={[xc, (ES.y0 - 0.02) / 2, zc]} m="panel" radius={0.02} />
       <Cyl r={0.13} h={0.3} position={[xc - 0.2, ES.y0 - 0.2, zc + 0.3]} m="steelSatin" seg={40} castShadow={false} />
       {/* soft fill light inside the chamber, so the upright (mirror-like) wafer stays readable */}
-      <pointLight position={[X_F + 0.25, Y_B + 0.45, Z_W + 0.55]} intensity={1.4} distance={1.6} decay={2} color="#f4f6ff" />
+      <StationLight position={[X_F + 0.25, Y_B + 0.45, Z_W + 0.55]} intensity={1.4} distance={1.6} decay={2} color="#f4f6ff" />
       {/* platen drive: vertical scan slide on the left wall and the tilt shaft (axis along x) */}
       <Box size={[0.04, 0.62, 0.22]} position={[ES.x0 + 0.05, Y_B, Z_W]} m="black" radius={0.01} />
       <group ref={platen} position={[0, Y_B, Z_W]}>

@@ -34,6 +34,7 @@ import { StationContext } from './stage/context';
 import { BeatLabels } from './stage/BeatLabels';
 import { Director, directorView } from './stage/Director';
 import { handover, remount, useMountEpoch } from './stage/handover';
+import { applyStationLights, STATION_LIGHT_POOL } from './stage/StationLight';
 import { stageFocus, useStageInfo } from './stage/info';
 import { useExplore } from './stage/explore';
 import { DIAG, initialTier, quality, stepTier, TIERS, useQuality } from './stage/quality';
@@ -503,6 +504,20 @@ function useShadowSize(light: React.RefObject<THREE.DirectionalLight | null>) {
 function WorldLighting() {
   const key = useRef<THREE.DirectionalLight>(null);
   const hemi = useRef<THREE.HemisphereLight>(null);
+  // the machines' own lights, drawn by a fixed pool (see StationLight.tsx), assigned as the world
+  // is rendered: after the director has set what is visible, before the lights are gathered
+  const scene = useThree((s) => s.scene);
+  const pool = useMemo(() => Array.from({ length: STATION_LIGHT_POOL }, () => new THREE.PointLight('#ffffff', 0)), []);
+  useLayoutEffect(() => {
+    const was = scene.onBeforeRender;
+    scene.onBeforeRender = function (...args) {
+      applyStationLights(pool, scene);
+      was.apply(this, args);
+    };
+    return () => {
+      scene.onBeforeRender = was;
+    };
+  }, [scene, pool]);
   const target = useMemo(() => new THREE.Object3D(), []);
   const c = useMemo(() => new THREE.Vector3(), []);
   const warmth = useRef(0);
@@ -553,6 +568,9 @@ function WorldLighting() {
         shadow-normalBias={0.02}
       />
       <directionalLight position={[-4, 3, -2]} intensity={0.5} color="#dfe8ff" />
+      {pool.map((l, i) => (
+        <primitive key={i} object={l} />
+      ))}
       <WorldEnvironment />
     </>
   );
