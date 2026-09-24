@@ -305,6 +305,9 @@ export function Director({ deviceScene, controlsRef }: { deviceScene: THREE.Scen
   const size = useThree((s) => s.size);
 
   const overlay = useMemo(() => makeOverlay(), []);
+  // its program, compiled before the first fade or dissolve needs it (with the first machine's
+  // programs; see Stage.tsx, prewarm)
+  useEffect(() => void gl.compile(overlay.scene, overlay.cam), [gl, overlay]);
   // fade: the outgoing side of a cross-fade; snap: a captured picture being dissolved from;
   // last: the film's last good picture (held while a seek waits for its machine)
   const copies = useMemo(() => ({ fade: new ScreenCopy(), snap: new ScreenCopy(), last: new ScreenCopy(), buf: new THREE.Vector2() }), []);

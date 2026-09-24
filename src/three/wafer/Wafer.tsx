@@ -166,6 +166,57 @@ if (uFieldsOn > 0.5) {
 }
 `;
 
+function makeCoatUniforms() {
+  return {
+    uCoatOn: { value: 0 },
+    uCoat: { value: new THREE.Vector4() },
+    uEbr: { value: 0 },
+    uLut: { value: null as THREE.Texture | null },
+    uLutMax: { value: 1 },
+    uPuddleOn: { value: 0 },
+    uPuddle: { value: new THREE.Vector3(1, 1, 1) },
+    uFieldsOn: { value: 0 },
+    uFieldsDone: { value: 0 },
+    uFields: { value: null as THREE.Texture | null },
+  };
+}
+
+/** The top face: the painted surface, with the live coat and the exposure fields drawn over it
+ * in the shader. Every wafer has its own material and uniforms, and all share one program. */
+function makeTopMaterial(tex: THREE.Texture, uniforms: ReturnType<typeof makeCoatUniforms>, roughness: number, metalness: number) {
+  const m = new THREE.MeshStandardMaterial({ map: tex, roughness, metalness, envMapIntensity: 1.1 });
+  m.onBeforeCompile = (sh) => {
+    Object.assign(sh.uniforms, uniforms);
+    sh.fragmentShader = sh.fragmentShader
+      .replace(
+        '#include <common>',
+        '#include <common>\nuniform float uCoatOn;\nuniform vec4 uCoat;\nuniform float uEbr;\nuniform sampler2D uLut;\nuniform float uLutMax;\nuniform float uPuddleOn;\nuniform vec3 uPuddle;\nuniform float uFieldsOn;\nuniform float uFieldsDone;\nuniform sampler2D uFields;',
+      )
+      .replace('#include <map_fragment>', '#include <map_fragment>\n' + COAT_GLSL);
+  };
+  m.customProgramCacheKey = () => 'wafer-coat';
+  return m;
+}
+
+let standIn: THREE.Mesh | null = null;
+/**
+ * A mesh drawn with the wafer's program, for preparing that program before any wafer is drawn
+ * (Stage.tsx, prewarmShared). A machine is prepared with the wafers it holds at the time, and it
+ * may hold none yet: the load port's wafer appears only when the robot takes it out of the pod,
+ * and that first wafer then compiled the program in the middle of the lesson (3–4 s on the
+ * software renderer, a hitch on any GPU). Kept for the session, so that the program stays cached
+ * while no wafer is mounted.
+ */
+export function waferProgramStandIn(): THREE.Mesh {
+  if (!standIn) {
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(0.01, 0.01), makeTopMaterial(makeCanvasTexture(4).tex, makeCoatUniforms(), 0.16, 0.55));
+    m.castShadow = true;
+    m.receiveShadow = true;
+    standIn = m;
+  }
+  return standIn;
+}
+
 export function Wafer({
   look,
   radius = 0.15,
@@ -217,35 +268,8 @@ export function Wafer({
   const geo = useWaferGeometry(radius);
   const { canvas, tex } = useMemo(() => makeCanvasTexture(size), [size]);
   // The coat shader is part of every wafer's program (one program, prepared in advance).
-  const uniforms = useMemo(
-    () => ({
-      uCoatOn: { value: 0 },
-      uCoat: { value: new THREE.Vector4() },
-      uEbr: { value: 0 },
-      uLut: { value: null as THREE.Texture | null },
-      uLutMax: { value: 1 },
-      uPuddleOn: { value: 0 },
-      uPuddle: { value: new THREE.Vector3(1, 1, 1) },
-      uFieldsOn: { value: 0 },
-      uFieldsDone: { value: 0 },
-      uFields: { value: null as THREE.Texture | null },
-    }),
-    [],
-  );
-  const topMat = useMemo(() => {
-    const m = new THREE.MeshStandardMaterial({ map: tex, roughness, metalness, envMapIntensity: 1.1 });
-    m.onBeforeCompile = (sh) => {
-      Object.assign(sh.uniforms, uniforms);
-      sh.fragmentShader = sh.fragmentShader
-        .replace(
-          '#include <common>',
-          '#include <common>\nuniform float uCoatOn;\nuniform vec4 uCoat;\nuniform float uEbr;\nuniform sampler2D uLut;\nuniform float uLutMax;\nuniform float uPuddleOn;\nuniform vec3 uPuddle;\nuniform float uFieldsOn;\nuniform float uFieldsDone;\nuniform sampler2D uFields;',
-        )
-        .replace('#include <map_fragment>', '#include <map_fragment>\n' + COAT_GLSL);
-    };
-    m.customProgramCacheKey = () => 'wafer-coat';
-    return m;
-  }, [tex, roughness, metalness, uniforms]);
+  const uniforms = useMemo(makeCoatUniforms, []);
+  const topMat = useMemo(() => makeTopMaterial(tex, uniforms, roughness, metalness), [tex, roughness, metalness, uniforms]);
   const films = look.summary.films;
   const filmsKey = films.map((f) => `${f.mat}:${Math.round(f.nm)}`).join(',');
   const specKey = `${liveFilm.mat}:${liveFilm.label ?? ''}:${liveFilm.max}`;

@@ -26,7 +26,7 @@ import { fixedProgress, PresentationProvider, useLearnPresentation, type Present
 import { useApp, useClock } from '../state/store';
 import { filmPlayer, useFilm } from '../watch/film';
 import { gapStats, useFilmPresentation } from '../watch/filmStage';
-import { DeviceScene } from './device/DeviceScene';
+import { DeviceScene, deviceProgramStandIns } from './device/DeviceScene';
 import { deviceMeshes } from './device/deviceGeometry';
 import { LabelSpaceContext } from './labels';
 import { failedStations, readyStations, stationBoxes, stationCentre, stationGroups, toolMatrix, waferRegistry } from './stage/anchors';
@@ -41,6 +41,7 @@ import { DIAG, initialTier, quality, stepTier, TIERS, useQuality } from './stage
 import { stageTime, TEST_HOOKS, VIRTUAL_TIME } from './stage/time';
 import { BRIDGED, toolComponent } from './tools';
 import { cutAmount, cutOpen, FabScene, proxyHidden, type FabPicking } from './tools/Fab';
+import { waferProgramStandIn } from './wafer/Wafer';
 
 // ───────────────────────────── clocks ─────────────────────────────
 
@@ -333,10 +334,46 @@ function FrozenRelease() {
 // ───────────────────────────── readiness ─────────────────────────────
 
 let prewarmChain: Promise<unknown> = Promise.resolve();
+/** The cross-section's scene (set by the stage), for preparing its programs with the first machine. */
+const deviceSpace: { scene: THREE.Scene | null } = { scene: null };
+const sharedWarmed = new WeakSet<THREE.WebGLRenderer>();
+
+/**
+ * Programs that no machine's own model holds, prepared once, with the first machine: the whole
+ * bay (parts not yet drawn, such as the overhead rail's near cut), the wafer's (a machine is
+ * prepared with the wafers it holds at the time, perhaps none) and the cross-section's, with its
+ * lighting. A program is otherwise compiled when first drawn, which stalls that frame: 1–4 s
+ * each on the software renderer, in the middle of a lesson or a move.
+ */
+function prewarmShared(gl: THREE.WebGLRenderer, camera: THREE.Camera, scene: THREE.Scene, sync: boolean): Promise<unknown> {
+  const tasks: Promise<unknown>[] = [];
+  const compile = (o: THREE.Object3D, target: THREE.Scene) => {
+    if (sync) gl.compile(o, camera, target);
+    else tasks.push(gl.compileAsync(o, camera, target));
+  };
+  compile(scene, scene);
+  compile(waferProgramStandIn(), scene);
+  if (deviceSpace.scene) compile(deviceProgramStandIns(), deviceSpace.scene);
+  return Promise.all(tasks);
+}
+
+/**
+ * Where the browser cannot compile in parallel (the extension three.js waits on), compileAsync
+ * resolves at once and a program is really compiled when first used, which blocks until the
+ * renderer has caught up: at the first draw, in the middle of a move. Use them now instead (a
+ * blocking query of each new one), so that a machine counts as ready only once its programs are
+ * compiled: the first machine's wait is under the veil, a machine prepared ahead waits while the
+ * lesson before it plays, and the camera never flies into a machine still compiling.
+ */
+function finishPrograms(gl: THREE.WebGLRenderer) {
+  if (gl.extensions.has('KHR_parallel_shader_compile')) return;
+  for (const p of gl.info.programs ?? []) (p as unknown as { getUniforms(): unknown }).getUniforms();
+}
 
 /**
  * Prepare a mounted model for the GPU before the camera goes to it: compile its shader
  * programs (in parallel where the browser can) and upload its textures, one model at a time.
+ * The first model prepared also prepares what every lesson shares (prewarmShared).
  */
 function prewarm(gl: THREE.WebGLRenderer, group: THREE.Object3D, camera: THREE.Camera, scene: THREE.Scene, sync: boolean): Promise<void> | void {
   const uploads = () =>
@@ -346,13 +383,18 @@ function prewarm(gl: THREE.WebGLRenderer, group: THREE.Object3D, camera: THREE.C
       for (const m of Array.isArray(mat) ? mat : [mat])
         for (const v of Object.values(m)) if (v && (v as THREE.Texture).isTexture && !(v as THREE.Texture).isRenderTargetTexture) gl.initTexture(v as THREE.Texture);
     });
+  const shared = !sharedWarmed.has(gl);
+  sharedWarmed.add(gl);
   if (sync) {
     gl.compile(group, camera, scene);
+    if (shared) void prewarmShared(gl, camera, scene, true);
     uploads();
     return;
   }
   const run = async () => {
     await gl.compileAsync(group, camera, scene);
+    if (shared) await prewarmShared(gl, camera, scene, false);
+    finishPrograms(gl);
     uploads();
   };
   const p = prewarmChain.then(run);
@@ -744,6 +786,12 @@ const CAPTURE = typeof window !== 'undefined' && new URLSearchParams(window.loca
 
 export function Stage() {
   const deviceScene = useMemo(() => new THREE.Scene(), []);
+  useLayoutEffect(() => {
+    deviceSpace.scene = deviceScene;
+    return () => {
+      if (deviceSpace.scene === deviceScene) deviceSpace.scene = null;
+    };
+  }, [deviceScene]);
   const controlsRef = useRef<CameraControls>(null);
   const { mounts, primary, highlight } = useMounts();
   const [dpr, setDpr] = useState(() => Math.min(TIERS[useQuality.getState().tier].dprMax, window.devicePixelRatio || 1));

@@ -1,4 +1,3 @@
-import { ContactShadows } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import { useEffect, useMemo, useReducer, useRef } from 'react';
 import * as THREE from 'three';
@@ -71,7 +70,7 @@ function useDeviceGeometry(grid: Grid, opts: MeshRequestOpts): DeviceGeos | null
   return shown.current?.geos ?? null;
 }
 
-function DeviceMesh({ grid, xray, yMin, glow, stepIndex }: { grid: Grid; xray: boolean; yMin: number; glow?: number[]; stepIndex: number }) {
+function DeviceMesh({ grid, xray, yMin, glow }: { grid: Grid; xray: boolean; yMin: number; glow?: number[] }) {
   const opts = useMemo(() => ({ xray, yMin, glow }), [xray, yMin, glow]);
   const geos = useDeviceGeometry(grid, opts);
   useEffect(() => quality.invalidate('device'), [geos]);
@@ -95,10 +94,38 @@ function DeviceMesh({ grid, xray, yMin, glow, stepIndex }: { grid: Grid; xray: b
           renderOrder={k === 'diel' && xray ? 2 : 0}
         />
       ))}
-      {/* the block's footprint never changes within a step: bake its soft ground shadow once */}
-      <ContactShadows key={stepIndex} frames={1} position={[0, -0.9, 0]} opacity={0.35} scale={12} blur={2.6} far={3} resolution={512} />
     </group>
   );
+}
+
+/**
+ * Stand-ins drawn with the cross-section's materials under its lighting, for preparing their
+ * programs before the layers are first shown (Stage.tsx, prewarmShared); preparing them also
+ * prefilters the lighting's environment map, which is otherwise made when the layers are first
+ * drawn. Made once and kept, so that the programs stay cached.
+ *
+ * (The block had a contact shadow, drei's ContactShadows, drawn once per step from below. It
+ * never drew the block: the mesher emits only faces seen from above and from the sides, so from
+ * below there is nothing to see; only contact align's translucent preview pillars, boxes, left a
+ * faint mark on the floor. It cost three programs compiled in the middle of a move, 4–5 s on the
+ * software renderer; two 512² render targets for every step, never released; and a 12 m
+ * transparent plane drawn in every frame of the layers. It was removed.)
+ */
+let standIns: THREE.Group | null = null;
+export function deviceProgramStandIns(): THREE.Group {
+  if (!standIns) {
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(9), 3));
+    g.setAttribute('normal', new THREE.BufferAttribute(new Float32Array([0, 1, 0, 0, 1, 0, 0, 1, 0]), 3));
+    g.setAttribute('color', new THREE.BufferAttribute(new Float32Array(9), 3));
+    standIns = new THREE.Group();
+    for (const m of Object.values(mats)) {
+      const mesh = new THREE.Mesh(g, m);
+      mesh.castShadow = mesh.receiveShadow = true;
+      standIns.add(mesh);
+    }
+  }
+  return standIns;
 }
 
 /** Translucent pillars showing where contact holes would land for the chosen offset. */
@@ -163,7 +190,7 @@ export function DeviceScene() {
   }, [cutaway, labels, wired, isFinal, elec, finalInput, grid]);
   return (
     <group>
-      <DeviceMesh grid={grid} xray={autoXray} yMin={yMin} glow={glow} stepIndex={index} />
+      <DeviceMesh grid={grid} xray={autoXray} yMin={yMin} glow={glow} />
       {id === 'contact-align' && <ContactPreview grid={grid} dx={choices.overlay} choices={choices} />}
       <Labels items={tags} />
     </group>
