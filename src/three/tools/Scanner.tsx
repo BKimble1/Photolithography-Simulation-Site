@@ -114,7 +114,12 @@ function Reticle({ kind }: { kind: 'poly' | 'contact' }) {
   );
 }
 
-const glassMat = new THREE.MeshPhysicalMaterial({ color: '#e8f2fa', roughness: 0.02, transmission: 0.6, transparent: true, opacity: 0.7, clearcoat: 1 });
+// (plain transparency: with transmission, three.js draws every opaque object in view a second
+// time, into a target the glass samples, in every frame the lens element is on screen, and
+// compiles a second program for each of them the first time; for a 12 cm element under the
+// immersion hood that doubled the scanner's draw calls, 109 → 207, and changed no pixel by more
+// than 2 levels)
+const glassMat = new THREE.MeshPhysicalMaterial({ color: '#e8f2fa', roughness: 0.02, transparent: true, opacity: 0.7, clearcoat: 1 });
 // the next wafer, measured on the other stage while yours is exposed (bare silicon look)
 const nextWaferMat = new THREE.MeshStandardMaterial({ color: '#6f747c', metalness: 0.6, roughness: 0.22 });
 
