@@ -130,7 +130,7 @@ export const framingRegistry = new Map<MachineId, THREE.Object3D>();
  * Wafer centre, up normal and your-die centre in world space, as shots frame them (the
  * machine's stand-in, if it has one); false if the machine holds no learner wafer.
  */
-export function waferFrame(id: MachineId | null, out: { centre: THREE.Vector3; up: THREE.Vector3; die: THREE.Vector3; x: THREE.Vector3 }): boolean {
+export function waferFrame(id: MachineId | null, out: { centre: THREE.Vector3; up: THREE.Vector3; die: THREE.Vector3; x: THREE.Vector3; span?: number }): boolean {
   if (!id) return false;
   const mesh = waferRegistry.get(id);
   if (!mesh || !mesh.parent) return false;
@@ -141,5 +141,6 @@ export function waferFrame(id: MachineId | null, out: { centre: THREE.Vector3; u
   out.die.copy(yourDieLocal(out.die)).applyMatrix4(w.matrixWorld);
   out.up.set(0, 1, 0).transformDirection(w.matrixWorld);
   out.x.set(1, 0, 0).transformDirection(w.matrixWorld);
+  out.span = (w.userData.span as number | undefined) ?? 1;
   return true;
 }

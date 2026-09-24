@@ -306,7 +306,7 @@ export function Wafer({
  * (see anchors.ts, framingRegistry): an empty object in the wafer mesh's own frame, which the
  * machine keeps where the wafer rests, right side up, while it flips, spins or scans the wafer.
  */
-export function WaferFraming({ frameRef, position, rotation }: { frameRef?: React.RefObject<THREE.Group | null>; position?: [number, number, number]; rotation?: [number, number, number] }) {
+export function WaferFraming({ frameRef, position, rotation, span = 1 }: { frameRef?: React.RefObject<THREE.Group | null>; position?: [number, number, number]; rotation?: [number, number, number]; span?: number }) {
   const own = useRef<THREE.Group>(null);
   const ref = frameRef ?? own;
   const { station } = useStationEnv();
@@ -314,10 +314,13 @@ export function WaferFraming({ frameRef, position, rotation }: { frameRef?: Reac
   useEffect(() => {
     const o = ref.current;
     if (parked || !station || !o) return;
+    // (how much the whole-wafer framing takes in, relative to the wafer itself: a stage that
+    // carries the wafer about needs its travel in view)
+    o.userData.span = span;
     framingRegistry.set(station, o);
     return () => {
       if (framingRegistry.get(station) === o) framingRegistry.delete(station);
     };
-  }, [ref, parked, station]);
+  }, [ref, parked, station, span]);
   return <group ref={ref} position={position} rotation={rotation} />;
 }

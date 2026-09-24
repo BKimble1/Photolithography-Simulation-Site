@@ -661,7 +661,7 @@ export default function Inspect({ variant }: ToolProps) {
       {mode === 'review' && <SemColumn />}
       {/* the review sweeps the wafer back and forth under the optics, then carries each defect
           to the SEM: shots frame the stage's working area between the two, not the wafer */}
-      {mode === 'review' && <WaferFraming position={[SEM_X / 2, WAFER_Y, 0]} />}
+      {mode === 'review' && <WaferFraming position={[SEM_X / 2, WAFER_Y, 0]} span={1.8} />}
       {/* optional beam-path overlay: the illumination is UV, the review beam is electrons */}
       <group ref={beams} visible={false}>
         <group ref={laser} visible={false}>

@@ -67,7 +67,7 @@ const DEVICE_FRAMINGS: Record<'section' | 'top' | 'wide', Pose> = {
 };
 
 const tmpM = new THREE.Matrix4();
-const wf = { centre: new THREE.Vector3(), up: new THREE.Vector3(), die: new THREE.Vector3(), x: new THREE.Vector3() };
+const wf = { centre: new THREE.Vector3(), up: new THREE.Vector3(), die: new THREE.Vector3(), x: new THREE.Vector3(), span: 1 };
 const v1 = new THREE.Vector3();
 const v2 = new THREE.Vector3();
 
@@ -155,7 +155,7 @@ export function resolve(ref: CamRef, ctx: ResolveCtx, out: CamPose): CamPose {
       v1.normalize();
       const top = ref.framing === 'top';
       const elev = top ? 0.95 : 1.15; // radians above the wafer plane
-      const dist = top ? 0.56 : 0.13; // 'die': your die and its neighbours fill the view
+      const dist = top ? 0.56 * (wf.span ?? 1) : 0.13; // 'die': your die and its neighbours fill the view
       const centre = top ? wf.centre : wf.die;
       v2.copy(v1).multiplyScalar(Math.cos(elev)).addScaledVector(wf.up, Math.sin(elev)).multiplyScalar(dist);
       out.space = 'world';
