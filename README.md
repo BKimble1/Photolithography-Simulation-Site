@@ -65,10 +65,11 @@ npm run preview        # http://127.0.0.1:4173
 | `node scripts/stats.mjs` | draw calls, triangles, per-frame CPU cost and JS heap for a set of views (dev server running) |
 | `node scripts/cue-alignment.mjs` | decode the narration in the browser and compare where speech starts and ends with the film's cue times |
 | `node scripts/perf.mjs <baseUrl> <out.json> [--scenarios a,b] [--video dir] [--query quality=high] [--gpu] [--headed]` | real-time measurements on a production build: frame intervals (median, p95, p99, long frames; the longest while the camera moves and while it is still), long tasks, draw calls and triangles over all passes, resource counts, per scenario; `--video` also records them in real time; `--gpu` measures on the machine's graphics hardware instead of SwiftShader |
-| `node scripts/programs.mjs [baseUrl] [--step arrive] [--next 2] [--gpu]` | which shader programs are compiled around lesson changes, in real time, and what waited for them (each program link, each call that blocked the page, long tasks, when each machine was ready and the camera moving) |
+| `node scripts/programs.mjs [baseUrl] [--step arrive] [--next 2] [--gpu]` | which shader programs are compiled around lesson changes, in real time, and what waited for them (each program link, each call that blocked the page, long tasks, when each machine was ready and the camera moving or waiting) |
 | `node scripts/probe.mjs <baseUrl> <out.json> [--cases a,b]` | frame-by-frame checks of transitions on any build (jumps, the learner's wafer, interrupted fades, loading, film moves, shadow redraws, texture uploads, the camera around moving wafers, every lesson-to-lesson move of the course) — the round-three findings, measured the same way before and after |
 | `node scripts/frames.mjs <baseUrl> "/?step=coat&virt=1" <dir> p=0 p=0.1 …` | save canvas frames at chosen lesson points |
 | `scripts/recordings/r3-sheets.sh` | round three's reviewed frame sequences: stills from this build and the one before the fixes, tiled into contact sheets (`docs/recordings/round3/sheet-*.jpg`; needs Python's Pillow) |
+| `node scripts/recordings/watch-sheets.mjs <baseUrl> <dir>` | Watch after a seek, frame by frame: a chapter jump into the layers (the frame before and the eleven after) and a paused seek next to the played frame at the same film time, as PNGs to tile with `scripts/recordings/sheet.py` |
 
 The browser tests use Playwright's Chromium with software WebGL (SwiftShader), so they
 also run on machines without a GPU. If Playwright's browser isn't installed yet, run
