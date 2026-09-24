@@ -652,6 +652,10 @@ export function Director({ deviceScene, controlsRef }: { deviceScene: THREE.Scen
         s.first = false;
         configureControls(controls, a.mode);
       }
+    } else if (s.waitingFor && a.mode !== 'watch') {
+      // the learner came back before the machine being waited for had loaded: the camera is
+      // already where it should be, and there is nothing to wait for
+      s.waitingFor = null;
     }
     // Watch: a seek or a chapter jump to a machine that is not loaded yet holds the film's last
     // good picture (the scene has already moved on to the new time), then dissolves from it. So
