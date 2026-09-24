@@ -31,7 +31,11 @@ Short recordings (rendered frame by frame, see [below](#recordings)):
 [the film, with narration](docs/recordings/04-watch-expose-to-develop.mp4) ·
 [phone](docs/recordings/05-phone-coat.mp4).
 Round one's screenshots are kept in [`docs/screenshots/round1/`](docs/screenshots/round1/)
-for comparison; what changed is in [`docs/ROUND2.md`](docs/ROUND2.md).
+for comparison; what changed is in [`docs/ROUND2.md`](docs/ROUND2.md). Round three (smooth
+playback, continuous transitions, believable machinery) is in
+[`docs/ROUND3.md`](docs/ROUND3.md): what was reproduced and fixed, before-and-after
+measurements, recordings in [`docs/recordings/round3/`](docs/recordings/round3/), and how to
+measure it on your own hardware.
 
 ## Run it locally
 
