@@ -41,6 +41,7 @@ import { failedStations, readyStations, stationBoxes, stationCentre, stationGrou
 import { filmSample, filmBridge } from './filmBridge';
 import { handover, remount } from './handover';
 import { directorCommands, publish, stageFocus } from './info';
+import { finishPrograms } from './programs';
 import { quality } from './quality';
 import { stageTime } from './time';
 import { handoverAt, legAt, planTransition, type Leg } from './flights';
@@ -498,7 +499,7 @@ export function Director({ deviceScene, controlsRef }: { deviceScene: THREE.Scen
     const s = st.current;
     const a = useApp.getState();
     const clock = useClock.getState();
-    const now = stageTime.clock();
+    let now = stageTime.clock();
     const controls = controlsRef.current;
     const reduced = a.reducedMotion;
     s.drawn = false;
@@ -522,6 +523,9 @@ export function Director({ deviceScene, controlsRef }: { deviceScene: THREE.Scen
         waiting = true;
       } else {
         s.waitingFor = null;
+        // the programs prepared for where we are going, used now while the camera is still (where
+        // they cannot be compiled in parallel); the move starts after that
+        if (finishPrograms(gl) > 0) now = stageTime.clock();
         const modeChanged = s.mode !== a.mode;
         const cut = s.first || (a.mode === 'watch' && modeChanged);
         // Whatever is on screen now — half of a cross-fade, a dissolve, a machine about to
@@ -754,7 +758,11 @@ export function Director({ deviceScene, controlsRef }: { deviceScene: THREE.Scen
 
     // The picture may be revealed once its machine is loaded (or known to have failed).
     const settled = !want || readyStations.has(want) || failedStations.has(want);
-    if (!s.shown && settled && !s.waitingFor) s.shown = true;
+    if (!s.shown && settled && !s.waitingFor) {
+      // (under the veil, which lifts from this frame)
+      finishPrograms(gl);
+      s.shown = true;
+    }
     const loading = s.waitingFor ? (now - s.waitSince > LOADING_AFTER ? s.waitingFor : null) : !s.shown ? want : null;
     const failed = want && failedStations.has(want) ? want : null;
 

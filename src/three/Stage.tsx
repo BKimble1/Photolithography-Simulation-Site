@@ -358,22 +358,10 @@ function prewarmShared(gl: THREE.WebGLRenderer, camera: THREE.Camera, scene: THR
 }
 
 /**
- * Where the browser cannot compile in parallel (the extension three.js waits on), compileAsync
- * resolves at once and a program is really compiled when first used, which blocks until the
- * renderer has caught up: at the first draw, in the middle of a move. Use them now instead (a
- * blocking query of each new one), so that a machine counts as ready only once its programs are
- * compiled: the first machine's wait is under the veil, a machine prepared ahead waits while the
- * lesson before it plays, and the camera never flies into a machine still compiling.
- */
-function finishPrograms(gl: THREE.WebGLRenderer) {
-  if (gl.extensions.has('KHR_parallel_shader_compile')) return;
-  for (const p of gl.info.programs ?? []) (p as unknown as { getUniforms(): unknown }).getUniforms();
-}
-
-/**
  * Prepare a mounted model for the GPU before the camera goes to it: compile its shader
- * programs (in parallel where the browser can) and upload its textures, one model at a time.
- * The first model prepared also prepares what every lesson shares (prewarmShared).
+ * programs (in parallel where the browser can; see stage/programs.ts for where it cannot) and
+ * upload its textures, one model at a time. The first model prepared also prepares what every
+ * lesson shares (prewarmShared).
  */
 function prewarm(gl: THREE.WebGLRenderer, group: THREE.Object3D, camera: THREE.Camera, scene: THREE.Scene, sync: boolean): Promise<void> | void {
   const uploads = () =>
@@ -394,7 +382,6 @@ function prewarm(gl: THREE.WebGLRenderer, group: THREE.Object3D, camera: THREE.C
   const run = async () => {
     await gl.compileAsync(group, camera, scene);
     if (shared) await prewarmShared(gl, camera, scene, false);
-    finishPrograms(gl);
     uploads();
   };
   const p = prewarmChain.then(run);
