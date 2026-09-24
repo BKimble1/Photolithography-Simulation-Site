@@ -286,7 +286,19 @@ so going back is instant.
   keeps working. Until the first picture has its machine ready, a veil covers the canvas, so
   a deep link never shows a half-built scene; the lesson clock starts after that. The
   clipped housing materials are compiled once, up front (`Fab.tsx`), so a housing's first
-  opening does not stall.
+  opening does not stall. The first machine prepared also prepares what no machine's model
+  holds (`prewarmShared`): the rest of the bay, the wafer's program (a kept stand-in: a
+  machine is prepared with the wafers it holds, perhaps none) and the cross-section's
+  materials under their lighting (which also prefilters that lighting's environment map);
+  the director compiles its overlay when it mounts. Where the browser cannot compile in
+  parallel (`KHR_parallel_shader_compile`), `compileAsync` resolves at once and a program is
+  really compiled at its first use: the director uses the prepared programs when the camera
+  is still — when the first picture is revealed (under the veil) and when it leaves for a new
+  destination, starting the move's clock after that (`stage/programs.ts`).
+* **Lights inside machines** (the load port's fan-filter unit, the implanter's chamber) are
+  drawn by a fixed pool of two point lights in the world (`stage/StationLight.tsx`): a
+  machine's light takes one while the machine is drawn. Every lit program is compiled for the
+  number of lights in the scene, so the number never changes.
 * A machine the story **leaves** keeps its real last frame — its lesson, run choices,
   overlays and progress, frozen — until it is out of view (outside the camera frustum, or
   hidden by level of detail) and the camera has settled; at most two are held. The release
@@ -541,13 +553,24 @@ test explains the cause.
   `?capture=1`).
 * The film plans each silent move once and reuses it (it re-planned, building two
   Catmull-Rom curves, every frame of every gap).
+* **No shader program is compiled where the picture moves**: see the stage's readiness above
+  (shared preparation, the programs used when the camera is still) and the constant light
+  count. The scanner's last lens element is plain transparency rather than transmission
+  (which made three.js draw every opaque object in view twice per frame). The cross-section
+  has no contact shadow: drei's `ContactShadows` looked at the block from below, where the
+  mesher emits no faces, and drew nothing but cost three programs, two render targets per step
+  and a full-floor transparent plane.
+* **Thin-film colour tables** (`sim/filmColor.ts` `colorsWithTop`): the layers under the film
+  are multiplied out once per wavelength and the top film is computed in plain numbers, so a
+  256-entry table costs about 2 ms instead of 20–90 ms (the table is rebuilt at every
+  operation change of a live film).
 
 * A full replay of all 125 ops takes ~200 ms; seeking inside a step replays at most a few
   ops from a cached checkpoint. Electrical extraction ~30 ms. Device meshing 50–100 ms per
   change (only when the state changes).
 * The wafer map runs in a Web Worker and is cached per choice set.
 * Tool scenes are code-split and loaded on demand; the environment map is generated
-  procedurally (no HDR downloads). The device ground shadow is baked once per step.
+  procedurally (no HDR downloads).
 * *Round two:* the bay is merged and pre-lit (about 50 draw calls for the whole fab); only
   the machines near the camera draw their detailed models, and only the one the story is at
   opens its housing. A view costs 10–550 draw calls and 15–410 k triangles, and 0.5–4 ms of
@@ -570,7 +593,8 @@ test explains the cause.
   robot ends each lesson exactly where the next one starts (wafer, carriage, fork, pins and
   chucks), never moves the wafer faster than 0.09 m per 1/30 s, hands it between chuck and
   fork without a step, keeps every axis under 2.8 m/s (chucks and pins under 0.5 m/s), and
-  stops spins on whole turns; the scanner's stage paths (the chuck exchange, the alignment marks, the
+  stops spins on whole turns; the thin-film colour table equals the full stack computation
+  (metal, dielectric and resist tops, thin and opaque); the scanner's stage paths (the chuck exchange, the alignment marks, the
   step-and-scan meander) are continuous; tracks pass through intermediate framings on time
   and velocity-continuous, and hold on repeated framings; the wafer changes hands halfway
   along the first move between machines; the starting quality tier follows the device.
