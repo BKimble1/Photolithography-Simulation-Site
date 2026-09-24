@@ -94,26 +94,29 @@ export const SHOTS: Partial<Record<StepId, Key[]>> = {
     { p: 0.3, cam: tool },
     { p: 0.4, cam: section },
   ],
-  // tungsten deposited at 0.35; wafer in the cup by 0.45; polish 0.55–0.75; back in the cup by 0.83
+  // tungsten deposited at 0.35; wafer in the cup by 0.45; polish 0.55–0.75; back in the cup by 0.83,
+  // and the head's arm swung clear by 0.88. The flipper turns the wafer at 0.47–0.49 and back at
+  // 0.81–0.83, lifting it up to 16 cm as it turns, and the head works right over the cup: the
+  // camera watches all that from the tool framing (a die close-up would have the turning wafer
+  // or the head in the lens) and goes down into the layers once the arm is clear
   'contact-fill': [
     { p: 0, cam: section },
-    { p: 0.4, cam: section },
-    { p: 0.47, cam: die },
-    { p: 0.54, cam: tool },
-    { p: 0.78, cam: tool },
-    { p: 0.88, cam: die },
+    { p: 0.39, cam: section },
+    { p: 0.46, cam: tool },
+    { p: 0.87, cam: tool },
     { p: 0.95, cam: section },
   ],
   // dielectric, lithography, trench etch and strip, then copper at 0.7, all seen in the layers;
-  // the wafer is already polishing (0.71–0.85) when the camera comes out; back in the cup by 0.915
+  // the wafer is already polishing (0.71–0.85) when the camera comes out; back in the cup and
+  // turned face-up by 0.915, the head's arm swung clear by 0.965 (the camera stays on the tool
+  // framing until then: the head is right over the cup)
   metal1: [
     { p: 0, cam: section },
     { p: 0.73, cam: section },
     { p: 0.79, cam: machine },
     { p: 0.83, cam: tool },
-    { p: 0.87, cam: tool },
-    { p: 0.925, cam: die },
-    { p: 0.965, cam: section },
+    { p: 0.94, cam: tool },
+    { p: 0.995, cam: section },
   ],
   // The track's robot carries the wafer on from the module the last lesson left it in: the
   // camera holds on the pick-up, then follows the wafer to the next module (the transfer
