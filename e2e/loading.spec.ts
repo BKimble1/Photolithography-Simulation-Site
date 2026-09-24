@@ -1,11 +1,13 @@
 import { expect, test, type Page } from '@playwright/test';
-import { advance, freshStart, sampleFrame, sampleFrames, settle, watchErrors, worstJump } from './helpers';
+import { advance, sampleFrame, sampleFrames, settle, waitForStage, watchErrors, worstJump } from './helpers';
 
 /**
  * Loading (round three): the camera never flies into a machine that is not there. It waits
  * however long the model takes, says what it is waiting for, and shows a model that failed
  * to load from outside, with a notice. The first picture is revealed only once its machine is
- * ready. The track's module is held back (or refused) at the network to make this happen.
+ * ready. The track's module is held back (or refused) at the network to make this happen, from
+ * its first request: the next lesson's machine is loaded while the current lesson plays, so the
+ * track is asked for as soon as the deposition lesson opens.
  */
 
 type W = {
@@ -22,13 +24,25 @@ type W = {
 
 const TRACK_MODULE = /\/(assets\/Track-[^/]*\.js|src\/three\/tools\/Track\.tsx)(\?.*)?$/;
 
-/** Hold the track's module back for `ms`, or refuse it (ms < 0). */
-async function throttleTrack(page: Page, ms: number) {
+/**
+ * A fresh learner at `path` with the track's module held at the network until the returned
+ * function is called (or refused outright).
+ */
+async function openHeld(page: Page, path: string, refuse = false): Promise<() => void> {
+  await page.goto('/');
+  await page.evaluate(() => {
+    localStorage.clear();
+    sessionStorage.clear();
+  });
+  let release = () => {};
+  const released = new Promise<void>((r) => (release = r));
   await page.route(TRACK_MODULE, async (r) => {
-    if (ms < 0) return r.abort();
-    await new Promise((res) => setTimeout(res, ms));
+    if (refuse) return r.abort();
+    await released;
     await r.continue();
   });
+  await page.goto(path);
+  return release;
 }
 
 const info = (page: Page) =>
@@ -56,9 +70,9 @@ test('the camera waits for a machine that loads late, and says what it is waitin
   test.skip(ti.project.name !== 'desktop', 'once');
   test.setTimeout(600_000);
   const errors = watchErrors(page);
-  await freshStart(page, '/?step=gatestack&virt=1');
+  const release = await openHeld(page, '/?step=gatestack&virt=1');
   await settle(page);
-  await throttleTrack(page, 12_000);
+  expect((await info(page)).trackReady, 'the track is still loading').toBe(false);
   await page.evaluate(() => (window as unknown as W).__fabStores.useApp.getState().next());
   const waiting = await stepFor(page, 8000);
   // far longer than the old three-second allowance: still waiting, still at the deposition tool
@@ -68,6 +82,7 @@ test('the camera waits for a machine that loads late, and says what it is waitin
   const far = waiting.at(-1)!.toTrack;
   expect(far, 'the camera has not left for the track').toBeGreaterThan(4);
   // the module arrives: the camera goes, and arrives at a loaded machine
+  release();
   await stepFor(page, 7000);
   await settle(page, 600);
   const end = await info(page);
@@ -82,18 +97,21 @@ test('changing your mind while a machine loads: the latest destination wins', as
   test.skip(ti.project.name !== 'desktop', 'once');
   test.setTimeout(600_000);
   const errors = watchErrors(page);
-  await freshStart(page, '/?step=gatestack&virt=1');
+  const release = await openHeld(page, '/?step=gatestack&virt=1');
   await settle(page);
-  await throttleTrack(page, 10_000);
   await page.evaluate(() => (window as unknown as W).__fabStores.useApp.getState().next());
   await stepFor(page, 2500);
   // back to the deposition lesson before the track has loaded
   await page.evaluate(() => (window as unknown as W).__fabStores.useApp.getState().prev());
   const frames = await sampleFrames(page, 30);
+  // the track arriving now does not take the camera there
+  release();
+  await stepFor(page, 3000);
   await settle(page);
   const end = await info(page);
   expect(end.step).toBe(10);
   expect(end.loading).toBeNull();
+  expect(end.toTrack, 'still at the deposition tool').toBeGreaterThan(4);
   expect(worstJump(frames, 1).ratio).toBeLessThan(4);
   expect(errors).toEqual([]);
 });
@@ -102,9 +120,8 @@ test('a machine that fails to load is shown from outside, with a notice; the sta
   test.skip(ti.project.name !== 'desktop', 'once');
   test.setTimeout(600_000);
   const errors = watchErrors(page);
-  await freshStart(page, '/?step=gatestack&virt=1');
+  await openHeld(page, '/?step=gatestack&virt=1', true);
   await settle(page);
-  await throttleTrack(page, -1);
   await page.evaluate(() => (window as unknown as W).__fabStores.useApp.getState().next());
   await stepFor(page, 4000);
   await settle(page, 600);
@@ -131,18 +148,15 @@ test('a machine that fails to load is shown from outside, with a notice; the sta
 test('the first picture is revealed only when its machine is ready', async ({ page }, ti) => {
   test.skip(ti.project.name !== 'desktop', 'once');
   test.setTimeout(600_000);
-  await page.goto('/');
-  await page.evaluate(() => {
-    localStorage.clear();
-    sessionStorage.clear();
-  });
-  await throttleTrack(page, 6000);
-  await page.goto('/?step=coat&virt=1');
-  await page.waitForFunction(() => !!(window as unknown as { __fabAdvance?: unknown }).__fabAdvance, undefined, { timeout: 120_000 });
+  const release = await openHeld(page, '/?step=coat&virt=1');
+  await waitForStage(page);
   await advance(page, 10);
   await expect(page.locator('.vp-veil')).toBeVisible();
-  expect((await info(page)).shown).toBe(false);
-  await stepFor(page, 9000);
+  const held = await stepFor(page, 4000);
+  expect(held.every((s) => !s.shown && !s.trackReady), 'veiled while its machine loads').toBe(true);
+  await expect(page.locator('.vp-veil')).toBeVisible();
+  release();
+  await stepFor(page, 5000);
   await settle(page, 600);
   expect((await info(page)).shown).toBe(true);
   await expect(page.locator('.vp-veil')).toHaveCount(0);

@@ -23,8 +23,17 @@ async function openFilm(page: Page, t: number) {
     sessionStorage.clear();
   });
   await page.goto(`/?watch&t=${t}&virt=1`);
-  await page.waitForFunction(() => !!(window as unknown as FW).__fabFilm?.filmPlayer() && !!(window as unknown as { __fabAdvance?: unknown }).__fabAdvance, undefined, { timeout: 120_000 });
+  // the film's player and the stage's harness hooks (the canvas mounts its scene asynchronously)
+  await page.waitForFunction(
+    () => {
+      const w = window as unknown as FW & { __fabAdvance?: unknown; __fab?: { gl?: unknown } };
+      return !!w.__fabFilm?.filmPlayer() && !!w.__fabAdvance && !!w.__fab?.gl;
+    },
+    undefined,
+    { timeout: 120_000 },
+  );
   await advance(page, 10);
+  await untilLive(page);
 }
 
 /**
@@ -59,15 +68,23 @@ test('a gap move is planned once and reused; a new viewport plans it again', asy
     f.filmControls.seek(t);
     f.filmControls.pause();
   }, segs[i].start + segs[i].dur + 0.2);
+  // (the machines at both ends load first: the move is planned with both in place)
   await advance(page, 20);
+  await untilLive(page);
   const a = await page.evaluate(() => ({ ...(window as unknown as FW).__fab.gapStats }));
   await page.evaluate(() => (window as unknown as FW).__fabFilm.filmControls.play());
   await advance(page, 40);
   const b = await page.evaluate(() => ({ ...(window as unknown as FW).__fab.gapStats }));
   expect(b.planned - a.planned, 'no new plans while crossing the same gap').toBe(0);
   expect(b.reused - a.reused, 'the plan is reused every frame').toBeGreaterThanOrEqual(30);
-  // a different viewport: the move is planned again for it
+  // a different viewport: the move is planned again for it (once the stage has the new size:
+  // between harness frames the browser may not have laid the page out again yet)
   await page.setViewportSize({ width: 900, height: 900 });
+  await page.waitForFunction(() => {
+    const f = (window as unknown as { __fab: { camera: { aspect: number }; gl: { domElement: HTMLCanvasElement } } }).__fab;
+    const c = f.gl.domElement;
+    return Math.abs(f.camera.aspect - c.clientWidth / c.clientHeight) < 1e-3;
+  });
   await page.evaluate((t) => (window as unknown as FW).__fabFilm.filmControls.seek(t), segs[i].start + segs[i].dur + 0.4);
   await advance(page, 6);
   const c = await page.evaluate(() => ({ ...(window as unknown as FW).__fab.gapStats }));
@@ -93,13 +110,14 @@ test('a seek shows exactly the frame that playing would, and the moves are conti
   const played = await sampleFrames(page, 60);
   for (const f of played) expect(f.wafers.filter((w) => w.onScreen).length, 'one learner wafer on screen at most').toBeLessThanOrEqual(1);
   expect(worstJump(played, 1).ratio, 'the move is continuous').toBeLessThan(4);
-  // the time of the 40th played frame, reached by a seek instead
+  // the time of the 40th played frame (each frame advances the film by 1/30 s), reached by a
+  // seek instead: paused there, the frame shows that time
   const t40 = gapStart - 1 + (20 + 40) / 30;
   await page.evaluate((t) => {
     const f = (window as unknown as FW).__fabFilm;
     f.filmControls.pause();
     f.filmControls.seek(t);
-  }, t40 - 1 / 30);
+  }, t40);
   await advance(page, 1);
   const sought = await sampleFrame(page);
   expect(pictureChange(sought, played[39]), 'the sought frame matches the played one').toBeLessThan(1.5);
