@@ -74,7 +74,9 @@ async function toggleAfter(page: Page, first: string, at: number, second: string
 
 test('reversing the cross-section fade at any point never jumps; the latest request wins', async ({ page }, info) => {
   onlyDesktop(info.project.name);
-  test.setTimeout(900_000);
+  // six reversals and a burst, frame by frame: 14–15 minutes on a software renderer (the probe's
+  // copy of this case took 819–868 s on round two's build and this round's)
+  test.setTimeout(1_500_000);
   const errors = watchErrors(page);
   await freshStart(page, '/?step=gate-etch&p=0.5&virt=1');
   await settle(page);
@@ -227,6 +229,10 @@ test('resizing the window during a move keeps the camera continuous and on cours
 test('going back and forth through the lessons does not accumulate GPU resources', async ({ page }, info) => {
   onlyDesktop(info.project.name);
   test.setTimeout(1_200_000);
+  // Twenty lesson changes, every frame of every move rendered: on a software renderer a frame
+  // at the desktop size costs about a second. The resources counted (geometries, textures,
+  // programs) do not depend on the canvas size, so the loop runs at a quarter of the pixels.
+  await page.setViewportSize({ width: 720, height: 450 });
   const errors = watchErrors(page);
   await freshStart(page, '/?step=gatestack&virt=1');
   await settle(page);

@@ -280,7 +280,8 @@ so going back is instant.
 * A machine counts as **ready** once its model has mounted, drawn its textures and been
   prepared for the GPU (`renderer.compileAsync` for its shader programs, `initTexture` for its
   textures), one model at a time. The camera waits for the destination **however long it
-  takes** (no timeout); after 250 ms the page says what it is waiting for. A model that fails
+  takes** (no timeout); after 250 ms the page says what it is waiting for, and the wait ends
+  if the learner comes back to where the camera already is. A model that fails
   to load (a module that cannot be fetched) is caught by its own error boundary: the machine
   is framed from outside (`machinePose`), a notice offers a reload, and the rest of the stage
   keeps working. Until the first picture has its machine ready, a veil covers the canvas, so
@@ -327,7 +328,11 @@ faces drawn double-sided) to reveal the detailed interior. *Round three:* back f
 opened housing are drawn one pixel's depth slope deeper than front faces (`cutMaterial`), so
 the underside of a part resting on another (a housing on its plinth, a roof unit on the
 housing top) never z-fights with the surface below it. A machine that loads while the
-camera is already there opens at once, and reduced motion skips the wipe. Machines without a
+camera is already there opens at once, and reduced motion skips the wipe. In Watch the
+housings move on the film's clock (paused, they stay as they are), and after a seek, or when
+a machine loads, the director sets them to where playing up to that time leaves them: it
+replays the film's camera and machine over the preceding 1.6 s, a frame at a time
+(`Director.tsx` `replayHousings`, `Fab.tsx` `cutClock`). Machines without a
 housing hand over from the low-detail to the detailed model when the camera comes within
 16 m.
 
@@ -491,7 +496,12 @@ test explains the cause.
   previous segments with presentations whose progress is read from the film time, and the
   camera is the step's own shot track at the mapped progress, or the same flight a lesson
   would make, stretched to fill the move between segments. Seeking anywhere gives exactly
-  the frame that playing would.
+  the frame that playing would. *Round three:* a seek moves the film's camera at once, but
+  the stage's tree commits what the new time shows a frame later; the director holds the last
+  good picture until the tree has the film's presentation (`filmBridge.pres` against
+  `stageCommit`), the layers have their geometry if the film is in them (`deviceShown`), and
+  the machines at both ends of a move are loaded (`filmBridge.otherEnd`), then dissolves from
+  it. The director reads the viewport from each frame's own state.
 * **Offline** (`watch/offline.ts`, `public/sw.js`): *Save for offline* checks the storage
   estimate, downloads every file of this build (listed with sha256 in `app-files.json`, made
   at build time) and the film's audio (sha256 in the manifest) into a cache named after both
@@ -636,13 +646,16 @@ test explains the cause.
     dissolves; reduced motion only cross-fades between still compositions; a resize during
     a move stays continuous; a forward-and-back navigation loop does not accumulate
     geometries, textures or shader programs; a hidden page resumes a move where it left it
-    (real time). `loading` — the camera waits for a model held back 12 s at the network and
-    says what it is waiting for; changing destination while it loads; a model that cannot
+    (real time). `loading` (the track's module held at the network from its first request,
+    since the next lesson's machine is loaded ahead) — the camera waits for the model however
+    long it is held and says what it is waiting for; changing your mind while it loads ends
+    the wait, and the model arriving later does not take the camera there; a model that cannot
     load is shown from outside with a notice while the stage keeps working; the first
     picture is veiled until its machine is ready. `film-continuity` — a gap's move is
     planned once and reused, and planned again for a new viewport; a seek shows exactly the
-    frame playing reaches; chapter jumps hold the last picture until the machine is ready
-    and dissolve, never showing two wafers. `offline` also checks that the cross-section's
+    frame playing reaches (housings included); chapter jumps hold the last picture until the
+    machine is ready and the stage shows the new time, then dissolve, never showing two wafers
+    or an empty frame. `offline` also checks that the cross-section's
     worker comes from the saved build.
 
   Frame-stepped tests (`?virt=1`) step until the camera has arrived (`settle`) rather than a
