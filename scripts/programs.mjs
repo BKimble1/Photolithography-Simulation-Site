@@ -72,7 +72,8 @@ const t0 = await page.evaluate(() => {
   let last = '';
   setInterval(() => {
     const f = window.__fab;
-    const r = `ready ${[...f.readyStations].sort().join(',')} · ${f.useStageInfo.getState().flying ? 'moving' : 'still'}`;
+    const i = f.useStageInfo.getState();
+    const r = `ready ${[...f.readyStations].sort().join(',')} · ${i.loading ? `waiting for ${i.loading}` : i.flying ? 'moving' : 'still'}`;
     if (r !== last) window.__states.push({ t: performance.now(), r });
     last = r;
   }, 100);
