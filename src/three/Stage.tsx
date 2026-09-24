@@ -342,8 +342,8 @@ const sharedWarmed = new WeakSet<THREE.WebGLRenderer>();
  * Programs that no machine's own model holds, prepared once, with the first machine: the whole
  * bay (parts not yet drawn, such as the overhead rail's near cut), the wafer's (a machine is
  * prepared with the wafers it holds at the time, perhaps none) and the cross-section's, with its
- * lighting. A program is otherwise compiled when first drawn, which stalls that frame: 1–4 s
- * each on the software renderer, in the middle of a lesson or a move.
+ * lighting. A program is otherwise compiled when first drawn, which stalls that frame (1–7 s
+ * each on the software renderer), in the middle of a lesson or a move.
  */
 function prewarmShared(gl: THREE.WebGLRenderer, camera: THREE.Camera, scene: THREE.Scene, sync: boolean): Promise<unknown> {
   const tasks: Promise<unknown>[] = [];
