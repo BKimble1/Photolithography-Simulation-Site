@@ -663,8 +663,12 @@ export function Director({ deviceScene, controlsRef }: { deviceScene: THREE.Scen
     // in place), and any seek until the stage shows the new time: its tree follows a frame late,
     // and the layers may be waiting for their geometry.
     if (a.mode === 'watch' && s.mode === 'watch' && !s.first) {
-      const missing = [want, filmBridge.otherEnd].find((id) => !!id && !readyStations.has(id) && !failedStations.has(id)) ?? null;
-      if (s.seekHold && (caughtUp(s.guided) || now - s.seekAt > SWAP_PATIENCE)) s.seekHold = false;
+      const loading = (id: MachineId | null) => !!id && !readyStations.has(id) && !failedStations.has(id);
+      // (after a seek, the machine of a move about to start is waited for as well, so that the
+      // move plays through instead of stopping half-way for it)
+      const soon = s.seekHold && loading(filmBridge.soon) ? filmBridge.soon : null;
+      const missing = [want, filmBridge.otherEnd].find(loading) ?? soon;
+      if (s.seekHold && !soon && (caughtUp(s.guided) || now - s.seekAt > SWAP_PATIENCE)) s.seekHold = false;
       if (missing !== s.waitingFor) {
         s.waitingFor = missing;
         s.waitSince = now;

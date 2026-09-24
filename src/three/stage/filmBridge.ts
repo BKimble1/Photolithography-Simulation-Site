@@ -22,11 +22,13 @@ export const filmBridge: {
   station: MachineId | null;
   /** In a move between segments, the machine at its other end (the move is planned with both). */
   otherEnd: MachineId | null;
+  /** The machine of a move that starts within a few seconds (a seek waits for it: see Director). */
+  soon: MachineId | null;
   /** The presentation the film shows right now (the stage's tree follows it: see stageCommit). */
   pres: object | null;
   /** The viewport aspect (width / height), kept up to date by the director. */
   aspect: number;
-} = { sample: null, sampleAt: null, stationAt: null, time: null, seeks: null, sync: null, station: null, otherEnd: null, pres: null, aspect: 1.6 };
+} = { sample: null, sampleAt: null, stationAt: null, time: null, seeks: null, sync: null, station: null, otherEnd: null, soon: null, pres: null, aspect: 1.6 };
 
 /** The film's camera for the current media time; false when no film is loaded. */
 export function filmSample(out: CamSample): boolean {

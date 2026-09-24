@@ -68,6 +68,8 @@ function filmPres(stepIndex: number, lightPath: boolean, input: 0 | 1): Presenta
 }
 
 let lastKey = '';
+/** A move starting within this long (film seconds) of a seek is waited for with it. */
+const SOON = 3;
 
 /** Recompute what is mounted and presented; cheap, and only publishes when it changes. */
 export function updateFilmStage(tl: Timeline, t: number): void {
@@ -80,6 +82,7 @@ export function updateFilmStage(tl: Timeline, t: number): void {
   const cur = handed ? next : seg;
   // a move joins framings at both of its machines: the director waits for both to be ready
   filmBridge.otherEnd = loc.inGap && next ? (handed ? seg.station : next.station) : null;
+  filmBridge.soon = !loc.inGap && next && seg.start + seg.dur - t < SOON ? next.station : null;
   const input = inputAt(tl, t);
   const light = !loc.inGap && !!seg.def.lightPath;
   const key = `${cur.index}:${seg.index}:${handed}:${light}:${input}`;
@@ -222,6 +225,7 @@ export function attachFilm(c: Clock | null): void {
   if (!c) {
     filmBridge.station = null;
     filmBridge.otherEnd = null;
+    filmBridge.soon = null;
     filmBridge.pres = null;
     useFilmStage.setState({ stage: null });
   }
