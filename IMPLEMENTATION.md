@@ -347,7 +347,9 @@ The director owns the camera and the render loop in every mode:
   post-exposure bake's raised lid and exhaust filled the die close-up, develop's dispense
   bar swept across the lens, and in the etch chamber the wafer and die framings sat inside
   the plasma's glow; peb, develop, sti-etch and contact-etch now hold the machine view
-  through the action and go down into the layers from it. A
+  through the action and go down into the layers from it. Contact-fill and metal1 watch the
+  polisher's flips and the carrier head's return from the machine view the same way (a die
+  close-up had the turning wafer or the head in the lens). A
   flight into or out of the cross-section anchors on your die when the machine is showing
   the wafer, and on the machine itself when it is not, so the camera never closes in on an
   empty holder.
@@ -381,8 +383,9 @@ The director owns the camera and the render loop in every mode:
   shots to frame (`anchors.ts` `framingRegistry`, `Wafer.tsx` `WaferFraming`) — where the
   wafer rests, right side up: the polisher's ignores the flipper and the head's turn, the
   track's the spin, the scanner's the steps and scans, and the inspection review frames the
-  stage's working area between the optics and the review SEM — so the wafer moves within a
-  steady view instead of the view chasing the wafer. Spins stop on whole turns, so the next
+  stage's working area between the optics and the review SEM (a stand-in can widen the
+  whole-wafer framing to take in a stage's travel) — so the wafer moves within a steady view
+  instead of the view chasing the wafer. Spins stop on whole turns, so the next
   lesson finds the die where it was. The key light and shadows follow the
   story to the next machine at the wafer hand-over, while the camera is between machines.
 * **Clocks** (`stage/time.ts`): flights, the lesson clock and the demonstration clock run on
