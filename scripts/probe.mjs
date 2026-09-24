@@ -1,7 +1,7 @@
 // Reproduces the round-three review findings on a build, frame by frame, and measures them
 // the same way before and after the fixes (docs/ROUND3.md).
 //
-//   node scripts/probe.mjs <baseUrl> <out.json> [--cases a,b,c]
+//   node scripts/probe.mjs <baseUrl> <out.json> [--cases a,b,c] [--from <lesson>]   (--from: start the whole-course walk there)
 //
 // The build must expose the test hooks (?virt=1 does). Frames are stepped on the harness
 // clock (1/30 s each) and read back from the drawing buffer in the same task, so every frame
@@ -56,6 +56,8 @@ const PAIRS = [
   ['attach', 'package'],
 ];
 const cases = (opt('--cases') ?? ALL.join(',')).split(',');
+/** The walk starts at this lesson (default: the first), for re-measuring part of the course. */
+const walkFrom = opt('--from') ?? 'arrive';
 /** The lessons in order (src/sim/flow.ts). */
 const STEP_IDS = ['arrive','transfer','scan','clean','diemap','padox','sti-etch','sti-fill','wells','anneal','gatestack','prime','coat','softbake','reticle','align','expose','peb','develop','adi','gate-etch','strip','sd','pmd','contact-align','contact-print','contact-etch','contact-fill','metal1','metal2','passivate','inspect','probe','dice','attach','bond','final'];
 
@@ -672,10 +674,11 @@ run.anchors = async () => {
 
 run.transitions = async () => {
   const out = {};
-  const { ctx, page, errors } = await open('/?step=arrive&virt=1');
+  const start = Math.max(0, STEP_IDS.indexOf(walkFrom));
+  const { ctx, page, errors } = await open(`/?step=${STEP_IDS[start]}&virt=1`);
   await settle(page);
   const total = STEP_IDS.length;
-  for (let i = 0; i < total - 1; i++) {
+  for (let i = start; i < total - 1; i++) {
     await page.evaluate(() => {
       const c = window.__fabStores.useClock.getState();
       c.set(1);
