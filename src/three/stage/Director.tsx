@@ -36,9 +36,10 @@ import { cameraBridge, useApp, useClock, type CamPose as StoredPose, type ScaleI
 import { labelStations, projectLabels } from '../labelProjection';
 import { BAY, BACKEND } from '../tools/poses/fab';
 import { TOOL_POSES } from '../poses';
-import { cutAmount, cutInstant, cutOpen, fabLod, proxyHidden } from '../tools/Fab';
+import { cutAmount, cutClock, cutInstant, cutOpen, CUT_TIME, fabLod, proxyHidden, stepCut } from '../tools/Fab';
+import { deviceShown } from '../device/deviceGeometry';
 import { failedStations, readyStations, stationBoxes, stationCentre, stationGroups, waferRegistry } from './anchors';
-import { filmSample, filmBridge } from './filmBridge';
+import { filmSample, filmBridge, stageCommit } from './filmBridge';
 import { handover, remount } from './handover';
 import { directorCommands, publish, stageFocus } from './info';
 import { finishPrograms } from './programs';
@@ -352,12 +353,24 @@ export function Director({ deviceScene, controlsRef }: { deviceScene: THREE.Scen
     snap: { on: false, hold: false, start: 0 },
     /** This frame's picture is already on screen (it was drawn to be captured). */
     drawn: false,
+    /** Watch: the film's clock and seek count at the last frame. */
+    film: null as { t: number; seeks: number } | null,
+    /** Watch: the film's last good picture is held (a machine is loading, or a seek is catching up). */
+    holding: false,
+    /** Watch: a seek was made; the picture is held until the stage shows the new time. */
+    seekHold: false,
+    seekAt: 0,
+    /** Watch: work out the housings' openings again next frame (a machine was loaded). */
+    replay: false,
   });
 
   directorView.live = st.current.live;
 
+  /** The viewport as the renderer has it: set at the start of every frame from the frame's own
+   * state (a resize reaches the frame loop before this component renders again). */
+  const vp = useRef({ w: size.width, h: size.height });
+  const aspectNow = () => vp.current.w / Math.max(1, vp.current.h);
   const fitRef = useRef(1);
-  fitRef.current = Math.round(Math.pow(Math.max(1, DESIGN_ASPECT / Math.max(0.3, size.width / Math.max(1, size.height))), 0.8) * 20) / 20;
 
   /** What the camera should be following right now, as a key: a change starts a flight. */
   const keyFor = () => {
@@ -373,7 +386,7 @@ export function Director({ deviceScene, controlsRef }: { deviceScene: THREE.Scen
     out.mix = 0;
     switch (a.mode) {
       case 'home':
-        heroPose(elapsed, size.width / Math.max(1, size.height), a.reducedMotion, out);
+        heroPose(elapsed, aspectNow(), a.reducedMotion, out);
         return;
       case 'learn': {
         const content = STEPS[FLOW[a.step].id];
@@ -393,14 +406,14 @@ export function Director({ deviceScene, controlsRef }: { deviceScene: THREE.Scen
           (a.reducedMotion ? evalTrackStill : evalTrack)(trackFor(id), d.progress, { station: a.machine, variant: STEPS[id].variant }, out);
         } else if (a.machine) resolve({ kind: 'machine', station: a.machine }, { station: a.machine }, out.a);
         else {
-          overviewPose(size.width / Math.max(1, size.height), out.a);
+          overviewPose(aspectNow(), out.a);
           return;
         }
         break;
       }
       case 'watch':
         if (!filmSample(out)) {
-          overviewPose(size.width / Math.max(1, size.height), out.a);
+          overviewPose(aspectNow(), out.a);
           return;
         }
         break;
@@ -495,6 +508,90 @@ export function Director({ deviceScene, controlsRef }: { deviceScene: THREE.Scen
     return o;
   };
 
+  /** Watch: whether the stage shows the film's time (see seekHold). */
+  const caughtUp = (sample: CamSample) =>
+    stageCommit.pres === filmBridge.pres && (shown(sample).space !== 'device' || !deviceShown.mounted || deviceShown.exact);
+
+  /** The housings the story wants opened for a view, at the machine `focus` (see finishFrame). */
+  const housingsWanted = (sample: CamSample, focus: MachineId | null, flight: Flight | null, out: { add(id: MachineId): unknown }) => {
+    const cam = shown(sample);
+    const mid = sample.mix > 0 && sample.mix < 1;
+    for (const id of readyStations) {
+      if (!TOOL_POSES[id].cutaway) continue;
+      const inStory = id === focus || (!!flight && (id === flight.from || id === flight.to));
+      if (inStory && (cam.space === 'device' || mid || cam.pos.distanceTo(stationCentre(id, tmp.c)) < LOD_DISTANCE)) out.add(id);
+    }
+  };
+
+  /**
+   * Where playing the film up to time t leaves each housing: the film's camera and machine are
+   * replayed, a frame at a time, over twice the time a housing takes to open (the housings are
+   * stepped as the frames would have stepped them, a frame behind what the director wants).
+   */
+  const replayHousings = (t: number): Map<MachineId, number> => {
+    const out = new Map<MachineId, number>();
+    const at = filmBridge.sampleAt;
+    const stationAt = filmBridge.stationAt;
+    if (!at || !stationAt) return out;
+    const reduced = useApp.getState().reducedMotion;
+    const sample = replayTmp.sample;
+    const dt = stageTime.dt;
+    const n = Math.ceil((2 * CUT_TIME) / dt);
+    const wanted = (u: number) => {
+      const set = new Set<MachineId>();
+      if (!at(Math.max(0, u), sample)) return set;
+      fitPose(sample.a, fitRef.current);
+      if (sample.mix > 0) fitPose(sample.b, fitRef.current);
+      housingsWanted(sample, stationAt(Math.max(0, u)), null, set);
+      return set;
+    };
+    let want = wanted(t - n * dt);
+    for (const id of readyStations) if (TOOL_POSES[id].cutaway) out.set(id, want.has(id) ? 1 : 0);
+    for (let j = 1; j <= n; j++) {
+      out.forEach((y, id) => out.set(id, reduced ? (want.has(id) ? 1 : 0) : stepCut(y, want.has(id) ? 1 : 0, dt)));
+      if (j < n) want = wanted(t - (n - j) * dt);
+    }
+    return out;
+  };
+  const replayTmp = useMemo(() => ({ sample: makeSample() }), []);
+
+  // Before anything else in the frame (the machines and the bay read what this sets up).
+  useFrame((state) => {
+    const s = st.current;
+    const a = useApp.getState();
+    vp.current.w = state.size.width;
+    vp.current.h = state.size.height;
+    filmBridge.aspect = aspectNow();
+    fitRef.current = Math.round(Math.pow(Math.max(1, DESIGN_ASPECT / Math.max(0.3, aspectNow())), 0.8) * 20) / 20;
+    cutClock.preset = null;
+    const ft = a.mode === 'watch' && filmBridge.time ? filmBridge.time() : null;
+    if (ft === null) {
+      s.film = null;
+      cutClock.dt = null;
+      return;
+    }
+    // The film's stage follows the film's clock before this frame is drawn (the film's own tick
+    // may come after it), so a seek is seen at once.
+    filmBridge.sync?.();
+    const seeks = filmBridge.seeks?.() ?? 0;
+    const f = s.film;
+    if (f && f.seeks !== seeks) {
+      // the stage's tree shows the new time a frame later (React commits between frames), and
+      // the layers may need their geometry: the picture is held until then (see below)
+      s.seekHold = true;
+      s.seekAt = stageTime.clock();
+    }
+    // The housings follow the film's clock (paused, they stay as they are); after a seek, and
+    // when a machine has loaded, they are set to where playing up to this time leaves them, so
+    // a seek shows exactly the frame that playing would.
+    if (!f || f.seeks !== seeks || s.replay) {
+      cutClock.preset = replayHousings(ft);
+      cutClock.dt = 0;
+      s.replay = false;
+    } else cutClock.dt = clamp(ft - f.t, 0, 0.25);
+    s.film = { t: ft, seeks };
+  }, -1);
+
   useFrame(() => {
     const s = st.current;
     const a = useApp.getState();
@@ -505,7 +602,6 @@ export function Director({ deviceScene, controlsRef }: { deviceScene: THREE.Scen
     s.drawn = false;
     quality.frame++;
 
-    filmBridge.aspect = size.width / Math.max(1, size.height);
     // ── what should we be looking at? ──
     guidedNow(s.guided, stageTime.decor);
     const key = keyFor();
@@ -523,6 +619,8 @@ export function Director({ deviceScene, controlsRef }: { deviceScene: THREE.Scen
         waiting = true;
       } else {
         s.waitingFor = null;
+        s.holding = false;
+        s.seekHold = false;
         // the programs prepared for where we are going, used now while the camera is still (where
         // they cannot be compiled in parallel); the move starts after that
         if (finishPrograms(gl) > 0) now = stageTime.clock();
@@ -556,17 +654,22 @@ export function Director({ deviceScene, controlsRef }: { deviceScene: THREE.Scen
       }
     }
     // Watch: a seek or a chapter jump to a machine that is not loaded yet holds the film's last
-    // good picture (the scene has already moved on to the new time), then dissolves from it.
+    // good picture (the scene has already moved on to the new time), then dissolves from it. So
+    // does a move whose other end is still loading (its path is planned once, with both machines
+    // in place), and any seek until the stage shows the new time: its tree follows a frame late,
+    // and the layers may be waiting for their geometry.
     if (a.mode === 'watch' && s.mode === 'watch' && !s.first) {
-      const hold = !!want && !readyStations.has(want) && !failedStations.has(want);
-      if (hold) {
-        if (s.waitingFor !== want) {
-          s.waitingFor = want;
-          s.waitSince = now;
-        }
+      const missing = [want, filmBridge.otherEnd].find((id) => !!id && !readyStations.has(id) && !failedStations.has(id)) ?? null;
+      if (s.seekHold && (caughtUp(s.guided) || now - s.seekAt > SWAP_PATIENCE)) s.seekHold = false;
+      if (missing !== s.waitingFor) {
+        s.waitingFor = missing;
+        s.waitSince = now;
+      }
+      if (missing || s.seekHold) {
+        s.holding = true;
         waiting = true;
-      } else if (s.waitingFor) {
-        s.waitingFor = null;
+      } else if (s.holding) {
+        s.holding = false;
         const buf = gl.getDrawingBufferSize(copies.buf);
         if (copies.last.fits(buf.x, buf.y)) {
           // the held picture becomes the one dissolved from
@@ -711,23 +814,27 @@ export function Director({ deviceScene, controlsRef }: { deviceScene: THREE.Scen
     const cam = shown(s.live);
     // Level of detail (never on the home view). A housed machine keeps its enclosure and opens
     // it (cutaway) when it is the one the story is at and the camera is near; other machines
-    // hand over from the low-detail model to the detailed one when the camera is near.
+    // hand over from the low-detail model to the detailed one when the camera is near. (While
+    // the film's picture is held, the stage follows the film's time all the same.)
     proxyHidden.clear();
     cutOpen.clear();
     if (a.mode !== 'home' && !FORCE_PROXY) {
-      const focus = focusStation();
-      const f = s.flight;
-      const mid = s.live.mix > 0 && s.live.mix < 1;
+      const view = a.mode === 'watch' ? s.guided : s.live;
+      const at = shown(view);
+      const mid = view.mix > 0 && view.mix < 1;
       for (const id of readyStations) {
-        const near = cam.space === 'device' || mid || cam.pos.distanceTo(stationCentre(id, tmp.c)) < LOD_DISTANCE;
-        if (!near) continue;
-        if (TOOL_POSES[id].cutaway) {
-          const inStory = id === focus || (f && (id === f.from || id === f.to));
-          if (inStory) cutOpen.add(id);
-        } else proxyHidden.add(id);
+        const near = at.space === 'device' || mid || at.pos.distanceTo(stationCentre(id, tmp.c)) < LOD_DISTANCE;
+        if (near && !TOOL_POSES[id].cutaway) proxyHidden.add(id);
       }
+      housingsWanted(view, focusStation(), s.flight, cutOpen);
     }
-    for (const id of readyStations) if (!s.readyPrev.has(id) && (!s.flight || !s.shown)) cutInstant.add(id);
+    for (const id of readyStations) {
+      if (s.readyPrev.has(id)) continue;
+      // (the film replays where its housings would be; elsewhere a machine that loads while the
+      // camera is already there opens at once: there was no approach to reveal it on)
+      if (s.film) s.replay = true;
+      else if (!s.flight || !s.shown) cutInstant.add(id);
+    }
     if (readyStations.size !== s.readyPrev.size || [...readyStations].some((id) => !s.readyPrev.has(id))) {
       s.readyPrev = new Set(readyStations);
       quality.invalidate('world');
@@ -756,9 +863,10 @@ export function Director({ deviceScene, controlsRef }: { deviceScene: THREE.Scen
       scene.fog.far = Math.max(FOG[1], d * 2.2);
     }
 
-    // The picture may be revealed once its machine is loaded (or known to have failed).
-    const settled = !want || readyStations.has(want) || failedStations.has(want);
-    if (!s.shown && settled && !s.waitingFor) {
+    // The picture may be revealed once its machine is loaded (or known to have failed), and the
+    // film's once the stage shows its time.
+    const settled = (!want || readyStations.has(want) || failedStations.has(want)) && (a.mode !== 'watch' || caughtUp(s.guided));
+    if (!s.shown && settled && !s.waitingFor && !s.holding) {
       // (under the veil, which lifts from this frame)
       finishPrograms(gl);
       s.shown = true;
@@ -779,7 +887,7 @@ export function Director({ deviceScene, controlsRef }: { deviceScene: THREE.Scen
     });
     if (s.drawn) return;
     const buf = gl.getDrawingBufferSize(copies.buf);
-    if (a.mode === 'watch' && s.waitingFor && copies.last.fits(buf.x, buf.y)) {
+    if (a.mode === 'watch' && s.holding && copies.last.fits(buf.x, buf.y)) {
       // hold the last good picture
       gl.setRenderTarget(null);
       gl.clear();
@@ -858,7 +966,7 @@ export function Director({ deviceScene, controlsRef }: { deviceScene: THREE.Scen
     // Labels only once the new view has settled in: never floating between two scales.
     const fading = mix > 0.001 && mix < 0.999;
     const alpha = so > 0.5 ? 0 : fading ? (mix < 0.85 ? 0 : (mix - 0.85) / 0.15) : 1;
-    projectLabels(camera, (mix >= 0.5 ? sample.b : sample.a).space, alpha, size.width, size.height, gl.domElement);
+    projectLabels(camera, (mix >= 0.5 ? sample.b : sample.a).space, alpha, vp.current.w, vp.current.h, gl.domElement);
   }
 
   return null;

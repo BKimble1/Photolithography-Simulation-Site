@@ -33,6 +33,7 @@ import { failedStations, readyStations, stationBoxes, stationCentre, stationGrou
 import { StationContext } from './stage/context';
 import { BeatLabels } from './stage/BeatLabels';
 import { Director, directorView } from './stage/Director';
+import { stageCommit } from './stage/filmBridge';
 import { handover, remount, useMountEpoch } from './stage/handover';
 import { applyStationLights, STATION_LIGHT_POOL } from './stage/StationLight';
 import { stageFocus, useStageInfo } from './stage/info';
@@ -798,6 +799,7 @@ export function Stage() {
       aria-hidden
     >
       <ClockDriver />
+      <CommitMark pres={primary} />
       <World mounts={mounts} highlight={highlight} />
       <DeviceSpace scene={deviceScene} pres={primary} />
       {primary && primary.kind !== 'watch' && (
@@ -819,6 +821,15 @@ export function Stage() {
       {(TEST_HOOKS || DIAG) && <DevHook deviceScene={deviceScene} />}
     </Canvas>
   );
+}
+
+/** Records the presentation the stage's tree has committed (the director compares it with the
+ * film's after a seek: see Director, seekHold). */
+function CommitMark({ pres }: { pres: Presentation | null }) {
+  useLayoutEffect(() => {
+    stageCommit.pres = pres;
+  }, [pres]);
+  return null;
 }
 
 /** Development and test harness only: expose the renderer and scenes for measurement scripts. */

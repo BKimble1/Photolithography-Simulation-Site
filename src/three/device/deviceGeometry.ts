@@ -198,3 +198,10 @@ class DeviceMeshes {
 }
 
 export const deviceMeshes = new DeviceMeshes();
+
+/**
+ * Whether the cross-section is mounted, and drawn with the geometry it asks for (not an earlier
+ * one kept on screen while it is built, or none yet): after a seek the director holds the film's
+ * picture until it is.
+ */
+export const deviceShown = { mounted: false, exact: false };

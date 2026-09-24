@@ -34,7 +34,12 @@ export function useFilmPresentation(): FilmStage | null {
 
 interface Clock {
   tl: Timeline;
+  /** Film time now (read from the narration at the moment of the call). */
   t: () => number;
+  /** The film time the stage's presentations follow (the player's own, advanced by its tick). */
+  staged: () => number;
+  /** Seeks so far. */
+  seeks: () => number;
   subscribe: (fn: () => void) => () => void;
 }
 
@@ -73,6 +78,8 @@ export function updateFilmStage(tl: Timeline, t: number): void {
   // two machines (see gapPlan): its machine then holds the learner's wafer.
   const handed = loc.inGap && !!next && loc.u >= gapHandover(tl, seg.index);
   const cur = handed ? next : seg;
+  // a move joins framings at both of its machines: the director waits for both to be ready
+  filmBridge.otherEnd = loc.inGap && next ? (handed ? seg.station : next.station) : null;
   const input = inputAt(tl, t);
   const light = !loc.inGap && !!seg.def.lightPath;
   const key = `${cur.index}:${seg.index}:${handed}:${light}:${input}`;
@@ -89,6 +96,7 @@ export function updateFilmStage(tl: Timeline, t: number): void {
   add(tl.segments[cur.index + 1], false);
   const pres = cur.stepIndex !== null ? filmPres(cur.stepIndex, cur === seg ? light : false, input) : null;
   filmBridge.station = cur.station;
+  filmBridge.pres = pres;
   useFilmStage.setState({ stage: { pres, mounts } });
 }
 
@@ -169,11 +177,10 @@ function gapHandover(tl: Timeline, i: number): number {
   return hit ? hit.hand : tl.segments[i + 1]?.station !== tl.segments[i].station ? 0.35 : 0.5;
 }
 
-/** The film's camera at the clock's current time (set as filmBridge.sample while watching). */
-function sample(out: CamSample): boolean {
+/** The film's camera at film time t. */
+function sampleAt(t: number, out: CamSample): boolean {
   if (!clock) return false;
   const tl = clock.tl;
-  const t = clock.t();
   const reduced = useApp.getState().reducedMotion;
   const loc = locate(tl, t);
   const seg = loc.seg;
@@ -187,6 +194,19 @@ function sample(out: CamSample): boolean {
   return true;
 }
 
+/** The film's camera at the clock's current time (set as filmBridge.sample while watching). */
+const sample = (out: CamSample): boolean => !!clock && sampleAt(clock.t(), out);
+
+/** The machine the film is at, at film time t: in a move, the next one from its hand-over on. */
+function stationAt(t: number): TimelineSegment['station'] {
+  if (!clock) return null;
+  const tl = clock.tl;
+  const loc = locate(tl, t);
+  const next = tl.segments[loc.seg.index + 1];
+  const handed = loc.inGap && !!next && loc.u >= gapHandover(tl, loc.seg.index);
+  return (handed ? next : loc.seg).station;
+}
+
 /** Connect the stage to a film clock (null to disconnect). */
 export function attachFilm(c: Clock | null): void {
   clock = c;
@@ -194,8 +214,15 @@ export function attachFilm(c: Clock | null): void {
   presCache.clear();
   gapPlans.clear();
   filmBridge.sample = c ? sample : null;
+  filmBridge.sampleAt = c ? sampleAt : null;
+  filmBridge.stationAt = c ? stationAt : null;
+  filmBridge.time = c ? c.t : null;
+  filmBridge.seeks = c ? c.seeks : null;
+  filmBridge.sync = c ? () => updateFilmStage(c.tl, c.staged()) : null;
   if (!c) {
     filmBridge.station = null;
+    filmBridge.otherEnd = null;
+    filmBridge.pres = null;
     useFilmStage.setState({ stage: null });
   }
 }
@@ -206,7 +233,7 @@ function follow(tl: Timeline | null) {
     attachFilm(null);
     return;
   }
-  attachFilm({ tl, t: () => filmPlayer()?.now() ?? 0, subscribe: onFilmTick });
+  attachFilm({ tl, t: () => filmPlayer()?.now() ?? 0, staged: () => filmPlayer()?.t ?? 0, seeks: () => filmPlayer()?.seeks ?? 0, subscribe: onFilmTick });
   updateFilmStage(tl, filmPlayer()?.t ?? 0);
 }
 useFilm.subscribe((s, prev) => {

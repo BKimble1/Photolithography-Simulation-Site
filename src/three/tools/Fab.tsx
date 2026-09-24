@@ -1174,7 +1174,19 @@ export const cutAmount = (id: SceneId) => cutT.get(id) ?? 0;
 export const fabLod = { apply: () => {} };
 
 /** Seconds for a housing to open or close. */
-const CUT_TIME = 0.8;
+export const CUT_TIME = 0.8;
+
+/** A housing's opening after `dt` seconds more of wanting it open (1) or closed (0). */
+export function stepCut(t0: number, want: 0 | 1, dt: number): number {
+  return want > t0 ? Math.min(1, t0 + dt / CUT_TIME) : want < t0 ? Math.max(0, t0 - dt / CUT_TIME) : t0;
+}
+
+/**
+ * The housings' clock. Watch moves them on the film's time (paused, they stay as they are) and,
+ * after a seek, jumps them to where playing up to the new time would have left them (see the
+ * Director): `dt` is this frame's seconds (null: the stage clock), `preset` the openings to jump to.
+ */
+export const cutClock: { dt: number | null; preset: Map<SceneId, number> | null } = { dt: null, preset: null };
 
 interface CutMats {
   planes: [THREE.Plane, THREE.Plane];
@@ -1304,7 +1316,9 @@ export function FabScene({ highlight, hero, picking }: { highlight?: SceneId; he
   const cuts = useRef(new Map<SceneId, CutMats>());
   const cutTmp = useMemo(() => ({ m: new THREE.Matrix4(), n: new THREE.Vector3(), p: new THREE.Vector3() }), []);
   useFrame((_, raw) => {
-    const dt = stageTime.virtual ? stageTime.dt : Math.min(raw, 0.1);
+    const dt = cutClock.dt ?? (stageTime.virtual ? stageTime.dt : Math.min(raw, 0.1));
+    const preset = cutClock.preset;
+    cutClock.preset = null;
     stationGroups.current.forEach((g, id) => {
       const spec = TOOL_POSES[id].cutaway;
       if (!spec) return;
@@ -1314,7 +1328,7 @@ export function FabScene({ highlight, hero, picking }: { highlight?: SceneId; he
       cutInstant.delete(id);
       // (a housing already where it should be stays there: stepping it back and forth would
       // move the wipe plane every frame, flickering whatever lies on it)
-      const t = jump ? want : want > t0 ? Math.min(1, t0 + dt / CUT_TIME) : want < t0 ? Math.max(0, t0 - dt / CUT_TIME) : t0;
+      const t = preset?.get(id) ?? (jump ? want : stepCut(t0, want, dt));
       if (t === t0 && (t === 0 || cuts.current.has(id))) {
         if (t === 0 && cuts.current.has(id)) restore(g, id);
         return;

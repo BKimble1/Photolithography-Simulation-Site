@@ -51,6 +51,8 @@ export class FilmPlayer {
   rate = 1;
   volume = 1;
   muted = false;
+  /** Seeks so far (the stage catches up with each one before it shows the new time). */
+  seeks = 0;
   /** False when the narration cannot be played: captions only, on the page clock. */
   audioOk: boolean;
   audioError: string | null = null;
@@ -120,6 +122,7 @@ export class FilmPlayer {
   }
 
   seek(t: number): void {
+    this.seeks++;
     this.t = Math.max(0, Math.min(this.tl.duration, t));
     this.ended = false;
     this.lastNow = stageTime.now();

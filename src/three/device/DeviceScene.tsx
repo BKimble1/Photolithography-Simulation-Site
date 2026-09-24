@@ -1,5 +1,5 @@
 import { useFrame } from '@react-three/fiber';
-import { useEffect, useMemo, useReducer, useRef } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useReducer, useRef } from 'react';
 import * as THREE from 'three';
 import { STEP_INDEX } from '../../sim/flow';
 import type { Grid } from '../../sim/grid';
@@ -9,7 +9,7 @@ import { engine, useOpCount, usePlan, useSimState, useStep } from '../../state/s
 import { sectionLabels } from '../../ui/CrossSection';
 import { Labels, type Label3D } from '../labels';
 import { type Group } from './mesher';
-import { DEV, deviceMeshes, type DeviceGeos, type MeshRequestOpts } from './deviceGeometry';
+import { DEV, deviceMeshes, deviceShown, type DeviceGeos, type MeshRequestOpts } from './deviceGeometry';
 import { useFinalInput, useOverlay, useReducedMotion, useRunChoices } from '../../state/presentation';
 import { stageTime } from '../stage/time';
 import { quality } from '../stage/quality';
@@ -49,6 +49,18 @@ function useDeviceGeometry(grid: Grid, opts: MeshRequestOpts): DeviceGeos | null
   useEffect(() => deviceMeshes.subscribe(force), []);
   let geos = deviceMeshes.get(key) ?? null;
   if (!geos && stageTime.virtual) geos = deviceMeshes.buildNow(key, grid, opts);
+  const exact = !!geos;
+  useLayoutEffect(() => {
+    deviceShown.mounted = true;
+    deviceShown.exact = exact;
+  });
+  useLayoutEffect(
+    () => () => {
+      deviceShown.mounted = false;
+      deviceShown.exact = false;
+    },
+    [],
+  );
   const shown = useRef<{ key: string; geos: DeviceGeos } | null>(null);
   if (geos) shown.current = { key, geos };
   const shownKey = shown.current?.key ?? null;
