@@ -333,7 +333,7 @@ The director owns the camera and the render loop in every mode:
   a function of p only, scrubbing, replaying and the film's clock all give the same shot at
   the same moment. Steps without a hand-directed track get one from their round-one view:
   device steps go machine → wafer → die → cross-section just before their first operation.
-  Fifteen steps are directed by hand, because the wafer is not always in (or visible in)
+  Sixteen steps are directed by hand, because the wafer is not always in (or visible in)
   the step's machine: in sti-etch, wells, contact-fill and metal1 the lithography, deposition
   or etch before the machine's own action happens in other tools, so the camera stays with
   the layers, comes out to the machine when the wafer arrives, and goes back down through the
@@ -349,7 +349,10 @@ The director owns the camera and the render loop in every mode:
   the plasma's glow; peb, develop, sti-etch and contact-etch now hold the machine view
   through the action and go down into the layers from it. Contact-fill and metal1 watch the
   polisher's flips and the carrier head's return from the machine view the same way (a die
-  close-up had the turning wafer or the head in the lens). A
+  close-up had the turning wafer or the head in the lens). The die bonder and the wire bonder
+  stand side by side, each framed millimetres from its work, and a straight move out of
+  either close-up runs through the benches: bond starts on a framing of both benches, comes in
+  along its close-up's line of sight, and backs out the same way at the end. A
   flight into or out of the cross-section anchors on your die when the machine is showing
   the wafer, and on the machine itself when it is not, so the camera never closes in on an
   empty holder.
