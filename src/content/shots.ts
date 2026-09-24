@@ -162,6 +162,19 @@ export const SHOTS: Partial<Record<StepId, Key[]>> = {
     { p: 0.18, cam: shot('expose') },
     { p: 0.28, cam: section },
   ],
+  // The die bonder and the wire bonder stand side by side, both framed millimetres from their
+  // work, and a move straight out of either close-up runs through the benches: the wire bond
+  // starts on the two benches (the move from the die bonder's close-up backs out to them), comes
+  // in along the close-up's line of sight as the first wire is laid, and after the molding
+  // (0.84–0.91) backs out the same way, so the move to final test starts in the clear.
+  bond: [
+    { p: 0, cam: shot('benches') },
+    { p: 0.05, cam: shot('bondApproach') },
+    { p: 0.09, cam: shot('bond') },
+    { p: 0.92, cam: shot('bond') },
+    { p: 0.96, cam: shot('bondApproach') },
+    { p: 1, cam: shot('benches') },
+  ],
   // the second level repeats the loop; its copper and polish land 0.06 apart, so the dual-damascene
   // fill is shown where it can be seen, in the layers, and the polisher (seen twice already) is not
   // revisited
