@@ -210,8 +210,11 @@ const detail = (g) => {
   const m = g.reduce((a, v) => a + v, 0) / g.length;
   return Math.sqrt(g.reduce((a, v) => a + (v - m) ** 2, 0) / g.length);
 };
-/** A frame with less detail than this (luminance levels, 0–255) is counted as blank. */
-const BLANK = 4;
+/** A frame with less detail than this (luminance levels, 0–255) is counted as blank: a wall or a
+ * panel filling the view measured 0.6–0.8, the palest intended picture (a close-up of your die on
+ * a pale wafer) 1.9. Frames under LOW are counted too, to be looked at. */
+const BLANK = 1.5;
+const LOW = 4;
 
 /** The largest one-frame picture change relative to its neighbourhood (a jump). */
 function spikes(frames, from = 1) {
@@ -587,7 +590,7 @@ run.pairs = async () => {
     const s2 = spikes(opening.frames, 1);
     const spike = s2.ratio > s1.ratio ? { ...s2, at: `opening ${s2.at}` } : s1;
     const all = [...stretches[0], ...stretches[1]];
-    out[step] = { machine, maxWaferStepPerFrame: +jump.m.toFixed(4), maxStepAt: jump.at, framesWaferAppearsOrVanishes: gaps, spike, blankFrames: all.filter((f) => f.detail < BLANK).length, leastDetail: Math.min(...all.map((f) => f.detail)), errors: errors.slice(0, 3) };
+    out[step] = { machine, maxWaferStepPerFrame: +jump.m.toFixed(4), maxStepAt: jump.at, framesWaferAppearsOrVanishes: gaps, spike, blankFrames: all.filter((f) => f.detail < BLANK).length, lowDetailFrames: all.filter((f) => f.detail < LOW).length, leastDetail: Math.min(...all.map((f) => f.detail)), errors: errors.slice(0, 3) };
     console.log('  pair', step, JSON.stringify(out[step]));
     await ctx.close();
   }
@@ -717,6 +720,7 @@ run.transitions = async () => {
       stepAt: step.st,
       handOverFrame: handAt,
       blankFrames: moved.filter((f) => f.detail < BLANK).length,
+      lowDetailFrames: moved.filter((f) => f.detail < LOW).length,
       leastDetail: Math.min(...moved.map((f) => f.detail)),
     };
     console.log('  transition', key, JSON.stringify(out[key]));
