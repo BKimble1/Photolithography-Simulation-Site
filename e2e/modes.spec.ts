@@ -27,7 +27,9 @@ test('changing scale never changes the step, choices, checks or simulated state'
 });
 
 test('Explore fab pauses the lesson; returning restores it exactly and offers Resume', async ({ page, hasTouch }) => {
-  test.setTimeout(480_000); // frame-stepped on software rendering
+  // frame-stepped on software rendering: 3.6 minutes at the phone size, 6.1 at the tablet size,
+  // over the old 8-minute limit at the desktop size
+  test.setTimeout(720_000);
   const errors = watchErrors(page);
   await freshStart(page, '/?step=coat&virt=1');
   await waitForStage(page);

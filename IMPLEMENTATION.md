@@ -500,8 +500,10 @@ test explains the cause.
   the stage's tree commits what the new time shows a frame later; the director holds the last
   good picture until the tree has the film's presentation (`filmBridge.pres` against
   `stageCommit`), the layers have their geometry if the film is in them (`deviceShown`), and
-  the machines at both ends of a move are loaded (`filmBridge.otherEnd`), then dissolves from
-  it. The director reads the viewport from each frame's own state.
+  the machines at both ends of a move are loaded (`filmBridge.otherEnd`; after a seek, also the
+  machine of a move starting within 3 s, `filmBridge.soon`), then dissolves from it. The film's
+  clock does not wait: a long hold is a frozen picture while the narration goes on. The
+  director reads the viewport from each frame's own state.
 * **Offline** (`watch/offline.ts`, `public/sw.js`): *Save for offline* checks the storage
   estimate, downloads every file of this build (listed with sha256 in `app-files.json`, made
   at build time) and the film's audio (sha256 in the manifest) into a cache named after both

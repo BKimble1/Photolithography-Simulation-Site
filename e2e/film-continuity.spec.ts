@@ -100,12 +100,11 @@ test('a seek shows exactly the frame that playing would, and the moves are conti
   const segs = await segments(page);
   const i = segs.findIndex((s, k) => k > 5 && segs[k + 1] && s.station !== segs[k + 1].station);
   const gapStart = segs[i].start + segs[i].dur;
-  // play from just before the move, through it
-  await page.evaluate((t) => {
-    const f = (window as unknown as FW).__fabFilm;
-    f.filmControls.seek(t);
-    f.filmControls.play();
-  }, gapStart - 1);
+  // play from just before the move, through it (once the picture is live again after the seek,
+  // with the machines of the move loaded, as when the film plays into it)
+  await page.evaluate((t) => (window as unknown as FW).__fabFilm.filmControls.seek(t), gapStart - 1);
+  await untilLive(page);
+  await page.evaluate(() => (window as unknown as FW).__fabFilm.filmControls.play());
   await advance(page, 20);
   const played = await sampleFrames(page, 60);
   for (const f of played) expect(f.wafers.filter((w) => w.onScreen).length, 'one learner wafer on screen at most').toBeLessThanOrEqual(1);
