@@ -111,7 +111,7 @@ also run on machines without a GPU. If Playwright's browser isn't installed yet,
 
 * **Watch** (top right, on every screen size) starts the film. Controls: play/pause, a seek
   bar with chapter marks, captions, mute and volume, speed (0.75–1.5×), and **Save for
-  offline**, which downloads the film and this site (about 6 MB), checks every file, and only
+  offline**, which downloads the film and this site (about 7 MB), checks every file, and only
   then says it is available without a connection.
 
 ### Keyboard

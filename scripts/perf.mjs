@@ -30,7 +30,8 @@ const extra = opt('--query') ? '&' + opt('--query') : '';
 // ───────────────────────────── in-page instrumentation ─────────────────────────────
 
 function instrument() {
-  const perf = { frames: [], marks: [], longTasks: [], gl: [], started: performance.now() };
+  // moving: whether the director was moving the camera (a flight, a cross-fade) as each frame began
+  const perf = { frames: [], moving: [], marks: [], longTasks: [], gl: [], started: performance.now() };
   window.__perf = perf;
   try {
     new PerformanceObserver((list) => {
@@ -58,6 +59,7 @@ function instrument() {
   const loop = (t) => {
     hook();
     perf.frames.push(t);
+    perf.moving.push(!!window.__fab?.useStageInfo?.getState?.().flying);
     perf.gl.push({ t, calls: acc.calls, tris: acc.tris, passes: acc.passes });
     acc.calls = acc.tris = acc.passes = 0;
     requestAnimationFrame(loop);
@@ -277,9 +279,20 @@ const pct = (a, q) => (a.length ? a[Math.min(a.length - 1, Math.floor(q * (a.len
 const r1 = (v) => (v == null ? null : Math.round(v * 10) / 10);
 
 function analyse(perf, t0, t1) {
-  const fr = perf.frames.filter((t) => t >= t0 && t <= t1);
+  const idx = perf.frames.map((t, i) => i).filter((i) => perf.frames[i] >= t0 && perf.frames[i] <= t1);
+  const fr = idx.map((i) => perf.frames[i]);
   const iv = [];
-  for (let i = 1; i < fr.length; i++) iv.push(fr[i] - fr[i - 1]);
+  // the longest frame while the camera moved (moving as the frames on both sides of the gap
+  // began: a stall in the middle of a move) and while it was still (a wait before a move counts
+  // here: the camera sets off after it)
+  let maxMoving = 0;
+  let maxStill = 0;
+  for (let k = 1; k < idx.length; k++) {
+    const d = fr[k] - fr[k - 1];
+    iv.push(d);
+    if (perf.moving?.[idx[k - 1]] && perf.moving?.[idx[k]]) maxMoving = Math.max(maxMoving, d);
+    else maxStill = Math.max(maxStill, d);
+  }
   const s = [...iv].sort((a, b) => a - b);
   const gl = perf.gl.filter((g) => g.t >= t0 && g.t <= t1 && g.passes > 0);
   const calls = gl.map((g) => g.calls).sort((a, b) => a - b);
@@ -290,7 +303,7 @@ function analyse(perf, t0, t1) {
     seconds: r1(secs),
     frames: fr.length,
     fps: r1(fr.length / Math.max(0.001, secs)),
-    intervalMs: { median: r1(pct(s, 0.5)), p95: r1(pct(s, 0.95)), p99: r1(pct(s, 0.99)), max: r1(s.at(-1)) },
+    intervalMs: { median: r1(pct(s, 0.5)), p95: r1(pct(s, 0.95)), p99: r1(pct(s, 0.99)), max: r1(s.at(-1)), maxMoving: r1(maxMoving), maxStill: r1(maxStill) },
     over50ms: iv.filter((d) => d > 50).length,
     over100ms: iv.filter((d) => d > 100).length,
     longTasks: { count: lt.length, totalMs: Math.round(lt.reduce((a, l) => a + l.dur, 0)), maxMs: Math.round(Math.max(0, ...lt.map((l) => l.dur))) },
@@ -349,7 +362,7 @@ for (const name of list) {
   }
   const perf = await page.evaluate(() => {
     const p = window.__perf;
-    return { frames: p.frames, marks: p.marks, longTasks: p.longTasks, gl: p.gl, now: performance.now() };
+    return { frames: p.frames, moving: p.moving, marks: p.marks, longTasks: p.longTasks, gl: p.gl, now: performance.now() };
   });
   const env = await page.evaluate(() => {
     const c = document.createElement('canvas').getContext('webgl2');
