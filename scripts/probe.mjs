@@ -30,7 +30,7 @@
 //                   stepping and scanning it): does the camera chase it, shaking or swinging?
 //   transitions     the whole course, lesson by lesson: finish each lesson, go on, and record
 //                   every frame of the move until the camera settles (jumps, wafers on screen,
-//                   wafer teleports, the hand-over)
+//                   wafer teleports, the hand-over, blank frames: the camera inside something)
 import { chromium } from '@playwright/test';
 import { execSync } from 'node:child_process';
 import { writeFileSync } from 'node:fs';
@@ -198,11 +198,20 @@ async function record(page, n, from = null) {
     const g = await frame(page);
     const wf = await wafers(page);
     const i = await info(page);
-    frames.push({ change: prev ? +change(prev, g).toFixed(3) : 0, wafersOnScreen: wf.filter((x) => x.onScreen).length, wafers: wf, ...i });
+    frames.push({ change: prev ? +change(prev, g).toFixed(3) : 0, detail: +detail(g).toFixed(2), wafersOnScreen: wf.filter((x) => x.onScreen).length, wafers: wf, ...i });
     prev = g;
   }
   return { frames, last: prev };
 }
+
+/** How much structure a picture has: the spread of its grid's luminances. A frame the camera
+ * takes from inside a housing or a bench, or from a white-out, is nearly uniform. */
+const detail = (g) => {
+  const m = g.reduce((a, v) => a + v, 0) / g.length;
+  return Math.sqrt(g.reduce((a, v) => a + (v - m) ** 2, 0) / g.length);
+};
+/** A frame with less detail than this (luminance levels, 0–255) is counted as blank. */
+const BLANK = 4;
 
 /** The largest one-frame picture change relative to its neighbourhood (a jump). */
 function spikes(frames, from = 1) {
@@ -577,7 +586,8 @@ run.pairs = async () => {
     const s1 = spikes(stretches[0], before.frames.length);
     const s2 = spikes(opening.frames, 1);
     const spike = s2.ratio > s1.ratio ? { ...s2, at: `opening ${s2.at}` } : s1;
-    out[step] = { machine, maxWaferStepPerFrame: +jump.m.toFixed(4), maxStepAt: jump.at, framesWaferAppearsOrVanishes: gaps, spike, errors: errors.slice(0, 3) };
+    const all = [...stretches[0], ...stretches[1]];
+    out[step] = { machine, maxWaferStepPerFrame: +jump.m.toFixed(4), maxStepAt: jump.at, framesWaferAppearsOrVanishes: gaps, spike, blankFrames: all.filter((f) => f.detail < BLANK).length, leastDetail: Math.min(...all.map((f) => f.detail)), errors: errors.slice(0, 3) };
     console.log('  pair', step, JSON.stringify(out[step]));
     await ctx.close();
   }
@@ -706,6 +716,8 @@ run.transitions = async () => {
       maxWaferStepPerFrame: +step.m.toFixed(4),
       stepAt: step.st,
       handOverFrame: handAt,
+      blankFrames: moved.filter((f) => f.detail < BLANK).length,
+      leastDetail: Math.min(...moved.map((f) => f.detail)),
     };
     console.log('  transition', key, JSON.stringify(out[key]));
     await settle(page);
