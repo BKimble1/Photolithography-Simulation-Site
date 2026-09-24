@@ -3,8 +3,9 @@
 //   node scripts/perf.mjs <baseUrl> <out.json> [--scenarios a,b,c] [--video dir] [--label text] [--query k=v&k2=v2] [--gpu] [--headed]
 //
 // Each scenario drives the app the way a learner would (clicks, keys) and records, per phase:
-// the interval between animation frames (median, p95, p99, max, frames over 50 and 100 ms),
-// long tasks, WebGL draw calls and triangles summed over every render pass of each frame, and
+// the interval between animation frames (median, p95, p99, max, frames over 50 and 100 ms, and
+// the longest while the camera was moving — it moved into the frame before the gap and again
+// across it — and while it held still), long tasks, WebGL draw calls and triangles summed over every render pass of each frame, and
 // resource counts (geometries, textures, shader programs, JS heap where the browser reports
 // it). The page is opened with ?hooks=1 so the renderer can be observed; nothing else changes.
 // With --video the scenario is also recorded in real time (Playwright's screencast), so the
@@ -30,8 +31,9 @@ const extra = opt('--query') ? '&' + opt('--query') : '';
 // ───────────────────────────── in-page instrumentation ─────────────────────────────
 
 function instrument() {
-  // moving: whether the director was moving the camera (a flight, a cross-fade) as each frame began
-  const perf = { frames: [], moving: [], marks: [], longTasks: [], gl: [], started: performance.now() };
+  // cam: the camera as each frame began (position, orientation, field of view), to tell the
+  // frames in which it moved from those in which it held still (waiting for a machine, say)
+  const perf = { frames: [], cam: [], marks: [], longTasks: [], gl: [], started: performance.now() };
   window.__perf = perf;
   try {
     new PerformanceObserver((list) => {
@@ -59,7 +61,8 @@ function instrument() {
   const loop = (t) => {
     hook();
     perf.frames.push(t);
-    perf.moving.push(!!window.__fab?.useStageInfo?.getState?.().flying);
+    const c = window.__fab?.camera;
+    perf.cam.push(c ? [c.position.x, c.position.y, c.position.z, c.quaternion.x, c.quaternion.y, c.quaternion.z, c.quaternion.w, c.fov] : null);
     perf.gl.push({ t, calls: acc.calls, tris: acc.tris, passes: acc.passes });
     acc.calls = acc.tris = acc.passes = 0;
     requestAnimationFrame(loop);
@@ -282,15 +285,21 @@ function analyse(perf, t0, t1) {
   const idx = perf.frames.map((t, i) => i).filter((i) => perf.frames[i] >= t0 && perf.frames[i] <= t1);
   const fr = idx.map((i) => perf.frames[i]);
   const iv = [];
-  // the longest frame while the camera moved (moving as the frames on both sides of the gap
-  // began: a stall in the middle of a move) and while it was still (a wait before a move counts
-  // here: the camera sets off after it)
+  // the longest frame while the camera moved (it moved into the frame before the gap and again
+  // across the gap: a stall in the middle of a move, a flight's or a lesson's own) and while it
+  // held still (a wait for a machine, or before a move sets off, counts here)
+  const moved = (i) => {
+    const a = perf.cam[i - 1];
+    const b = perf.cam[i];
+    if (!a || !b) return false;
+    return Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]) > 1e-4 || Math.abs(a[3] * b[3] + a[4] * b[4] + a[5] * b[5] + a[6] * b[6]) < 1 - 1e-7 || Math.abs(a[7] - b[7]) > 1e-3;
+  };
   let maxMoving = 0;
   let maxStill = 0;
   for (let k = 1; k < idx.length; k++) {
     const d = fr[k] - fr[k - 1];
     iv.push(d);
-    if (perf.moving?.[idx[k - 1]] && perf.moving?.[idx[k]]) maxMoving = Math.max(maxMoving, d);
+    if (idx[k - 1] > 0 && moved(idx[k - 1]) && moved(idx[k])) maxMoving = Math.max(maxMoving, d);
     else maxStill = Math.max(maxStill, d);
   }
   const s = [...iv].sort((a, b) => a - b);
@@ -362,7 +371,7 @@ for (const name of list) {
   }
   const perf = await page.evaluate(() => {
     const p = window.__perf;
-    return { frames: p.frames, moving: p.moving, marks: p.marks, longTasks: p.longTasks, gl: p.gl, now: performance.now() };
+    return { frames: p.frames, cam: p.cam, marks: p.marks, longTasks: p.longTasks, gl: p.gl, now: performance.now() };
   });
   const env = await page.evaluate(() => {
     const c = document.createElement('canvas').getContext('webgl2');
