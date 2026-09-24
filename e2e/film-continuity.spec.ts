@@ -79,12 +79,14 @@ test('a gap move is planned once and reused; a new viewport plans it again', asy
   expect(b.reused - a.reused, 'the plan is reused every frame').toBeGreaterThanOrEqual(30);
   // a different viewport: the move is planned again for it (once the stage has the new size:
   // between harness frames the browser may not have laid the page out again yet)
+  type Cam = { __fab: { camera: { aspect: number }; gl: { domElement: HTMLCanvasElement } } };
+  const aspect0 = await page.evaluate(() => (window as unknown as Cam).__fab.camera.aspect);
   await page.setViewportSize({ width: 900, height: 900 });
-  await page.waitForFunction(() => {
-    const f = (window as unknown as { __fab: { camera: { aspect: number }; gl: { domElement: HTMLCanvasElement } } }).__fab;
+  await page.waitForFunction((a0) => {
+    const f = (window as unknown as Cam).__fab;
     const c = f.gl.domElement;
-    return Math.abs(f.camera.aspect - c.clientWidth / c.clientHeight) < 1e-3;
-  });
+    return Math.abs(f.camera.aspect - a0) > 1e-3 && Math.abs(f.camera.aspect - c.clientWidth / c.clientHeight) < 1e-3;
+  }, aspect0);
   await page.evaluate((t) => (window as unknown as FW).__fabFilm.filmControls.seek(t), segs[i].start + segs[i].dur + 0.4);
   await advance(page, 6);
   const c = await page.evaluate(() => ({ ...(window as unknown as FW).__fab.gapStats }));
