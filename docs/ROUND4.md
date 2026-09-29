@@ -60,6 +60,10 @@ end commit given in [Verification](#verification-commands-and-results).
   needs it, the film's clock and narration pause where they are (the page says what it is
   waiting for) and carry on from the same moment once it is in. In a background tab, with no
   picture to wait for, the narration plays on.
+* **Chapters opens, even over a busy 3D stage.** A dialog over the stage — Chapters, Look
+  closer, the equipment list — stops the stage while it is open: it slides in fully opaque, every
+  frame the browser can make goes to it, and the lesson, a move or a demonstration carries on
+  from where it was when it closes. Every chapter's first lesson opens from the drawer.
 
 ## Method
 
@@ -555,19 +559,21 @@ What the brief asked for, what was found and what was done. Frame sequences are 
   *Chapters* in a lesson put the drawer in the page at once, but it slid in from fully
   transparent, and its transparent first frame stayed on screen for as long as the browser made
   no new frames — on this software renderer, where a frame of the coat lesson ties up the GPU
-  process for 2–4 s and the drawer's own text is drawn by the same renderer, for seconds; a
-  second click, landing on the drawer's invisible backdrop, closed it again. Round three has
-  the same fade and the same wait. Measured with a Chrome trace of a click on *Chapters* 20 s
-  into the coat lesson (1440 × 900; the time at which the first screenshot showing the drawer
-  was due on screen; `node scripts/dialog-latency.mjs <base> --runs 3`): round three's build
-  4.6, 6.3 and 8.0 s in three runs, this round's before the fix (`65f4e12`) 2.3, 4.5 and 9.4 s,
-  with the drawer transparent in the first picture that had it. Fixed three ways: dialogs and cards slide in
+  process for 2–4 s and the drawer is drawn by the same renderer after the stage's frames
+  already queued, for seconds; a second click, landing on the drawer's invisible backdrop,
+  closed it again. Round three has the same fade and the same wait. Measured with a Chrome
+  trace of a click on *Chapters* 20 s into the coat lesson (1440 × 900; the time at which the
+  first screenshot showing the drawer was due on screen; `node scripts/dialog-latency.mjs <base>
+  --runs 3`): round three's build 4.6, 6.3 and 8.0 s in three runs, this round's before the fix
+  (`65f4e12`) 2.3, 4.5 and 9.4 s (in both, the first picture with the drawer showed it
+  transparent). Fixed three ways: dialogs and cards slide in
   fully opaque (`styles/app.css`; the *Look closer* modal and the film's end card also lost a
   jump — their rise replaced their centring for its duration); while a dialog covers the stage
   in a lesson or the explorer, the stage draws nothing, not even the frames its controls had
   already asked for, and its clock stops, so the lesson carries on from where it was when the
   dialog closes (`Stage.tsx`, `stage/time.ts`); and preparing machines for the GPU waits until
-  it closes (a program compiled then held the dialog's frames back for seconds more). After the
+  it closes (a program compiled meanwhile would hold the dialog's frames back: 1–7 s each on
+  this renderer, as measured in round three). After the
   fix: 2.3, 4.7 and 5.9 s, the drawer opaque in the first picture that has it, and not one frame
   of the stage after the click (before it, 14–18 in the next 22 s; round three 22–24), so the
   page answers at full rate while the drawer is open. What remains on this renderer is the
@@ -587,10 +593,11 @@ transitions`): the probe walks the course on one page as a learner would — eac
 finished, *Continue* pressed, every frame of the move recorded until the camera settles
 (1280 × 800, on the harness clock; a frame with under 1.5 levels of luminance spread over its
 16 × 16 grid counts as blank, under 4 as low in detail). Round three's figures are from its own
-walk (`docs/ROUND3.md`); round four's from the final build (the six moves that leave the
-scanner, the track or the polisher were walked again after their departures became
-dissolves; the rest of the course is the same build before that change, which does not touch
-them).
+walk (`docs/ROUND3.md`); round four's from `65f4e12`, the build with the final camera (the six
+moves that leave the scanner, the track or the polisher were walked again on it after their
+departures became dissolves; the rest of the course on the build before that change, which
+does not touch them; the final build's later change, dialogs pausing the stage, touches no
+move).
 
 | # | lesson → next | machines | worst jump: three → four | wafers on screen: three → four | largest wafer step, m/frame: three → four | blank frames: three → four | frames under 4 levels (four) | least detail (four) | frames: three → four | hand-over frame: three → four |
 |---|---|---|---|---|---|---|---|---|---|---|
@@ -690,8 +697,9 @@ scripts/round4/stills-desktop.json <dir>` against each build.
   camera backs out of the load lock, establishes the closed polisher from the aisle and moves
   straight in.
 
-**Clips** (`docs/recordings/round4/`, rendered on the harness clock at 30 frames per second;
-continuity evidence, not frame-rate evidence):
+**Clips** (`docs/recordings/round4/`, rendered on the harness clock at 30 frames per second
+on the final build, `node scripts/record.mjs scripts/recordings/r4-0N-….json`; continuity
+evidence, not frame-rate evidence):
 
 * [`r4-01-track-prime-to-coat.mp4`](recordings/round4/r4-01-track-prime-to-coat.mp4) — the
   end of priming, the move to the coater with the wafer, then the four-nozzle arm over the
@@ -700,8 +708,8 @@ continuity evidence, not frame-rate evidence):
   — the start of the exposure with the page: the stages exchange, the step-and-scan meander
   runs, and the magnified inset shows the water under the lens with the wafer moving beneath.
 * [`r4-03-arrive-at-etch-open-and-etch.mp4`](recordings/round4/r4-03-arrive-at-etch-open-and-etch.mp4)
-  — from the CD-SEM to the etch cluster across the aisle: the camera pans round (recorded after
-  that fix), holds for a moment on the closed machine, then opens it on the way in (the
+  — from the CD-SEM to the etch cluster across the aisle: the camera pans round, holds for a
+  moment on the closed machine, then opens it on the way in (the
   housing, the chamber's wedge, the transfer chamber's lid); the hand-off through the slit
   valve and the etch.
 * [`r4-04-polisher-wet-pad.mp4`](recordings/round4/r4-04-polisher-wet-pad.mp4) — the end of
@@ -720,14 +728,32 @@ continuity evidence, not frame-rate evidence):
   etch cluster from your die in the load lock to the polisher: back out, travel, the closed
   polisher established from the aisle, straight in.
 
-<!--RT-CLIPS-->
+**Real-time screencasts** (`docs/recordings/round4/r4-rt-…-r3.mp4` and `…-r4.mp4`): six of the
+scenarios of [Real-time playback](#real-time-playback-software-rendering), recorded as they
+played on round three's build and on the final build (`node scripts/perf.mjs <base> <out.json>
+--scenarios … --video <dir>`: Playwright's screencast of the page, in real time; one build after
+the other on the idle machine, 00:21–00:32 UTC; scaled to 960 px wide). They show what this
+software renderer makes of each build — the loading veil, held pictures and stalls included —
+and nothing about how a laptop or a phone would play them. Recording costs frames of its own
+(the coat lessons: 1.5 → 0.6 frames per second while recording, 1.9 → 0.7 without).
+
+| what | scenario | round three | round four |
+|---|---|---|---|
+| the track loop: priming, the coat, the soft bake | `prime-coat-softbake` | [38 s](recordings/round4/r4-rt-prime-coat-softbake-r3.mp4) | [46 s](recordings/round4/r4-rt-prime-coat-softbake-r4.mp4) |
+| the scanner's exposure, the post-exposure bake, the develop and its check | `expose-peb-develop` | [41 s](recordings/round4/r4-rt-expose-peb-develop-r3.mp4) | [56 s](recordings/round4/r4-rt-expose-peb-develop-r4.mp4) |
+| rapid zoom reversal: *Inspect layers* / *Back to equipment* six times, 0.45 s apart, at the gate etch | `layers-interrupt` | [56 s](recordings/round4/r4-rt-layers-interrupt-r3.mp4) | [85 s](recordings/round4/r4-rt-layers-interrupt-r4.mp4) |
+| overview to close-up: a lesson, the whole bay, the etch cluster from the equipment list, its demonstration (the etch), back to the lesson | `explore-roundtrip` | [38 s](recordings/round4/r4-rt-explore-roundtrip-r3.mp4) | [50 s](recordings/round4/r4-rt-explore-roundtrip-r4.mp4) |
+| Watch: the film after a seek to 4:40, for a minute | `watch-minute` | [65 s](recordings/round4/r4-rt-watch-minute-r3.mp4) | [73 s](recordings/round4/r4-rt-watch-minute-r4.mp4) |
+| a phone (390 × 844): the coat lesson, then the explorer's bay | `phone-coat-explore` | [19 s](recordings/round4/r4-rt-phone-coat-explore-r3.mp4) | [17 s](recordings/round4/r4-rt-phone-coat-explore-r4.mp4) |
+
+The polish is not in the real-time set (it is in the frame-stepped `r4-04` above).
 
 ## Real-time playback (software rendering)
 
 The nine scenarios of round three (`scripts/perf.mjs`), driven as a learner would drive them
 (clicks and keys, the wall clock, production builds), once on each build, one after the other
-within the same quarter of an hour with nothing else running on the machine: round three's
-build (`be6bf3f`) and this round's final build (`0e35bcf`). Chromium 141 (Playwright 1.56.1's
+within the same quarter of an hour (23:53–00:09 UTC) with nothing else running on the machine:
+round three's build (`be6bf3f`) and this round's final build (`822bb0f`). Chromium 141 (Playwright 1.56.1's
 headless shell); WebGL through ANGLE on SwiftShader (Vulkan, Subzero JIT) on 4 CPU cores, no
 GPU; the app chose its `low` tier
 for this renderer (pixel ratio 1, 1024² shadow maps, a shadow refresh every 30 frames); desktop
@@ -741,15 +767,15 @@ Whole scenarios, round three → round four:
 
 | scenario | frames per second | frame interval median / p95 / p99 / max (ms) | frames > 50 ms / > 100 ms | long tasks: count, total (s), longest (s) | draw calls median / max | triangles median / max (thousands) |
 |---|---|---|---|---|---|---|
-| home-idle | 5.9 → 3 | 133.4 / 400 / 1749.9 / 1749.9 → 50 / 1149.9 / 1200 / 1200 | 34 / 31 → 11 / 11 | 2, 0.6, 0.4 → 3, 1.6, 1.0 | 53 / 72 → 218 / 298 | 21 / 21 → 52 / 108 |
-| arrive-transfer-scan | 1.5 → 1 | 100 / 2549.9 / 2683.2 / 4499.7 → 33.4 / 3899.8 / 3966.6 / 3966.6 | 31 / 30 → 24 / 24 | 7, 3.9, 2.6 → 7, 7.1, 3.9 | 192 / 265 → 214 / 277 | 114 / 154 → 127 / 161 |
-| prime-coat-softbake | 1.8 → 0.6 | 583.3 / 1266.6 / 1416.6 / 1700 → 1483.2 / 3116.5 / 3266.5 / 3266.5 | 39 / 39 → 18 / 18 | 1, 0.2, 0.2 → 1, 0.1, 0.1 | 140 / 145 → 138 / 205 | 70 / 73 → 75 / 102 |
-| expose-peb-develop | 1.6 → 0.8 | 283.3 / 1866.6 / 1883.3 / 3099.8 → 233.4 / 3833.2 / 4883.2 / 4883.2 | 38 / 38 → 18 / 17 | 1, 0.2, 0.2 → 1, 0.3, 0.3 | 59 / 227 → 142 / 235 | 29 / 128 → 74 / 128 |
-| layers-interrupt | 1.1 → 0.7 | 66.7 / 5033.1 / 6933.1 / 7033.1 → 33.3 / 8766.4 / 9033 / 11599.5 | 33 / 29 → 28 / 26 | 3, 0.9, 0.5 → 4, 4.5, 1.9 | 100 / 551 → 272 / 558 | 71 / 407 → 219 / 445 |
-| explore-roundtrip | 1.2 → 1 | 533.4 / 1849.9 / 1883.3 / 1883.3 → 600 / 3099.8 / 3816.4 / 3816.4 | 23 / 23 → 21 / 20 | 3, 2.0, 1.3 → 4, 7.4, 5.1 | 553 / 641 → 359 / 797 | 408 / 454 → 119 / 536 |
-| nav-loop | 2.1 → 0.6 | 133.4 / 1450 / 4333.1 / 6916.4 → 300 / 9249.7 / 9683 / 9683 | 47 / 45 → 20 / 16 | 13, 14.1, 6.9 → 13, 23.7, 9.7 | 202 / 413 → 237 / 546 | 135 / 262 → 145 / 395 |
-| phone-coat-explore | 4.6 → 2.2 | 200 / 433.3 / 533.4 / 1350 → 450 / 866.7 / 933.4 / 933.4 | 44 / 42 → 23 / 23 | 1, 0.5, 0.5 → 1, 1.6, 1.6 | 144 / 226 → 142 / 316 | 72 / 109 → 74 / 98 |
-| watch-minute | 1.3 → 0.6 | 899.8 / 1983.4 / 2266.6 / 2533.2 → 1016.6 / 5433.1 / 7866.3 / 7866.3 | 65 / 63 → 30 / 29 | 6, 4.8, 1.8 → 7, 9.5, 5.4 | 151 / 233 → 151 / 248 | 86 / 130 → 62 / 114 |
+| home-idle | 5.5 → 3.2 | 133.3 / 483.4 / 1966.6 / 1966.6 → 33.4 / 899.9 / 1933.3 / 1933.3 | 28 / 27 → 12 / 11 | 2, 0.6, 0.5 → 3, 2.4, 2.0 | 53 / 72 → 218 / 298 | 21 / 21 → 52 / 108 |
+| arrive-transfer-scan | 1.6 → 1.1 | 66.6 / 2566.5 / 3066.6 / 3766.4 → 50 / 3616.6 / 4066.6 / 4116.6 | 31 / 29 → 26 / 24 | 7, 2.4, 1.3 → 7, 7.3, 4.0 | 192 / 265 → 210 / 277 | 114 / 154 → 125 / 161 |
+| prime-coat-softbake | 1.9 → 0.7 | 550 / 1216.7 / 1366.6 / 1666.7 → 1449.9 / 3399.9 / 4366.4 / 4366.4 | 39 / 37 → 20 / 19 | 1, 0.2, 0.2 → 1, 0.1, 0.1 | 140 / 146 → 138 / 205 | 70 / 75 → 74 / 102 |
+| expose-peb-develop | 1.7 → 0.8 | 166.6 / 1933.3 / 2749.8 / 4916.4 → 516.6 / 3583.2 / 4049.8 / 4049.8 | 41 / 40 → 21 / 20 | 1, 0.2, 0.2 → 1, 0.2, 0.2 | 59 / 228 → 158 / 245 | 29 / 127 → 74 / 117 |
+| layers-interrupt | 1.2 → 0.8 | 33.4 / 4749.9 / 7349.7 / 7983 → 116.7 / 4849.8 / 8566.2 / 9899.7 | 35 / 31 → 31 / 30 | 3, 1.0, 0.5 → 4, 3.2, 2.0 | 175 / 551 → 210 / 558 | 132 / 407 → 174 / 445 |
+| explore-roundtrip | 1.2 → 0.7 | 533.2 / 3066.6 / 4749.8 / 4749.8 → 683.4 / 4783.1 / 9566.3 / 9566.3 | 22 / 18 → 25 / 24 | 4, 10.2, 5.6 → 5, 28.9, 18.9 | 553 / 641 → 359 / 704 | 408 / 454 → 212 / 510 |
+| nav-loop | 2.2 → 0.5 | 116.6 / 2433.1 / 4299.9 / 4916.5 → 1016.6 / 6199.7 / 6749.8 / 6749.8 | 46 / 37 → 17 / 15 | 13, 8.2, 4.2 → 14, 22.4, 6.7 | 171 / 483 → 233 / 601 | 112 / 371 → 141 / 418 |
+| phone-coat-explore | 7 → 2.3 | 116.6 / 400 / 533.2 / 1500 → 450 / 899.9 / 949.9 / 949.9 | 61 / 55 → 25 / 25 | 1, 0.4, 0.4 → 1, 1.4, 1.4 | 68 / 230 → 143 / 316 | 36 / 110 → 74 / 98 |
+| watch-minute | 1.2 → 0.6 | 816.7 / 1916.6 / 2116.7 / 2450 → 1466.7 / 4799.8 / 7199.7 / 7199.7 | 60 / 56 → 27 / 26 | 6, 3.4, 1.2 → 7, 6.3, 3.2 | 151 / 232 → 155 / 248 | 86 / 128 → 65 / 114 |
 
 The moves between lessons and views, and the lessons themselves, per phase (`to-…` a move,
 `play-…` a lesson playing, as in round three): the longest frame while the camera moved (a stall
@@ -759,54 +785,55 @@ qualifies:
 
 | scenario | phase | longest frame while moving (s) | longest frame otherwise (s) | long tasks (longest, s) |
 |---|---|---|---|---|
-| home-idle | idle | 1.75 → 1.20 | 0.07 → 1.02 | 2 (0.41) → 3 (1.04) |
-| arrive-transfer-scan | cold-load | — → — | 0.47 → 1.87 | 4 (0.47) → 4 (1.88) |
-| arrive-transfer-scan | play-arrive | — → — | 1.93 → 2.28 | 0 → 0 |
-| arrive-transfer-scan | to-transfer | — → — | 2.40 → 3.90 | 1 (0.11) → 1 (0.12) |
-| arrive-transfer-scan | play-transfer | — → — | 1.23 → 3.70 | 0 → 0 |
-| arrive-transfer-scan | to-scan | — → — | 2.68 → 3.97 | 2 (2.61) → 2 (3.90) |
-| arrive-transfer-scan | play-scan | 2.40 → 1.98 | 1.12 → 1.90 | 0 → 0 |
-| prime-coat-softbake | play-prime | — → — | 1.42 → 3.02 | 0 → 0 |
-| prime-coat-softbake | to-coat | — → — | 1.22 → 3.12 | 0 → 0 |
-| prime-coat-softbake | play-coat | — → 3.00 | 1.20 → 2.88 | 0 → 0 |
-| prime-coat-softbake | to-softbake | — → — | 1.12 → 3.02 | 1 (0.21) → 1 (0.13) |
-| prime-coat-softbake | play-softbake | 0.60 → 1.38 | 1.20 → 1.50 | 0 → 0 |
-| expose-peb-develop | play-expose | — → — | 1.88 → — | 0 → 0 |
-| expose-peb-develop | to-peb | 1.73 → — | 1.87 → 4.88 | 0 → 0 |
-| expose-peb-develop | play-peb | 1.10 → — | 1.87 → 3.12 | 0 → 0 |
-| expose-peb-develop | to-develop | 0.97 → — | 1.00 → 3.83 | 1 (0.20) → 1 (0.26) |
-| expose-peb-develop | play-develop | 1.65 → 1.77 | 3.10 → 2.97 | 0 → 0 |
-| layers-interrupt | toggles | 6.93 → 2.20 | 7.03 → 11.60 | 3 (0.51) → 4 (1.85) |
-| explore-roundtrip | to-fab | 0.60 → — | — → 1.48 | 0 → 0 |
-| explore-roundtrip | to-etch | 1.23 → — | 0.75 → 3.10 | 3 (1.30) → 1 (5.05) |
-| explore-roundtrip | demo | 1.85 → 0.55 | 1.73 → 1.43 | 0 → 3 (1.31) |
-| explore-roundtrip | return | — → — | 0.02 → 2.85 | 0 → 0 |
-| explore-roundtrip | rest | — → — | 0.92 → — | 0 → 0 |
-| nav-loop | loop | 6.92 → 0.30 | 4.33 → 9.68 | 13 (6.92) → 13 (9.68) |
-| nav-loop | rest | — → — | 0.23 → — | 0 → 0 |
-| phone-coat-explore | play-coat | 0.15 → 0.02 | 1.35 → 0.93 | 0 → 0 |
-| phone-coat-explore | to-fab | — → — | 0.18 → 0.43 | 0 → 0 |
-| phone-coat-explore | fab | 0.38 → 0.83 | 0.40 → 0.87 | 1 (0.54) → 1 (1.59) |
-| watch-minute | film | 2.17 → 2.32 | 2.53 → 7.87 | 6 (1.83) → 7 (5.44) |
+| home-idle | idle | 1.97 → 1.93 | 0.08 → — | 2 (0.49) → 3 (1.96) |
+| arrive-transfer-scan | cold-load | — → — | 0.40 → 1.97 | 4 (0.38) → 4 (1.98) |
+| arrive-transfer-scan | play-arrive | — → — | 3.07 → 2.90 | 0 → 0 |
+| arrive-transfer-scan | to-transfer | — → — | 2.48 → 4.07 | 1 (0.10) → 1 (0.10) |
+| arrive-transfer-scan | play-transfer | — → — | 3.77 → 1.80 | 0 → 0 |
+| arrive-transfer-scan | to-scan | 1.15 → — | 2.63 → 4.12 | 2 (1.26) → 2 (4.03) |
+| arrive-transfer-scan | play-scan | 2.35 → 1.82 | 1.13 → 1.85 | 0 → 0 |
+| prime-coat-softbake | play-prime | — → — | 1.17 → 2.20 | 0 → 0 |
+| prime-coat-softbake | to-coat | — → — | 1.15 → 3.03 | 0 → 0 |
+| prime-coat-softbake | play-coat | 1.22 → 4.37 | 1.23 → 1.43 | 0 → 0 |
+| prime-coat-softbake | to-softbake | — → — | 1.08 → 1.68 | 1 (0.19) → 1 (0.10) |
+| prime-coat-softbake | play-softbake | — → — | 1.37 → 1.55 | 0 → 0 |
+| expose-peb-develop | play-expose | — → — | 1.83 → 4.05 | 0 → 0 |
+| expose-peb-develop | to-peb | 1.93 → — | 2.75 → 3.45 | 0 → 0 |
+| expose-peb-develop | play-peb | 2.13 → — | 1.77 → 3.28 | 0 → 0 |
+| expose-peb-develop | to-develop | 0.35 → 0.18 | 0.30 → 3.58 | 1 (0.23) → 1 (0.21) |
+| expose-peb-develop | play-develop | — → 0.03 | 4.92 → 3.13 | 0 → 0 |
+| layers-interrupt | toggles | 2.28 → 2.23 | 7.98 → 9.90 | 3 (0.46) → 4 (2.02) |
+| layers-interrupt | rest | — → — | — → — | 0 → 0 |
+| explore-roundtrip | to-fab | 0.03 → — | — → 1.65 | 0 → 0 |
+| explore-roundtrip | to-etch | 1.35 → — | 3.07 → 3.80 | 3 (3.07) → 1 (7.14) |
+| explore-roundtrip | demo | 2.67 → 0.75 | 1.92 → 1.48 | 0 → 3 (1.49) |
+| explore-roundtrip | return | — → — | 4.75 → 9.57 | 1 (5.61) → 1 (18.93) |
+| explore-roundtrip | rest | — → — | — → — | 0 → 0 |
+| nav-loop | loop | 1.77 → 0.02 | 4.92 → 6.75 | 13 (4.22) → 14 (6.74) |
+| nav-loop | rest | — → — | 0.32 → — | 0 → 0 |
+| phone-coat-explore | play-coat | 0.53 → 0.57 | 1.50 → 0.90 | 0 → 0 |
+| phone-coat-explore | to-fab | 0.45 → — | 0.23 → 0.45 | 1 (0.38) → 0 |
+| phone-coat-explore | fab | — → 0.53 | 0.33 → 0.95 | 0 → 1 (1.38) |
+| watch-minute | film | 1.87 → 3.23 | 2.45 → 7.20 | 6 (1.18) → 7 (3.23) |
 
 Resources at the end of each scenario:
 
 | scenario | geometries / textures / shader programs / JS heap MB, round three → round four |
 |---|---|
-| home-idle | 72 / 14 / 23 / 39 → 374 / 16 / 25 / 23 |
+| home-idle | 72 / 14 / 23 / 39 → 374 / 16 / 25 / 29 |
 | arrive-transfer-scan | 230 / 19 / 31 / 61 → 353 / 23 / 31 / 64 |
-| prime-coat-softbake | 150 / 16 / 24 / 59 → 264 / 21 / 27 / 54 |
-| expose-peb-develop | 274 / 21 / 25 / 66 → 383 / 28 / 28 / 62 |
-| layers-interrupt | 363 / 16 / 27 / 64 → 423 / 19 / 29 / 66 |
-| explore-roundtrip | 499 / 16 / 27 / 70 → 684 / 21 / 32 / 70 |
-| nav-loop | 451 / 22 / 35 / 90 → 605 / 24 / 37 / 77 |
-| phone-coat-explore | 195 / 14 / 22 / 68 → 397 / 18 / 25 / 62 |
-| watch-minute | 296 / 25 / 27 / 65 → 515 / 28 / 30 / 47 |
+| prime-coat-softbake | 154 / 16 / 24 / 59 → 264 / 21 / 27 / 54 |
+| expose-peb-develop | 269 / 22 / 25 / 68 → 413 / 27 / 28 / 62 |
+| layers-interrupt | 363 / 16 / 27 / 63 → 423 / 19 / 29 / 67 |
+| explore-roundtrip | 496 / 16 / 27 / 70 → 684 / 21 / 32 / 71 |
+| nav-loop | 488 / 21 / 35 / 91 → 558 / 23 / 37 / 100 |
+| phone-coat-explore | 195 / 14 / 22 / 55 → 397 / 18 / 25 / 51 |
+| watch-minute | 296 / 24 / 27 / 57 → 517 / 26 / 30 / 46 |
 
 What this shows:
 
-* **This round's look costs about half the frame rate on this renderer** (0.3–0.8 of round
-  three's, scenario by scenario). The cause was measured frame by frame on the harness clock
+* **This round's look costs about half the frame rate on this renderer** (0.2–0.7 of round
+  three's, scenario by scenario; about half in most). The cause was measured frame by frame on the harness clock
   (the time for 12 frames, drawing finished, at the `low` tier; on this round's build before its
   last fixes, none of which changes what a frame costs to draw): the cleanroom reflection
   environment that every lit surface samples. Removed at run time, it halves the frame time —
@@ -821,34 +848,38 @@ What this shows:
   cannot hold its frame rate at the `low` tier, a tier without reflections is the next step. It
   was not taken this round: without an environment, metals render almost black in this
   renderer, and every picture of the round would change.
-* **Moves.** In the middle of the moves between lessons the longest frames are shorter or gone
-  (the navigation loop 6.9 → 0.3 s, the layers' toggles 6.9 → 2.2 s, the explorer's
-  demonstration 1.9 → 0.6 s; the moves to the post-exposure bake and to the developer 1.7 and
-  1.0 s → none), but with frames this slow a move spans only a few of them, so that column says
+* **Moves.** In the middle of the moves the longest frames are shorter or gone in most
+  scenarios (the navigation loop 1.8 → 0.02 s, the explorer's demonstration 2.7 → 0.8 s, the
+  moves to the post-exposure bake and to the scanner 1.9 and 1.2 s → none; the layers' toggles
+  2.3 → 2.2 s), but with frames this slow a move spans only a few of them, so that column says
   less than it did in round three. The long blocks come while the picture is held for a machine
-  being prepared, and they are longer than round three's (the navigation loop 4.3 → 9.7 s, the
-  layers 7.0 → 11.6 s, the explorer's move to the etch cluster 0.8 → 3.1 s, Watch
-  2.5 → 7.9 s). Elsewhere, frames are simply slower while the camera moves (following the
-  process in the coat lesson: 3.0 s; the phone's explorer view of the fab 0.4 → 0.8 s).
+  being prepared, and they are longer than round three's (the navigation loop 4.9 → 6.8 s, the
+  layers 8.0 → 9.9 s, the explorer's return to the lesson 4.8 → 9.6 s, Watch 2.5 → 7.2 s).
+  Where they fall varies from run to run: the explorer round trip, run twice more on the final
+  build and twice on the build before the dialog fix, had its longest blocks of 4.7–6.1 s on the
+  way to the bay, to the etch cluster or back to the lesson depending on the run (on the way
+  back: none, 5.1 s, 6.0 s and none), against the 18.9 s block of the table's run there. Elsewhere, frames are simply
+  slower while the camera moves (following the process in the coat lesson: 4.4 s; Watch
+  1.9 → 3.2 s).
 * **Shader programs compiled during moves** (`scripts/programs.mjs`: every program link, every
   call that blocked the page for over 15 ms after it, and whether the camera was moving; real
   time, one run at a time on an idle machine). From the CD-SEM to the etch cluster (`--step
   adi`): round three links one shadow depth program in the middle of the move in (1.3 and
   2.5 s blocks in two runs); this round before its fix linked two (the first a 12.7 s block,
   measured under load); the final build links none and has no long task, in two runs, the move
-  taking 3.0–3.5 s. From the inspection tool to the wet clean (`--step transfer`): all builds
-  link the same two small programs of the wet clean's preparation (compiled in parallel,
-  nothing blocked for over 15 ms) in the last 0.1 s of the move; the longest task in the whole
-  run was 0.27 s on round three's build and 0.18 s on the final build.
+  taking 4.7–5.2 s (it now pans round: see *Continuity*). From the inspection tool to the wet
+  clean (`--step transfer`): all builds link the same two small programs of the wet clean's
+  preparation near the end of the move, and nothing blocked for over 15 ms; the longest task in
+  the whole run was 0.27 s on round three's build and 0.17 s on the final build.
 * **Resources.** At the end of each scenario round four holds more geometries (the lit housings
-  are more, smaller meshes: the home view 72 → 374), 2–7 more textures and 0–5 more shader
-  programs, and about the same JS heap (−18 to +3 MB). The real-time `nav-loop` is not a leak
-  check: its counts at the end depend on which machines are still loaded when it stops (in two
-  runs of this build 254 and 605 geometries; of round three's, 332 and 451). The check is
+  are more, smaller meshes: the home view 72 → 374), 2–5 more textures and 0–5 more shader
+  programs, and about the same JS heap (−11 to +9 MB). The real-time `nav-loop` is not a leak
+  check: its counts at the end depend on which machines are still loaded when it stops (in three
+  runs of round four's builds 254, 558 and 605 geometries; of round three's, 332, 451 and 488). The check is
   `e2e/continuity.spec.ts` "going back and forth through the lessons does not accumulate GPU
   resources": the same loop twice, frame by frame, the second adding at most 10 % geometries,
   4 textures and 2 programs.
-* **Watch** covered 33.6 s of film in a minute of wall clock (round three 43.1 s): the film now
+* **Watch** covered 32.2 s of film in a minute of wall clock (round three 42.3 s): the film now
   stops its clock and narration while a machine it needs is being prepared (see *Continuity*),
   which on this renderer happens often; round three played the sound on over a held picture.
 * A fresh load of the explorer's scanner view keeps the page busy for 4–8 s before it answers
@@ -860,18 +891,21 @@ as described in [`docs/ROUND3.md`](ROUND3.md#measure-it-on-your-hardware).
 
 ## Verification: commands and results
 
-On the final build — application code at `65f4e12`; the commits after it on the branch add
-only this document's results and recordings — on the machine described under *Method*:
+On the final build — application code at `822bb0f`; the commits after it on the branch add
+only this document's results and recordings, one test's time budget and a wait in the clip
+recorder (below) — on the machine described under *Method*:
 
 | command | result |
 |---|---|
 | `npm run typecheck` | passes (`tsc -b`: the app, the unit tests, and the Playwright specs and configs; no errors) |
 | `npm test` | 63 tests in 5 files pass: round three's 42, and 21 new in `src/three/stage/round4.test.ts` (section cuts; camera routes: back out, move in, pan round between facing machines; the room; out of the layers to another machine from your die — the machine's framing, a dissolve, upward; reveal in place; the lithography cell; the stage clock under a dialog) |
 | `npm run build` | succeeds (`tsc -b && vite build`; vite's part 1.3–2.4 s): the site is 43 files, 2.4 MB, listed with their sha256 in `dist/app-files.json`; with the film's narration (4.5 MB) the offline download is still about 7 MB |
-<!--E2E-RESULT-->
+| `npx playwright test` (the whole suite, desktop, tablet and phone; `playwright.config.ts`) on `822bb0f` | 98 passed, 84 skipped (tests that run at some sizes only), 1 failed, in 3.6 h (02:54–06:29): the desktop run of `modes.spec.ts` "Explore fab pauses the lesson; returning restores it exactly and offers Resume" ran out of its 12-minute budget while still stepping frames, with no assertion failed (creating its browser context alone took 190 s, behind the previous test's work on the renderer). Round three's build needs 8.2 of those minutes there; the same test passed at the tablet and phone sizes in 8.8 and 4.6 minutes (round three 4.3 and 2.5). Run alone on the same build it passes in 11.5 minutes, 96 % of that budget, which is now 25 minutes (below). |
 | `node scripts/perf.mjs <base> <out.json> --label …`, round three's build and this one | the tables in [Real-time playback](#real-time-playback-software-rendering) |
 | `node scripts/programs.mjs <base> --step adi` and `--step transfer`, both builds | shader programs during moves, same section |
-| `node scripts/stills.mjs <base> scripts/round4/stills-desktop.json <dir>` (and `stills-phone.json`), `scripts/frames.mjs`, `node scripts/record.mjs scripts/recordings/r4-0N-….json` | the stills, frame sequences and clips in `docs/recordings/round4/` |
+| `node scripts/perf.mjs <base> <out.json> --scenarios … --video <dir>`, both builds | the real-time screencasts in [Before and after](#before-and-after) |
+| `node scripts/dialog-latency.mjs <base> --runs 3`, round three's build, this round's before the dialog fix and the final build | the Chapters timings in *Continuity* |
+| `node scripts/stills.mjs <base> scripts/round4/stills-desktop.json <dir>` (and `stills-phone.json`), `scripts/frames.mjs`, `node scripts/record.mjs scripts/recordings/r4-0N-….json` | the stills, frame sequences and clips in `docs/recordings/round4/`; the clips were recorded again on the final build. The recorder now waits for the picture of the setup's last frame before it captures: the zoom-reversal clip's 150 setup frames took about two minutes to reach the screen on this renderer, and its first capture ran out of its 120 s twice |
 
 The runs before the last one: the first full run, on the build before the player's fixes
 (`cd29ffc`), was stopped after the first 30 desktop tests, 29 passed and one failed — round
@@ -881,7 +915,10 @@ failing: the film now waits for a loading machine (the test was adapted, below);
 it found the two gaps in the player's hold (fixed, with a new test). A second full run, on
 `0e35bcf`, was stopped after two tests when the review of the recordings found the CD-SEM →
 etch floor frame (fixed; the whole course was then walked move by move, see *Continuity*).
-<!--E2E-BASELINE-->
+**Baseline.** Round three's own suite on round three's build (`be6bf3f`, built from a separate
+checkout and served the same way, on the same machine and browser): 79 passed, 50 skipped,
+0 failed, in 1.4 h — what round three reported (the skips are the suite's own: tests that run
+on some of the three projects only).
 
 **New tests this round**, and where each requirement of the brief is covered (the round-three
 tests named here still pass on this round's build):
@@ -914,12 +951,16 @@ at its first check on `65f4e12` (the drawer in the page with an opacity of 0).
 No assertion was loosened and no test skips a failure; the new frame-by-frame tests run once, at
 the desktop size (they step frames and read pixels), and their waits are conditions (the camera
 settled, a machine ready, a frame rendered), except where real time is the scenario (a module
-held back at the network until released; fresh browsers given 15 s to answer). One time budget
-was raised: round three's "reversing the cross-section fade at any point never jumps" steps
-every frame of six reversals and a burst, which took 14–15 minutes on this renderer; with round
-four's frames costing about twice as much there (see *Real-time playback*), it ran out of its
-25 minutes on this build, alone, while still reversing (no assertion had failed), and now has
-45; it passes in 32. One round-three test was adapted to this round's Watch policy:
+held back at the network until released; fresh browsers given 15 s to answer; the Chapters test
+watching for 2 s that nothing is drawn under the drawer). Two time budgets were raised, both
+round three's tests that step every frame, with round four's frames costing about twice as
+much on this renderer (see *Real-time playback*): "reversing the cross-section fade at any
+point never jumps" steps every frame of six reversals and a burst, which took 14–15 minutes;
+it ran out of its 25 minutes on this build, alone, while still reversing (no assertion had
+failed), and now has 45 (it passes in 32–35). `modes.spec.ts` "Explore fab pauses the lesson…"
+took 8.2 of its 12 minutes at the desktop size on round three's build; on this one it passes
+alone in 11.5 and ran out of time in the whole suite (above), and now has 25. One round-three
+test was adapted to this round's Watch policy:
 `watch.spec.ts` "narration drives the film clock…" timed the film at 1.5× over the two seconds
 right after a seek into the track's lessons, which on this renderer the film now spends partly
 waiting for the track (it found 1.31 s of film where it needs 2.2). It now waits until the

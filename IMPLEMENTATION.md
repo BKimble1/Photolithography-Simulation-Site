@@ -754,6 +754,18 @@ test explains the cause.
   step-and-scan meander) are continuous; tracks pass through intermediate framings on time
   and velocity-continuous, and hold on repeated framings; the wafer changes hands halfway
   along the first move between machines; the starting quality tier follows the device.
+  *Round four:* `src/three/stage/round4.test.ts` — section cuts (a closed wedge cuts nothing of
+  its chamber, an open one exactly its sector, for plain, turned and mirrored chambers; a
+  chamber opens only once its housing is open and closes before it; a lid wipes from the
+  front); camera routes (leaving a wafer close-up the camera backs out along its line of sight,
+  the move in from an establishing shot is direct, between machines facing each other across
+  the aisle it pans round and never looks steeper than its two framings); the room
+  (establishing shots over the aisle and under the ceiling with a lens that keeps the framing,
+  a narrow screen's fit inside the room, the etch → polisher move under the ceiling); leaving
+  your die for another machine (the machine's own framing, a dissolve, upward from the load
+  lock); *Inspect layers* in place where the wafer is out of view, and back; the lithography
+  cell (process order, short carries, the scanner east of the track, the immersion gap); the
+  stage clock under a dialog.
 * `npm run e2e` — Playwright against the production build at desktop (1440 × 900), tablet
   (1024 × 768, touch) and phone (390 × 844, touch) sizes. Any console error fails a test.
   * `layout` — wordmark, headline and actions never collide or overflow at ten sizes (from
@@ -803,10 +815,23 @@ test explains the cause.
     machine is ready and the stage shows the new time, then dissolve, never showing two wafers
     or an empty frame. `offline` also checks that the cross-section's
     worker comes from the saved build.
+  * *Round four* (`round4`, frame by frame at desktop size unless noted): a machine is shown
+    closed, opens as the camera moves in and its chamber after it; each machine of the
+    lithography loop keeps its parts and your wafer inside its housing's outline; the camera
+    travels through free space (seven moves: the path ray-cast between frames, every frame's
+    luminance spread above a floor, no one-frame jump); the magnified inset (desktop and
+    phone) and its absence over the layers; Watch waits for a machine that is still loading
+    (harness clock, and in real time with the narration: *Play*, a seek, a background tab); no
+    shader program is linked in the middle of the move to the etch cluster; the last lesson
+    loads in fresh browsers without freezing; Chapters over a busy stage in real time (opaque
+    as it appears, not one frame of the stage under it, the lesson and the stage clock still, one
+    redraw after a resize) and every chapter's first lesson opened from the drawer (desktop and
+    phone); reduced motion opens a machine and its chamber at once.
 
   Frame-stepped tests (`?virt=1`) step until the camera has arrived (`settle`) rather than a
   fixed number of frames. On the build machine (software WebGL, 4 cores) the whole suite
-  takes about an hour.
+  took 1.4 hours on round three's build and 3.6 on round four's (whose frames cost about twice
+  as much there).
 * `npm run screenshots` — regenerates `docs/screenshots/round2/`.
 * `node scripts/cue-alignment.mjs` — decodes the narration in the browser and compares where
   speech starts and ends with the cue times the film uses.

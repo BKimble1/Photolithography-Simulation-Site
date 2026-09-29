@@ -89,7 +89,9 @@ also run on machines without a GPU. If Playwright's browser isn't installed yet,
 ### Learn
 
 * **Start learning** (or **Resume learning**) on the home page. The header shows the
-  chapter, the step's title and its number; **Chapters** opens a drawer with every step.
+  chapter, the step's title and its number; **Chapters** opens a drawer with every step. The
+  lesson waits behind it, as it does behind **Look closer** and the other panels, and carries
+  on from where it was when the panel closes.
 * Each step has one sentence, at most one control and **Continue**. A short caption beside
   the animation says what is happening now; "What changes" and "Why it matters" appear in the
   panel as the step plays. **Replay** plays the step again, and the scrubber seeks within it.
@@ -196,7 +198,8 @@ recordings (`docs/recordings/round3/`) add real-time clips captured on the softw
 before and after the changes, which show the stalls as they happened; see
 [`docs/ROUND3.md`](docs/ROUND3.md#recordings). Round four's (`docs/recordings/round4/`) are
 frame-stepped clips of the new equipment and moves, matched before-and-after stills of round
-three's build and this one, and frame sequences of the moves it fixed; see
+three's build and this one, frame sequences of the moves it fixed, and real-time screencasts of
+both builds on the software renderer; see
 [`docs/ROUND4.md`](docs/ROUND4.md#before-and-after).
 
 ## Project layout

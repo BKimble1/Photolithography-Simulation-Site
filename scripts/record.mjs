@@ -62,6 +62,9 @@ for (const st of spec.setup ?? []) {
   if (st.key) await page.keyboard.press(st.key);
 }
 const t0 = spec.film ? await page.evaluate(() => window.__fabFilm.filmPlayer().t) : 0;
+// The frames the setup drew can still be queued on a software renderer (the gate etch's
+// 150 took about two minutes to reach the screen): wait for the picture before capturing.
+await page.screenshot({ timeout: 600000 });
 const started = Date.now();
 for (let i = 0; i < spec.frames; i++) {
   for (const ev of spec.during ?? []) if (ev.frame === i) await page.evaluate(ev.eval);
